@@ -10,6 +10,7 @@ from lchandler.plots.lc import plot_lightcurve
 ###################################################################################################################################################
 
 def get_errors_txt(trace, b):
+	assert 0
 	mean = trace.get_errors_mean()
 	txt = f'{b}-error: '
 	if mean is None:

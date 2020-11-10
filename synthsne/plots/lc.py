@@ -56,7 +56,7 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	###
 	ax = axs[1]
 	for b in band_names:
-	    plot_lightcurve(ax, lcobj, b, label=f'{b} observation', alpha=0.5)
+	    plot_lightcurve(ax, lcobj, b, label=f'{b} observation', alpha=0.333)
 	    for k,new_lcobj in enumerate([new_lcobjs[idx]]):
 	        plot_lightcurve(ax, new_lcobj, b, label=f'{b} observation' if k==0 else None)
 	        

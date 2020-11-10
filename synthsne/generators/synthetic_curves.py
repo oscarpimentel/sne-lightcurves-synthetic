@@ -278,10 +278,6 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 	def get_p0(self, lcobjb, pm_bounds):
 		days, obs, obs_error = lu.extract_arrays(lcobjb)
 
-		### checks
-		if len(days)<C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT: # min points to even try a curve fit
-			raise ex.TooShortCurveError()
-
 		### utils
 		new_days = days-days[0]
 		min_flux = np.min(obs)
@@ -487,6 +483,10 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				trace.add(pm_args, pm_bounds, True)
 
 		except ex.PYMCError:
+			for _ in range(max(n, self.n_trace_samples)):
+				trace.add(None, None, False)
+		
+		except ex.TooShortCurveError:
 			for _ in range(max(n, self.n_trace_samples)):
 				trace.add(None, None, False)
 		

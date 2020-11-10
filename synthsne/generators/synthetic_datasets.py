@@ -34,7 +34,7 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 				bar(f'method: {method} - add_original: {add_original} - set_name: {set_name} - lcobj_name: {lcobj_name} - ignored: {ignored}')
 				lcobj = lcset[lcobj_name]
 				sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict)
-				new_lcobjs, new_smooth_lcojbs, trace_bdict = sne_generator.sample_curves(synthetic_samples_per_curve)
+				new_lcobjs, new_smooth_lcojbs, trace_bdict, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
 
 				## save files and images
 				method_folder = method if not ignored else f'{method}_ignored'
@@ -45,6 +45,7 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 					'c':class_names[lcobj.y],
 					'new_lcobjs':new_lcobjs,
 					'trace_bdict':trace_bdict,
+					'has_corrects_samples':has_corrects_samples,
 				}
 				save_filedir = None if save_rootdir is None else f'{save_rootdir}/{lcset.survey}/{method_folder}/{lcobj_name}.synsne'
 				save_pickle(save_filedir, to_save, verbose=0) # save error file

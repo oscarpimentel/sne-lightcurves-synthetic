@@ -79,6 +79,9 @@ class Trace():
 		assert k<len(self)
 		return self.fit_errors[k] if self.correct_fit_tags[k] else None
 
+	def has_corrects_samples(self):
+		return any(self.correct_fit_tags)
+
 	def __len__(self):
 		return len(self.pm_args_l)
 
@@ -121,7 +124,9 @@ class SynSNeGenerator():
 	def reset(self):
 		pass
 
-	def sample_curves(self, n):
+	def sample_curves(self, n,
+		return_has_corrects_samples=False,
+		):
 		new_lcobjs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
 		new_smooth_lcojbs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
 		trace_bdict = {}
@@ -135,7 +140,11 @@ class SynSNeGenerator():
 			for new_smooth_lcojb,new_smooth_lcobjb in zip(new_smooth_lcojbs, new_smooth_lcobjbs):
 				new_smooth_lcojb.add_sublcobj_b(b, new_smooth_lcobjb)
 
-		return new_lcobjs, new_smooth_lcojbs, trace_bdict
+		has_corrects_samples = any([trace_bdict[b].has_corrects_samples() for b in self.band_names])
+		if return_has_corrects_samples:
+			return new_lcobjs, new_smooth_lcojbs, trace_bdict, has_corrects_samples
+		else:
+			return new_lcobjs, new_smooth_lcojbs, trace_bdict
 
 	def get_pm_trace_b(self, b, n): # override this method
 		trace = Trace(self.pm_features)
@@ -399,7 +408,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 
 		cores=2,
-		n_tune=500, # 500, 1000
+		n_tune=1000, # 500, 1000
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -429,6 +438,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		basic_model = pm.Model()
 		with basic_model:
 			try:
+			#if 1:
 				A = pm.Uniform('A', *pm_bounds['A'])
 				t0 = pm.Uniform('t0', *pm_bounds['t0'])
 				#gamma = pm.Normal('gamma', mu=35, sigma=10)
@@ -442,9 +452,10 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				s = pm.Uniform('s', *pm_bounds['s'])
 				#g = pm.Bernoulli('g', 0.5)
 
-				pm_obs = pm.Normal('pm_obs', mu=self.func(days, A, t0, gamma, f, trise, tfall, s), sigma=obs_error, observed=obs)
+				pm_obs = pm.Normal('pm_obs', mu=self.func(days, A, t0, gamma, f, trise, tfall, s), sigma=obs_error*0.5, observed=obs)
+				#pm_obs = pm.Normal('pm_obs', mu=self.func(days, A, t0, gamma, f, trise, tfall, s), sigma=np.sqrt(obs_error), observed=obs)
 				#pm_obs = pm.Normal('pm_obs', mu=self.func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error, observed=obs)
-				#pm_obs = pm.StudentT('pm_obs'. nu=5, mu=pm_obs, sigma=obs_error, observed=obs)
+				#pm_obs = pm.StudentT('pm_obs', nu=5, mu=pm_obs, sigma=obs_error, observed=obs)
 
 				# trace
 				#step = pm.Metropolis()
@@ -457,7 +468,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				raise ex.PYMCError()
 			except AssertionError:
 				raise ex.PYMCError()
-			except RuntimeError:
+			except RuntimeError: # Chain 0 failed.
 				raise ex.PYMCError()
 
 		return mcmc_trace

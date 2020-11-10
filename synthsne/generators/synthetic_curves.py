@@ -11,6 +11,8 @@ from . import lc_utils as lu
 from . import funcs as f_
 from . import bounds as b_
 from . import metrics as metrics
+from flamingchoripan.datascience.statistics import XError
+from flamingchoripan.strings import trunc
 
 ###################################################################################################################################################
 
@@ -67,17 +69,12 @@ class Trace():
 	def get_valid_errors(self):
 		return [self.fit_errors[k] for k in range(len(self)) if self.correct_fit_tags[k]]
 
-	def get_errors_mean(self):
-		errors = self.get_valid_errors()
-		return None if len(errors)==0 else np.mean(errors)
+	def get_xerror(self):
+		return XError(self.get_valid_errors(), 0)
 
-	def get_errors_std(self):
-		errors = self.get_valid_errors()
-		return None if len(errors)==0 else np.std(errors)
-
-	def get_error(self, k):
+	def get_str_error_k(self, k):
 		assert k<len(self)
-		return self.fit_errors[k] if self.correct_fit_tags[k] else None
+		return trunc(self.fit_errors[k]) if self.correct_fit_tags[k] else trunc(None)
 
 	def has_corrects_samples(self):
 		return any(self.correct_fit_tags)
@@ -489,5 +486,5 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		except ex.TooShortCurveError:
 			for _ in range(max(n, self.n_trace_samples)):
 				trace.add(None, None, False)
-		
+
 		return trace

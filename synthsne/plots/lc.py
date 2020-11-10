@@ -9,23 +9,6 @@ from lchandler.plots.lc import plot_lightcurve
 
 ###################################################################################################################################################
 
-def get_errors_txt(trace, b):
-	assert 0
-	mean = trace.get_errors_mean()
-	txt = f'{b}-error: '
-	if mean is None:
-		return txt+'-'
-	else:
-		return txt+f'{mean:.2f}$\pm${trace.get_errors_std():.1f}'
-
-def get_error_txt(trace, b, k):
-	error = trace.get_error(k)
-	txt = f'{b}-error: '
-	if error is None:
-		return txt+'-'
-	else:
-		return txt+f'{error:.2f}'
-
 def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcobjs, new_smooth_lcojbs,
 	trace_bdict=None,
 	figsize:tuple=(13,6),
@@ -47,7 +30,7 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	        ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.15, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
 	title = f'multiband light curve & parametric model samples\n'
-	title += f'method: {method} - '+' - '.join([get_errors_txt(trace_bdict[b], b) for b in band_names])+'\n'
+	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
 	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'
 	ax.set_title(title)
 	ax.legend(loc='upper right')
@@ -63,7 +46,7 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	        
 	ax.grid(alpha=0.5)
 	title = f'multiband light curve & synthetic curve example\n'
-	title += f'method: {method} - '+' - '.join([get_error_txt(trace_bdict[b], b, idx) for b in band_names])+'\n'
+	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_str_error_k(idx)}' for b in band_names])+'\n'
 	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'
 	ax.set_title(title)
 	ax.legend(loc='upper right')

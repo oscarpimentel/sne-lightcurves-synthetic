@@ -46,11 +46,11 @@ def get_pm_bounds(lcobjb, class_names,
 			'A':(max_flux / 3, max_flux * 3),
 			't0':(day_max_flux-30, day_max_flux+10),
 			#'gamma':(3, 100),
-			'gamma':(5, 100),
+			'gamma':(5, 100), # gamma is important important
 			'f':(0, 1),
-			'trise':(1, 20),
+			'trise':(1, 18),
 			'tfall':(5, 100),
-			's':(1/3, 3),
+			's':(1e-1, 1e1),
 			'g':(0, 1), # use with bernoulli
 		}
 		pm_bounds_slsn = {
@@ -97,7 +97,7 @@ def get_pm_times(func, inv_func, lcobjb, pm_args, pm_features, pm_bounds,
 	### tf
 	#search_range = tmax-pm_bounds['tfall'][-1], tmax
 	#search_range = tmax, tmax+pm_bounds['tfall'][-1]*3
-	search_range = tmax, max(tmax, last_day)+pm_bounds['tfall'][-1]
+	search_range = tmax, max(tmax, last_day)+pm_bounds['tfall'][-1]*0.5
 	tf = get_min_tfunc(search_range, func, func_args, min_obs_threshold)
 
 	assert tmax>=ti

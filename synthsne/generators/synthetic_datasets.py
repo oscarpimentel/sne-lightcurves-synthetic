@@ -22,8 +22,8 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 	band_names = lcset.band_names
 	class_names = lcset.class_names
 
-	synth_lcset = lcset.copy({}) # copy
-	lcdataset.set_lcset(f'synth_{set_name}', synth_lcset)
+	#synth_lcset = lcset.copy({}) # copy
+	#lcdataset.set_lcset(f'synth_{set_name}', synth_lcset)
 
 	can_be_in_loop = True
 	bar = ProgressBar(len(lcset))
@@ -34,25 +34,28 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 				bar(f'method: {method} - add_original: {add_original} - set_name: {set_name} - lcobj_name: {lcobj_name} - ignored: {ignored}')
 				lcobj = lcset[lcobj_name]
 				sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict)
-				new_lcobjs, new_lcobjs_pm, fit_errors_bdict = sne_generator.sample_curves(synthetic_samples_per_curve)
+				new_lcobjs, new_smooth_lcojbs, trace_bdict = sne_generator.sample_curves(synthetic_samples_per_curve)
 
 				## save files and images
 				method_folder = method if not ignored else f'{method}_ignored'
 				to_save = {
 					'lcobj_name':lcobj_name,
+					'lcobj':lcobj,
 					'band_names':band_names,
 					'c':class_names[lcobj.y],
-					'error_bdict':fit_errors_bdict,
+					'new_lcobjs':new_lcobjs,
+					'trace_bdict':trace_bdict,
 				}
-				save_filedir = None if save_rootdir is None else f'{save_rootdir}/{lcset.survey}/{method_folder}/{lcobj_name}.ferror'
+				save_filedir = None if save_rootdir is None else f'{save_rootdir}/{lcset.survey}/{method_folder}/{lcobj_name}.synsne'
 				save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 				plot_kwargs = {
-					'fit_errors_bdict':fit_errors_bdict,
+					'trace_bdict':trace_bdict,
 					'save_filedir':None if save_rootdir is None else f'{save_rootdir}/{lcset.survey}/{method_folder}/{lcobj_name}.png',
 				}
-				plot_synthetic_samples(lcdataset, set_name, method, lcobj_name, new_lcobjs, new_lcobjs_pm, **plot_kwargs)
+				plot_synthetic_samples(lcdataset, set_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
 
+				'''
 				### add to new dataset
 				if not ignored: # only when not-ignored
 					for knl,new_lcobj in enumerate(new_lcobjs):
@@ -63,6 +66,7 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 				### add original, even if ignored by mcmc fails
 				if add_original:
 					synth_lcset.set_lcobj(f'{lcobj_name}.0', lcobj.copy())
+				'''
 
 		except KeyboardInterrupt:
 			can_be_in_loop = False

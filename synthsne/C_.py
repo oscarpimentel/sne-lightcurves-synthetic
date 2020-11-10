@@ -2,8 +2,8 @@ import numpy as np
 
 ###################################################################################################################################################
 EPS = 1e-12
-N_TRACE_SAMPLES = 0
-ERROR_SCALE = 1e1
+N_TRACE_SAMPLES = 1000
+ERROR_SCALE = 1e2
 
 ### EXPORT
 N_DASK = 4
@@ -23,8 +23,8 @@ EXT_FATS_LIGHTCURVE = 'flcd' # with sigma clipping and FATS
 ### SYNTHETIC
 OBSE_STD_SCALE = 1
 CPDS_P = 0.015 # curve points down sampling probability
-HOURS_NOISE_AMP = 16
-MIN_CADENCE_DAYS = 3
+HOURS_NOISE_AMP = 16.
+MIN_CADENCE_DAYS = 3.
 MAX_OBS_ERROR = 1e10
 
 ### LC GENERAL

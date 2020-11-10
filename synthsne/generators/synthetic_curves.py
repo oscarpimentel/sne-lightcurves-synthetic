@@ -42,10 +42,10 @@ class Trace():
 
 	def get_fit_errors(self, lcobjb, func):
 		for k in range(len(self)):
-			fit_error = None
+			fit_error = np.infty
 			if self.correct_fit_tags[k]:
 				days, obs, obs_error = lu.extract_arrays(lcobjb)
-				fit_error = metrics.wmse_error_syn_sne(days, obs, obs_error, func, [self.pm_args_l[k][pmf] for pmf in self.pm_features])
+				fit_error = metrics.swmse_error_syn_sne(days, obs, obs_error, func, [self.pm_args_l[k][pmf] for pmf in self.pm_features])
 
 			self.fit_errors.append(fit_error)
 
@@ -139,15 +139,14 @@ class SynSNeGenerator():
 
 	def get_pm_trace_b(self, b, n): # override this method
 		trace = Trace(self.pm_features)
-		for _ in range(max(n, self.n_trace_samples)):
+		for k in range(max(n, self.n_trace_samples)):
 			try:
 				pm_bounds = b_.get_pm_bounds(self.lcobj.get_b(b), self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
 				pm_args = {pmf:np.random.uniform(*pm_bounds[pmf]) for pmf in self.pm_features}
-				correct_fit_tag = 1
+				trace.add(pm_args, pm_bounds, True)
 			except ex.TooShortCurveError:
-				pm_args = None
-				correct_fit_tag = 0
-			trace.add(pm_args, pm_bounds, correct_fit_tag)
+				trace.add(None, None, False)
+			
 		return trace
 
 	def sample_curves_b(self, b, n):
@@ -161,15 +160,21 @@ class SynSNeGenerator():
 		curve_sizes = self.length_sampler_bdict[b].sample(n)
 		for k in range(n):
 			pm_args, pm_bounds, correct_fit_tag = trace[k]
-			if not correct_fit_tag:
-				raise ex.TraceError()
-			pm_times = b_.get_pm_times(self.func, self.inv_func, lcobjb, pm_args, self.pm_features, pm_bounds, self.min_obs_bdict[b])
-			min_obs_threshold = self.min_obs_bdict[b]
-			max_obs_threshold = lcobjb.obs.max()*10
 			try:
+				if not correct_fit_tag:
+					raise ex.TraceError()
+				pm_times = b_.get_pm_times(self.func, self.inv_func, lcobjb, pm_args, self.pm_features, pm_bounds, self.min_obs_bdict[b])
+				min_obs_threshold = self.min_obs_bdict[b]
+				max_obs_threshold = lcobjb.obs.max()*10
 				new_lcobjb = self.__sample_curve__(lcobjb, pm_times, pm_args, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, max_obs_threshold, False)
 				new_smooth_lcobjb = self.__sample_curve__(lcobjb, pm_times, pm_args, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, max_obs_threshold, True)
+
 			except ex.SyntheticCurveTimeoutError:
+				trace.correct_fit_tags[k] = False # update
+				new_lcobjb = lcobjb.synthetic_copy()
+				new_smooth_lcobjb = lcobjb.synthetic_copy()
+
+			except ex.TraceError:
 				trace.correct_fit_tags[k] = False # update
 				new_lcobjb = lcobjb.synthetic_copy()
 				new_smooth_lcobjb = lcobjb.synthetic_copy()
@@ -392,6 +397,9 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+
+		cores=2,
+		n_tune=500, # 500, 1000
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -403,35 +411,24 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			min_synthetic_len_b,
 			min_required_points_to_fit,
 			)
+		self.cores = cores
+		self.n_tune = n_tune
 		#self.mcmc_trace_bdict = {}
 		
-	'''
-	def get_mcmc_traces(self, b, n,
-		cores=2,
-		n_tune=500, # 500, 1000
-		n_samples=1000, # 1000, 2000
-		):
-		lcobjb = self.lcobj.get_b(b).copy() # copy
+	def get_mcmc_trace(self, lcobjb, pm_bounds, n):
 		days, obs, obs_error = lu.extract_arrays(lcobjb)
-
-		### checks
-		assert n%cores==0
-		if len(days)<C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT: # min points to even try a curve fit
-			raise ex.TooShortCurveError()
 		
 		### pymc3
 		trace_kwargs = {
-			'tune':n_tune, # burn-in steps
-			'cores':cores,
+			'tune':self.n_tune, # burn-in steps
+			'cores':self.cores,
 			'progressbar':False,
 			'target_accept':1., # 0.95, 1
 		}
-		pm_bounds = self.get_pm_bounds(lcobjb)[self.c]
 		import logging; logger = logging.getLogger('pymc3'); logger.setLevel(logging.ERROR) # remove logger
 		basic_model = pm.Model()
 		with basic_model:
 			try:
-			#if 1:
 				A = pm.Uniform('A', *pm_bounds['A'])
 				t0 = pm.Uniform('t0', *pm_bounds['t0'])
 				#gamma = pm.Normal('gamma', mu=35, sigma=10)
@@ -452,82 +449,34 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				# trace
 				#step = pm.Metropolis()
 				#step = pm.NUTS()
-				mcmc_trace = pm.sample(n_samples, **trace_kwargs)
+				mcmc_trace = pm.sample(max(n, self.n_trace_samples), **trace_kwargs)
 
 			#try:
 			#	pass
 			except ValueError:
-				raise ex.MCMCError()
+				raise ex.PYMCError()
 			except AssertionError:
-				raise ex.MCMCError()
+				raise ex.PYMCError()
 			except RuntimeError:
-				raise ex.MCMCError()
+				raise ex.PYMCError()
 
-		mcmc_pm_args = [{pmf:mcmc_trace[pmf][i] for pmf in self.pm_features} for i in range(0, n_samples)]
-		mcmc_errors = [metrics.wmse_error_syn_sne(days, obs, obs_error, self.func, [pm_args[pmf] for pmf in self.pm_features]) for pm_args in mcmc_pm_args]
-		return mcmc_pm_args, lcobjb, n_samples, mcmc_errors, mcmc_trace
+		return mcmc_trace
 
-	@override
-	def sample_curve_b(self, b, n):
-		try:
-			mcmc_pm_args, lcobjb, n_samples, mcmc_errors, mcmc_trace = self.get_mcmc_traces(b, n)
-			sorted_indexs = np.argsort(mcmc_errors)
-			self.mcmc_trace_bdict[b] = mcmc_trace # to debug and plot traces
-		except ex.TooShortCurveError:
-			return [self.lcobj.get_b(b).copy() for kn in range(n)], [self.lcobj.get_b(b).copy() for kn in range(n)], [0]*n
-		except ex.MCMCError:
-			return [self.lcobj.get_b(b).copy() for kn in range(n)], [self.lcobj.get_b(b).copy() for kn in range(n)], [0]*n
-
-		curve_lengths = self.length_sampler_bdict[b].sample(n)
-		new_lcobjbs = []
-		new_lcobjbs_pm = []
-		fit_errors = []
-		#rindexs = np.random.permutation(np.arange(0, n_samples))
-		for kn in range(n):
-			idx = sorted_indexs[kn]
-			try:
-				pm_args = mcmc_pm_args[idx]
-				fit_error = mcmc_errors[idx]
-				#print(fit_error)
-				#print(pm_args['gamma'])
-				pm_times = self.get_pm_times(lcobjb, pm_args, b)
-				new_lcobjb = self.__sample_curve__(pm_times, pm_args, curve_lengths[kn], lcobjb, b)
-				new_lcobjb_pm = self.__sample_curve__(pm_times, pm_args, curve_lengths[kn], lcobjb, b, True)
-			except ex.TooShortCurveError:
-				new_lcobjb = self.lcobj.get_b(b).copy() # just use the original
-				new_lcobjb_pm = self.lcobj.get_b(b).copy() # just use the original
-				fit_error = 0
-			except ex.SyntheticCurveTimeoutError:
-				new_lcobjb = self.lcobj.get_b(b).copy() # just use the original
-				new_lcobjb_pm = self.lcobj.get_b(b).copy() # just use the original
-				fit_error = 0
-
-			new_lcobjbs.append(new_lcobjb)
-			new_lcobjbs_pm.append(new_lcobjb_pm)
-			fit_errors.append(fit_error)
-
-		return new_lcobjbs, new_lcobjbs_pm, fit_errors
-
-	'''
 	@override
 	def get_pm_trace_b(self, b, n):
 		trace = Trace(self.pm_features)
-		for _ in range(max(n, self.n_trace_samples)):
+		try:
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-			lcobjb.add_obs_noise_gaussian(1, self.min_obs_bdict[b]) # add obs noise
-			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
+			pm_bounds = b_.get_pm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
+			#print('get_mcmc_trace')
+			mcmc_trace = self.get_mcmc_trace(lcobjb, pm_bounds, n)
+			#print(len(mcmc_trace))
+			for k in range(len(mcmc_trace)):
+				pm_args = {pmf:mcmc_trace[pmf][-k] for pmf in self.pm_features}
+				trace.add(pm_args, pm_bounds, True)
 
-			try:
-				pm_bounds = b_.get_pm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
-				pm_args = self.get_pm_args(lcobjb, pm_bounds)
-				correct_fit_tag = 1
-			except ex.CurveFitError:
-				pm_args = None
-				correct_fit_tag = 0
-			except ex.TooShortCurveError:
-				pm_args = None
-				correct_fit_tag = 0
-
-			trace.add(pm_args, pm_bounds, correct_fit_tag)
+		except ex.PYMCError:
+			for _ in range(max(n, self.n_trace_samples)):
+				trace.add(None, None, False)
+		
 		return trace

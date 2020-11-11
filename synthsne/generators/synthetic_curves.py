@@ -12,7 +12,6 @@ from . import funcs as f_
 from . import bounds as b_
 from . import metrics as metrics
 from flamingchoripan.datascience.statistics import XError
-from flamingchoripan.strings import trunc
 
 ###################################################################################################################################################
 
@@ -70,11 +69,12 @@ class Trace():
 		return [self.fit_errors[k] for k in range(len(self)) if self.correct_fit_tags[k]]
 
 	def get_xerror(self):
-		return XError(self.get_valid_errors(), 0)
+		return XError(self.get_valid_errors())
 
-	def get_str_error_k(self, k):
-		assert k<len(self)
-		return trunc(self.fit_errors[k]) if self.correct_fit_tags[k] else trunc(None)
+	def get_xerror_k(self, k):
+		assert k>=0 and k<len(self)
+		v = self.fit_errors[k] if self.correct_fit_tags[k] else np.nan
+		return XError([v])
 
 	def has_corrects_samples(self):
 		return any(self.correct_fit_tags)

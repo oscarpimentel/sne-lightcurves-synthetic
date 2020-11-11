@@ -47,3 +47,45 @@ def get_ranks(rootdir, method):
 			rank.add(lcobj_name, np.mean([xe.mean for xe in xes]))
 			
 	return rank, rank_bdict, band_names
+
+def get_info_dict(rootdir, methods):
+	band_names = get_band_names(rootdir, methods[0])
+	info_dict = {}
+	for method in methods:
+		info_dict[method] = {
+			'mb-fit-error':[],
+			'mb-ok-fits-n':0,
+			'mb-n':0,
+			'mb-ok-fits-%':None,
+		}
+		for b in band_names:
+			info_dict[method].update({
+				f'{b}-fit-error':[],
+				f'{b}-ok-fits-n':0,
+				f'{b}-n':0,
+				f'{b}-ok-fits-%':None,
+			})
+
+	for method in methods:	
+		filedirs = get_filedirs(rootdir, method)
+		for filedir in filedirs:
+			fdict = ff.load_pickle(filedir, verbose=0)
+			lcobj_name = fdict['lcobj_name']
+			for b in band_names:
+				trace = fdict['trace_bdict'][b]
+				errors = trace.get_valid_errors()
+				info_dict[method][f'{b}-fit-error'] += errors
+				info_dict[method][f'{b}-ok-fits-n'] += len(errors)
+				info_dict[method][f'{b}-n'] += len(trace)
+				info_dict[method][f'mb-fit-error'] += errors
+				info_dict[method][f'mb-ok-fits-n'] += len(errors)
+				info_dict[method][f'mb-n'] += len(trace)
+
+	for method in methods:
+		info_dict[method]['mb-fit-error'] = XError(info_dict[method]['mb-fit-error'], 0)
+		info_dict[method]['mb-ok-fits-%'] = (info_dict[method]['mb-ok-fits-n']/info_dict[method]['mb-n'])*100
+		for b in band_names:
+			info_dict[method][f'{b}-fit-error'] = XError(info_dict[method][f'{b}-fit-error'], 0)
+			info_dict[method][f'{b}-ok-fits-%'] = (info_dict[method][f'{b}-ok-fits-n']/info_dict[method][f'{b}-n'])*100
+
+	return info_dict

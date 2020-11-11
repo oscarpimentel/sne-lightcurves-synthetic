@@ -5,6 +5,7 @@ from . import C_
 import flamingchoripan.files as ff
 from flamingchoripan.datascience.statistics import XError, TopRank
 import numpy as np
+import pandas as pd
 
 ###################################################################################################################################################
 
@@ -52,21 +53,23 @@ def get_info_dict(rootdir, methods):
 	band_names = get_band_names(rootdir, methods[0])
 	info_dict = {}
 	for method in methods:
-		info_dict[method] = {
+		method_k = f'method-{method}'
+		info_dict[method_k] = {
 			'mb-fit-error':[],
 			'mb-ok-fits-n':0,
 			'mb-n':0,
 			'mb-ok-fits-%':None,
 		}
 		for b in band_names:
-			info_dict[method].update({
+			info_dict[method_k].update({
 				f'{b}-fit-error':[],
 				f'{b}-ok-fits-n':0,
 				f'{b}-n':0,
 				f'{b}-ok-fits-%':None,
 			})
 
-	for method in methods:	
+	for method in methods:
+		method_k = f'method-{method}'
 		filedirs = get_filedirs(rootdir, method)
 		for filedir in filedirs:
 			fdict = ff.load_pickle(filedir, verbose=0)
@@ -74,18 +77,20 @@ def get_info_dict(rootdir, methods):
 			for b in band_names:
 				trace = fdict['trace_bdict'][b]
 				errors = trace.get_valid_errors()
-				info_dict[method][f'{b}-fit-error'] += errors
-				info_dict[method][f'{b}-ok-fits-n'] += len(errors)
-				info_dict[method][f'{b}-n'] += len(trace)
-				info_dict[method][f'mb-fit-error'] += errors
-				info_dict[method][f'mb-ok-fits-n'] += len(errors)
-				info_dict[method][f'mb-n'] += len(trace)
+				info_dict[method_k][f'{b}-fit-error'] += errors
+				info_dict[method_k][f'{b}-ok-fits-n'] += len(errors)
+				info_dict[method_k][f'{b}-n'] += len(trace)
+				info_dict[method_k][f'mb-fit-error'] += errors
+				info_dict[method_k][f'mb-ok-fits-n'] += len(errors)
+				info_dict[method_k][f'mb-n'] += len(trace)
 
 	for method in methods:
-		info_dict[method]['mb-fit-error'] = XError(info_dict[method]['mb-fit-error'], 0)
-		info_dict[method]['mb-ok-fits-%'] = (info_dict[method]['mb-ok-fits-n']/info_dict[method]['mb-n'])*100
+		method_k = f'method-{method}'
+		info_dict[method_k]['mb-fit-error'] = XError(info_dict[method_k]['mb-fit-error'], 0)
+		info_dict[method_k]['mb-ok-fits-%'] = info_dict[method_k]['mb-ok-fits-n']/info_dict[method_k]['mb-n']*100
 		for b in band_names:
-			info_dict[method][f'{b}-fit-error'] = XError(info_dict[method][f'{b}-fit-error'], 0)
-			info_dict[method][f'{b}-ok-fits-%'] = (info_dict[method][f'{b}-ok-fits-n']/info_dict[method][f'{b}-n'])*100
+			info_dict[method_k][f'{b}-fit-error'] = XError(info_dict[method_k][f'{b}-fit-error'], 0)
+			info_dict[method_k][f'{b}-ok-fits-%'] = info_dict[method_k][f'{b}-ok-fits-n']/info_dict[method_k][f'{b}-n']*100
 
-	return info_dict
+	info_df = pd.DataFrame.from_dict(info_dict, orient='index')
+	return info_df

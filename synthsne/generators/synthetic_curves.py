@@ -16,14 +16,16 @@ from flamingchoripan.datascience.statistics import XError
 ###################################################################################################################################################
 
 def get_syn_sne_generator(method_name):
-	if method_name=='dummy':
+	if method_name=='uniformprior':
 		return SynSNeGenerator
-	elif method_name=='curve_fit':
+	elif method_name=='curvefit':
 		return SynSNeGeneratorCF
 	elif method_name=='mcmc':
 		return SynSNeGeneratorMCMC
 	else:
 		raise Exception(f'no method_name {method_name}')
+
+###################################################################################################################################################
 
 class Trace():
 	def __init__(self, pm_features):

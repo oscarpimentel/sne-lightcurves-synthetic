@@ -92,7 +92,8 @@ def get_pm_times(func, inv_func, lcobjb, pm_args, pm_features, pm_bounds,
 
 	### ti
 	#search_range = min(tmax, first_day)-pm_bounds['trise'][-1], tmax
-	search_range = min(tmax, first_day)-pm_bounds['trise'][-1], tmax*0.8
+	search_range = min(tmax, first_day)-pm_bounds['trise'][-1]*0.8, tmax
+	#print(min(tmax, first_day)-pm_bounds['trise'][-1], tmax*0.8, search_range)
 	ti = get_min_tfunc(search_range, func, func_args, min_obs_threshold)
 	
 	### tf

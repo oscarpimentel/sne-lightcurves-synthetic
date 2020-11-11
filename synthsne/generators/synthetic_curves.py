@@ -41,6 +41,12 @@ class Trace():
 		self.pm_bounds_l.append(pm_bounds)
 		self.correct_fit_tags.append(bool(correct_fit_tag))
 
+	def add_ok(self, pm_args, pm_bounds):
+		self.add(pm_args, pm_bounds, True)
+
+	def add_null(self):
+		self.add(None, None, False)
+
 	def get_fit_errors(self, lcobjb, func):
 		for k in range(len(self)):
 			fit_error = np.infty
@@ -69,12 +75,16 @@ class Trace():
 		return [self.fit_errors[k] for k in range(len(self)) if self.correct_fit_tags[k]]
 
 	def get_xerror(self):
-		return XError(self.get_valid_errors())
+		errors = self.get_valid_errors()
+		#print(errors)
+		return XError(errors)
 
 	def get_xerror_k(self, k):
-		assert k>=0 and k<len(self)
-		v = self.fit_errors[k] if self.correct_fit_tags[k] else np.nan
-		return XError([v])
+		assert k>=0 and k<len(self) 
+		if self.correct_fit_tags[k] and len(self)>0:
+			return XError([self.fit_errors[k]])
+		else:
+			return XError([np.nan])
 
 	def has_corrects_samples(self):
 		return any(self.correct_fit_tags)
@@ -151,7 +161,7 @@ class SynSNeGenerator():
 				pm_args = {pmf:np.random.uniform(*pm_bounds[pmf]) for pmf in self.pm_features}
 				trace.add(pm_args, pm_bounds, True)
 			except ex.TooShortCurveError:
-				trace.add(None, None, False)
+				trace.add_null()
 			
 		return trace
 
@@ -376,15 +386,11 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			try:
 				pm_bounds = b_.get_pm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
 				pm_args = self.get_pm_args(lcobjb, pm_bounds)
-				correct_fit_tag = 1
+				trace.add_ok(pm_args, pm_bounds)
 			except ex.CurveFitError:
-				pm_args = None
-				correct_fit_tag = 0
+				trace.add_null()
 			except ex.TooShortCurveError:
-				pm_args = None
-				correct_fit_tag = 0
-
-			trace.add(pm_args, pm_bounds, correct_fit_tag)
+				trace.add_null()
 		return trace
 
 ###################################################################################################################################################
@@ -477,14 +483,14 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			#print(len(mcmc_trace))
 			for k in range(len(mcmc_trace)):
 				pm_args = {pmf:mcmc_trace[pmf][-k] for pmf in self.pm_features}
-				trace.add(pm_args, pm_bounds, True)
+				trace.add_ok(pm_args, pm_bounds)
 
 		except ex.PYMCError:
 			for _ in range(max(n, self.n_trace_samples)):
-				trace.add(None, None, False)
+				trace.add_null()
 		
 		except ex.TooShortCurveError:
 			for _ in range(max(n, self.n_trace_samples)):
-				trace.add(None, None, False)
+				trace.add_null()
 
 		return trace

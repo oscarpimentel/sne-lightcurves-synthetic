@@ -86,7 +86,7 @@ class Trace():
 		if self.correct_fit_tags[k] and len(self)>0:
 			return XError([self.fit_errors[k]])
 		else:
-			return XError([np.nan])
+			return XError(None)
 
 	def has_corrects_samples(self):
 		return any(self.correct_fit_tags)

@@ -22,9 +22,6 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 	band_names = lcset.band_names
 	class_names = lcset.class_names
 
-	#synth_lcset = lcset.copy({}) # copy
-	#lcdataset.set_lcset(f'synth_{set_name}', synth_lcset)
-
 	can_be_in_loop = True
 	bar = ProgressBar(len(lcset))
 	for lcobj_name in lcobj_names:
@@ -55,19 +52,6 @@ def generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_s
 					'save_filedir':None if save_rootdir is None else f'{save_rootdir}/{lcset.survey}/{method_folder}/{lcobj_name}.png',
 				}
 				plot_synthetic_samples(lcdataset, set_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
-
-				'''
-				### add to new dataset
-				if not ignored: # only when not-ignored
-					for knl,new_lcobj in enumerate(new_lcobjs):
-						new_lcobj_name = f'{lcobj_name}.{knl+1}'
-						new_lcobj.reset_day_offset_serial()
-						synth_lcset.set_lcobj(new_lcobj_name, new_lcobj)
-
-				### add original, even if ignored by mcmc fails
-				if add_original:
-					synth_lcset.set_lcobj(f'{lcobj_name}.0', lcobj.copy())
-				'''
 
 		except KeyboardInterrupt:
 			can_be_in_loop = False

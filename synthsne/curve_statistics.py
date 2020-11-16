@@ -52,20 +52,21 @@ def get_ranks(rootdir, method):
 def get_info_dict(rootdir, methods):
 	band_names = get_band_names(rootdir, methods[0])
 	info_dict = {}
+	# $\chi_{\sigma_x^2}$
 	for method in methods:
 		method_k = f'method-{method}'
 		info_dict[method_k] = {
 			'mb-fit-error':[],
 			'mb-ok-fits-n':0,
 			'mb-n':0,
-			'mb-ok-fits-%':None,
+			'mb-ok-fits[%]':None,
 		}
 		for b in band_names:
 			info_dict[method_k].update({
 				f'{b}-fit-error':[],
 				f'{b}-ok-fits-n':0,
 				f'{b}-n':0,
-				f'{b}-ok-fits-%':None,
+				f'{b}-ok-fits[%]':None,
 			})
 
 	for method in methods:
@@ -87,10 +88,10 @@ def get_info_dict(rootdir, methods):
 	for method in methods:
 		method_k = f'method-{method}'
 		info_dict[method_k]['mb-fit-error'] = XError(info_dict[method_k]['mb-fit-error'], 0)
-		info_dict[method_k]['mb-ok-fits-%'] = info_dict[method_k]['mb-ok-fits-n']/info_dict[method_k]['mb-n']*100
+		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].get('mb-ok-fits-n')/info_dict[method_k].get('mb-n')*100
 		for b in band_names:
 			info_dict[method_k][f'{b}-fit-error'] = XError(info_dict[method_k][f'{b}-fit-error'], 0)
-			info_dict[method_k][f'{b}-ok-fits-%'] = info_dict[method_k][f'{b}-ok-fits-n']/info_dict[method_k][f'{b}-n']*100
+			info_dict[method_k][f'{b}-ok-fits[%]'] = info_dict[method_k].pop(f'{b}-ok-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
 
 	info_df = pd.DataFrame.from_dict(info_dict, orient='index')
 	return info_df

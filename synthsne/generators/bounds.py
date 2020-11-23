@@ -55,6 +55,7 @@ def get_pm_bounds(lcobjb, class_names,
 			's':(1/3, 3),
 			'g':(0, 1), # use with bernoulli
 		}
+		'''
 		pm_bounds_slsn = {
 			'A':(max_flux / 3, max_flux * 3),
 			't0':(day_max_flux-100, day_max_flux+10),
@@ -65,6 +66,7 @@ def get_pm_bounds(lcobjb, class_names,
 			's':(1/3, 3),
 			'g':(0, 1), # use with bernoulli
 		}
+		'''
 		ret = {c:pm_bounds for c in class_names}
 		#ret.update({'SLSN':pm_bounds_slsn})
 	return ret
@@ -91,14 +93,13 @@ def get_pm_times(func, inv_func, lcobjb, pm_args, pm_features, pm_bounds,
 	tmax = fmin(inv_func, t0, func_args, disp=False)[0]
 
 	### ti
-	#search_range = min(tmax, first_day)-pm_bounds['trise'][-1], tmax
-	search_range = min(tmax, first_day)-pm_bounds['trise'][-1]*0.8, tmax
-	#print(min(tmax, first_day)-pm_bounds['trise'][-1], tmax*0.8, search_range)
+	#search_range = min(tmax, first_day)-pm_args['trise'][-1]*1, tmax
+	search_range = min(tmax, first_day)-pm_args['trise'][-1]*0.8, tmax
 	ti = get_min_tfunc(search_range, func, func_args, min_obs_threshold)
 	
 	### tf
-	#search_range = tmax, max(tmax, last_day)+pm_bounds['tfall'][-1]*1
-	search_range = tmax, max(tmax, last_day)+pm_bounds['tfall'][-1]*0.2
+	#search_range = tmax, max(tmax, last_day)+pm_args['tfall'][-1]*1
+	search_range = tmax, max(tmax, last_day)+pm_args['tfall'][-1]*0.2
 	tf = get_min_tfunc(search_range, func, func_args, min_obs_threshold)
 
 	assert tmax>=ti

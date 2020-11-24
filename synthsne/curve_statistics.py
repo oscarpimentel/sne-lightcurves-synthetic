@@ -28,6 +28,16 @@ def get_all_incorrects_fittings(rootdir, method):
 
 	return obj_names
 
+def get_perf_times(rootdir, method):
+	filedirs = get_filedirs(rootdir, method)
+	times = []
+	for filedir in filedirs:
+		fdict = ff.load_pickle(filedir, verbose=0)
+		if fdict['has_corrects_samples']:
+			times.append(fdict['segs'])
+
+	return times
+
 def get_ranks(rootdir, method):
 	band_names = get_band_names(rootdir, method)
 	rank = TopRank('mb-rank')

@@ -50,13 +50,16 @@ class Trace():
 
 	def get_fit_errors(self, lcobjb):
 		for k in range(len(self)):
-			fit_error = np.infty
-			if self.correct_fit_tags[k]:
-				days, obs, obs_error = lu.extract_arrays(lcobjb)
-				sne_model = self.sne_model_l[k]
-				fit_error = sne_model.get_error(days, obs, obs_error)
+			try:
+				if self.correct_fit_tags[k]:
+					days, obs, obs_error = lu.extract_arrays(lcobjb)
+					sne_model = self.sne_model_l[k]
+					fit_error = sne_model.get_error(days, obs, obs_error)
 
-			self.fit_errors.append(fit_error)
+			except ex.InterpError:
+				self.correct_fit_tags[k] = False
+
+			self.fit_errors.append(fit_error if self.correct_fit_tags[k] else np.infty)
 
 	def sort(self):
 		assert len(self.fit_errors)==len(self)

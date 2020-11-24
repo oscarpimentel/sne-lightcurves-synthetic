@@ -23,3 +23,7 @@ class CurveFitError(Exception):
 class PYMCError(Exception):
 	def __init__(self):
 		pass
+
+class InterpError(Exception):
+	def __init__(self):
+		pass

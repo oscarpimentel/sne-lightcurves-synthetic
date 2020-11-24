@@ -29,16 +29,15 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 	lcobj = lcset[lcobj_name]
 	c = class_names[lcobj.y]
 
-	if is_in_column(lcobj_name, sne_specials_df, 'outliers'):
-		return
-
 	### generate curves
 	sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict)
 	new_lcobjs, new_smooth_lcojbs, trace_bdict, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
 
 	### save file
-	ignored = is_in_column(lcobj_name, sne_specials_df, 'fit_ignore')
-	method_folder = f'{method}_ignored' if ignored else method
+	ignored = is_in_column(lcobj_name, sne_specials_df, 'fit_ignored')
+	outlier = is_in_column(lcobj_name, sne_specials_df, 'outliers')
+	method_folder = f'{method}_outliers' if outlier else method
+
 	to_save = {
 		'lcobj_name':lcobj_name,
 		'lcobj':lcobj,
@@ -54,23 +53,14 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 
 	### save images
 	save_filedirs = [f'{save_rootdir}/{method_folder}/{lcobj_name}.png', f'{save_rootdir}/{method}_{c}/{lcobj_name}.png']
-	if is_in_column(lcobj_name, sne_specials_df, 'vis_gap'):
+	if is_in_column(lcobj_name, sne_specials_df, 'vis'):
 		save_filedirs += [f'{save_rootdir}/{method}_vis/{lcobj_name}.png']
+
 	plot_kwargs = {
 		'trace_bdict':trace_bdict,
 		'save_filedir':save_filedirs,
 	}
 	plot_synthetic_samples(lcdataset, lcset_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
-
-	'''
-	can_be_in_loop = True
-	for lcobj_name in lcobj_names:
-		try:
-			if can_be_in_loop:
-		except KeyboardInterrupt:
-			can_be_in_loop = False
-	'''
-
 
 def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,
 	method='curve_fit',

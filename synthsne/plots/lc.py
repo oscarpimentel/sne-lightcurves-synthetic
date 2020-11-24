@@ -56,4 +56,5 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	ax.set_xlabel('days')
 
 	fig.tight_layout()
-	save_fig(fig, save_filedir)
+	if not save_filedir is None:
+		save_fig(fig, save_filedir)

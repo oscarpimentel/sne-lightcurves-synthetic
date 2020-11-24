@@ -18,12 +18,13 @@ from flamingchoripan.datascience.statistics import XError
 def get_syn_sne_generator(method_name):
 	if method_name=='uniformprior':
 		return SynSNeGenerator
-	elif method_name=='curvefit':
+	if method_name=='curvefit':
 		return SynSNeGeneratorCF
-	elif method_name=='mcmc':
+	if method_name=='mcmc':
 		return SynSNeGeneratorMCMC
-	else:
-		raise Exception(f'no method_name {method_name}')
+	if method_name=='linear':
+		return SynSNeGeneratorLinear
+	raise Exception(f'no method_name {method_name}')
 
 ###################################################################################################################################################
 
@@ -412,7 +413,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 
-		n_tune=200, # 500, 1000
+		n_tune=500, # 500, 1000
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -501,4 +502,43 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			for _ in range(max(n, self.n_trace_samples)):
 				trace.add_null()
 
+		return trace
+
+###################################################################################################################################################
+
+class SynSNeGeneratorLinear(SynSNeGenerator):
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+		n_trace_samples=C_.N_TRACE_SAMPLES,
+		uses_new_bounds=True,
+		replace_nan_inf:bool=True,
+		max_obs_error:float=1e10,
+		std_scale:float=C_.OBSE_STD_SCALE,
+		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		):
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+			n_trace_samples,
+			uses_new_bounds,
+			replace_nan_inf,
+			max_obs_error,
+			std_scale,
+			min_cadence_days,
+			min_synthetic_len_b,
+			min_required_points_to_fit,
+			hours_noise_amp,
+			)
+
+	@override
+	def get_pm_trace_b(self, b, n):
+		trace = Trace(self.pm_features)
+		for k in range(max(n, self.n_trace_samples)):
+			try:
+				pm_bounds = b_.get_pm_bounds(self.lcobj.get_b(b), self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
+				pm_args = {pmf:np.random.uniform(*pm_bounds[pmf]) for pmf in self.pm_features}
+				trace.add(pm_args, pm_bounds, True)
+			except ex.TooShortCurveError:
+				trace.add_null()
+			
 		return trace

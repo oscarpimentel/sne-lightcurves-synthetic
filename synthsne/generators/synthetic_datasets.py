@@ -31,7 +31,7 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 
 	### generate curves
 	sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict)
-	new_lcobjs, new_smooth_lcojbs, trace_bdict, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
+	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
 
 	### save file
 	ignored = is_in_column(lcobj_name, sne_specials_df, 'fit_ignored')
@@ -45,6 +45,7 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 		'c':c,
 		'new_lcobjs':new_lcobjs,
 		'trace_bdict':trace_bdict,
+		'segs':segs,
 		'has_corrects_samples':has_corrects_samples,
 		'ignored':ignored,
 	}

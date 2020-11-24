@@ -12,6 +12,7 @@ from .sne_models import SNeModel
 from . import bounds as b_
 from . import metrics as metrics
 from flamingchoripan.datascience.statistics import XError
+from flamingchoripan.times import Cronometer
 
 ###################################################################################################################################################
 
@@ -139,6 +140,7 @@ class SynSNeGenerator():
 	def sample_curves(self, n,
 		return_has_corrects_samples=False,
 		):
+		cr = Cronometer()
 		new_lcobjs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
 		new_smooth_lcojbs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
 		trace_bdict = {}
@@ -154,9 +156,9 @@ class SynSNeGenerator():
 
 		has_corrects_samples = any([trace_bdict[b].has_corrects_samples() for b in self.band_names])
 		if return_has_corrects_samples:
-			return new_lcobjs, new_smooth_lcojbs, trace_bdict, has_corrects_samples
+			return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs(), has_corrects_samples
 		else:
-			return new_lcobjs, new_smooth_lcojbs, trace_bdict
+			return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs()
 
 	def get_pm_trace_b(self, b, n): # override this method
 		trace = Trace()
@@ -250,7 +252,8 @@ class SynSNeGenerator():
 			### generate parametric observations
 			pm_obs = sne_model.evaluate(new_days)
 			if pm_obs.min()<min_obs_threshold: # can't have observation above the threshold
-				continue
+				#continue
+				pm_obs = np.clip(pm_obs, min_obs_threshold, None)
 
 			### resampling obs using obs error
 			if uses_smooth_obs:
@@ -261,7 +264,8 @@ class SynSNeGenerator():
 				new_obs = np.clip(np.random.normal(pm_obs, new_obse*self.std_scale), min_obs_threshold, None)
 			
 			if new_obs.max()>max_obs_threshold: # flux can't be too high
-				continue
+				#continue
+				new_obs = np.clip(new_obs, None, max_obs_threshold)
 
 			new_lcobjb.set_values(new_days, new_obs, new_obse)
 			return new_lcobjb

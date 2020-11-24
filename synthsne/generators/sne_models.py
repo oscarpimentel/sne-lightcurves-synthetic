@@ -64,10 +64,6 @@ class SNeModel():
 		self.kind = kind
 		self.uses_interp = not self.kind is None
 
-		self.first_day = self.lcobjb.days[0]
-		self.last_day = self.lcobjb.days[-1]
-		self.tmax = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
-		
 		self.func = syn_sne_sfunc
 		self.inv_func = inverse_syn_sne_sfunc
 
@@ -76,16 +72,19 @@ class SNeModel():
 			try:
 				if self.kind=='linear':
 					interp = interp1d(self.lcobjb.days, self.lcobjb.obs, kind='linear', fill_value='extrapolate')
-					return interp(times)
+					obs = interp(times)
 
 				elif self.kind=='bspline':
 					spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse)
-					return splev(times, spl)
+					obs = splev(times, spl)
 			except:
 				raise ex.InterpError()
 
 		else:
-			return self.func(times, *[self.pm_args[p] for p in self.parameters])
+			obs = self.func(times, *[self.pm_args[p] for p in self.parameters])
+
+		#obs = np.clip(obs, , )
+		return obs
 
 	def evaluate_inv(self, times):
 		if self.uses_interp:
@@ -101,11 +100,15 @@ class SNeModel():
 		return error.mean()*scale
 
 	def get_pm_times(self, min_obs_threshold):
+		first_day = self.lcobjb.days[0]
+		last_day = self.lcobjb.days[-1]
+		tmax_day = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
+
 		if self.uses_interp:
 			pm_times = {
-				'ti':self.first_day,
-				'tmax':self.tmax,
-				'tf':self.last_day,
+				'ti':first_day,
+				'tmax':tmax_day,
+				'tf':last_day,
 			}
 		else:
 			func_args = tuple([self.pm_args[p] for p in self.parameters])
@@ -113,11 +116,11 @@ class SNeModel():
 			tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
 
 			### ti
-			search_range = min(tmax, self.first_day)-self.pm_args['trise']*0.99, tmax
+			search_range = min(tmax, first_day)-self.pm_args['trise']*0.99, tmax
 			ti = get_min_tfunc(search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			
 			### tf
-			search_range = tmax, max(tmax, self.last_day)+self.pm_args['tfall']*0.5
+			search_range = tmax, max(tmax, last_day)+self.pm_args['tfall']*0.5
 			tf = get_min_tfunc(search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 
 			assert tmax>=ti

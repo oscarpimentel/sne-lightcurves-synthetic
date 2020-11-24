@@ -2,17 +2,20 @@ import numpy as np
 
 ###################################################################################################################################################
 EPS = 1e-12
-N_TRACE_SAMPLES = 1000
+N_TRACE_SAMPLES = 250
 ERROR_SCALE = 1e2
 
 ### EXPORT
-N_DASK = 4
+N_JOBS = 4 # The number of jobs to use for the computation. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used.
+CHUNK_SIZE = N_JOBS*1
 
-### LENGTHS
+### LENGTHS & DURATIONS
+
 MIN_POINTS_LIGHTCURVE_SURVEY_EXPORT = 5
 MIN_POINTS_LIGHTCURVE_DEFINITION = 2
 MIN_POINTS_LIGHTCURVE_TO_PMFIT = 3
 MIN_POINTS_LIGHTCURVE_DEFINITION_FATS = 4
+MIN_DUR_LIGHTCURVE_TO_PMFIT = 20
 
 ### FILE TYPES
 EXT_RAW_LIGHTCURVE = 'rawlcd' # no split, as RAW ZTF/FSNes

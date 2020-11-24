@@ -108,6 +108,7 @@ class SynSNeGenerator():
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 		):
 		#self.pm_features = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']; self.func = f_.syn_sne_func; self.inv_func = f_.inverse_syn_sne_func
 		self.pm_features = ['A', 't0', 'gamma', 'f', 'trise', 'tfall', 's']; self.func = f_.syn_sne_sfunc; self.inv_func = f_.inverse_syn_sne_sfunc
@@ -128,6 +129,7 @@ class SynSNeGenerator():
 		self.min_cadence_days = min_cadence_days
 		self.min_synthetic_len_b = min_synthetic_len_b
 		self.min_required_points_to_fit = min_required_points_to_fit
+		self.hours_noise_amp = hours_noise_amp
 		self.min_obs_bdict = {b:self.obse_sampler_bdict[b].min_obs for b in self.band_names}
 
 	def reset(self):
@@ -229,6 +231,7 @@ class SynSNeGenerator():
 				### generate actual observation times
 				idxs = np.random.permutation(np.arange(0, len(new_days)))
 				new_days = new_days[idxs][:curve_size] # random select
+				new_days = new_days+np.random.uniform(-self.hours_noise_amp, self.hours_noise_amp, len(new_days))
 				new_days = np.sort(new_days) # sort
 
 				if len(new_days)<=self.min_synthetic_len_b: # need to be long enough
@@ -265,9 +268,9 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 
 		uses_random_guess:bool=False,
-		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 		cpds_p:float=C_.CPDS_P,
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
@@ -279,9 +282,9 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			min_cadence_days,
 			min_synthetic_len_b,
 			min_required_points_to_fit,
+			hours_noise_amp,
 			)
 		self.uses_random_guess = uses_random_guess
-		self.hours_noise_amp = hours_noise_amp
 		self.cpds_p = cpds_p
 
 	def get_p0(self, lcobjb, pm_bounds):
@@ -407,9 +410,9 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 
-		cores=2,
-		n_tune=1000, # 500, 1000
+		n_tune=200, # 500, 1000
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -420,8 +423,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			min_cadence_days,
 			min_synthetic_len_b,
 			min_required_points_to_fit,
+			hours_noise_amp,
 			)
-		self.cores = cores
 		self.n_tune = n_tune
 		#self.mcmc_trace_bdict = {}
 		
@@ -429,9 +432,12 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		days, obs, obs_error = lu.extract_arrays(lcobjb)
 		
 		### pymc3
+		cores = 1
 		trace_kwargs = {
 			'tune':self.n_tune, # burn-in steps
-			'cores':self.cores,
+			'cores':cores,
+			'chains':cores,
+			#'pickle_backend':'dill',
 			'progressbar':False,
 			'target_accept':1., # 0.95, 1
 		}

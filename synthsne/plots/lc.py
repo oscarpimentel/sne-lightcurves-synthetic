@@ -11,15 +11,15 @@ from lchandler.plots.lc import plot_lightcurve
 
 def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcobjs, new_smooth_lcojbs,
 	trace_bdict=None,
-	figsize:tuple=(13,6),
+	figsize:tuple=(8,12),
 	lw=1.5,
 	save_filedir=None,
+	idx=0,
 	):
 	lcset = lcdataset[set_name]
-	fig, axs = plt.subplots(1, 2, figsize=figsize)
+	fig, axs = plt.subplots(2, 1, figsize=figsize)
 	band_names = lcset.band_names
 	lcobj = lcset[lcobj_name]
-	idx = 0
 
 	###
 	ax = axs[0]
@@ -29,13 +29,14 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	        label = f'{b} posterior pm-sample' if k==0 else None
 	        ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.15, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
-	title = f'multiband light curve & parametric model samples\n'
-	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
-	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'
+	title = ''
+	title += f'multiband light curve & parametric model samples\n'
+	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'+'\n'
+	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])
 	ax.set_title(title)
 	ax.legend(loc='upper right')
 	ax.set_ylabel('obs[flux]')
-	ax.set_xlabel('days')
+	#ax.set_xlabel('days')
 
 	###
 	ax = axs[1]
@@ -45,12 +46,13 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	        plot_lightcurve(ax, new_lcobj, b, label=f'{b} observation' if k==0 else None)
 	        
 	ax.grid(alpha=0.5)
-	title = f'multiband light curve & synthetic curve example\n'
-	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror_k(idx)}' for b in band_names])+'\n'
-	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'
+	title = ''
+	#title += f'multiband light curve & synthetic curve example\n'
+	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror_k(idx)}' for b in band_names])
+	#title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'
 	ax.set_title(title)
 	ax.legend(loc='upper right')
-	#ax.set_ylabel('obs [flux]')
+	ax.set_ylabel('obs [flux]')
 	ax.set_xlabel('days')
 
 	fig.tight_layout()

@@ -12,11 +12,12 @@ from . import exceptions as ex
 def get_pm_bounds(lcobjb, class_names,
 	uses_new_bounds=True,
 	min_required_points=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+	min_required_duration=C_.MIN_DUR_LIGHTCURVE_TO_PMFIT, # min duration to even try a curve fit
 	):
 	days, obs, obs_error = lu.extract_arrays(lcobjb)
 
 	### checks
-	if len(days)<min_required_points:
+	if len(lcobjb)<min_required_points or lcobjb.get_days_duration()<min_required_duration:
 		raise ex.TooShortCurveError()
 
 	### utils
@@ -93,13 +94,13 @@ def get_pm_times(func, inv_func, lcobjb, pm_args, pm_features, pm_bounds,
 	tmax = fmin(inv_func, t0, func_args, disp=False)[0]
 
 	### ti
-	#search_range = min(tmax, first_day)-pm_args['trise'][-1]*1, tmax
-	search_range = min(tmax, first_day)-pm_args['trise'][-1]*0.8, tmax
+	#search_range = min(tmax, first_day)-pm_bounds['trise'][-1]*1, tmax
+	search_range = min(tmax, first_day)-pm_args['trise']*0.99, tmax
 	ti = get_min_tfunc(search_range, func, func_args, min_obs_threshold)
 	
 	### tf
-	#search_range = tmax, max(tmax, last_day)+pm_args['tfall'][-1]*1
-	search_range = tmax, max(tmax, last_day)+pm_args['tfall'][-1]*0.2
+	#search_range = tmax, max(tmax, last_day)+pm_bounds['tfall'][-1]*1
+	search_range = tmax, max(tmax, last_day)+pm_args['tfall']*0.5
 	tf = get_min_tfunc(search_range, func, func_args, min_obs_threshold)
 
 	assert tmax>=ti

@@ -104,7 +104,7 @@ def get_info_dict(rootdir, methods):
 		method_k = f'method-{method}'
 		info_dict[method_k]['trace-time[segs]'] = XError(info_dict[method_k]['trace-time[segs]'])
 		info_dict[method_k]['mb-fit-log-error'] = XError(np.log(info_dict[method_k]['mb-fit-log-error']))
-		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].pop('mb-ok-fits-n')/info_dict[method_k].pop('mb-n')*100
+		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].pop('mb-ok-fits-n')/info_dict[method_k].get('mb-n')*100 # get, pop
 		for b in band_names:
 			info_dict[method_k][f'{b}-fit-log-error'] = XError(np.log(info_dict[method_k][f'{b}-fit-log-error']))
 			info_dict[method_k][f'{b}-ok-fits[%]'] = info_dict[method_k].pop(f'{b}-ok-fits-n')/info_dict[method_k].pop(f'{b}-n')*100

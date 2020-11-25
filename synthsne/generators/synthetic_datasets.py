@@ -64,7 +64,7 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 	plot_synthetic_samples(lcdataset, lcset_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
 
 def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,
-	method='curve_fit',
+	method='linear',
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
 	sne_specials_df=None,
@@ -75,7 +75,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	chunks = get_list_chunks(lcset.get_lcobj_names(), chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
-		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - objs: {chunk}')
+		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method}')
 		jobs = []
 		for lcobj_name in chunk:
 			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,

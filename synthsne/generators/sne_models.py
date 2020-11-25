@@ -116,11 +116,11 @@ class SNeModel():
 			tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
 
 			### ti
-			search_range = min(tmax, first_day)-self.pm_args['trise']*0.99, tmax
+			search_range = min(tmax, first_day)-self.pm_args['trise']*0.9, tmax
 			ti = get_min_tfunc(search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			
 			### tf
-			search_range = tmax, max(tmax, last_day)+self.pm_args['tfall']*0.5
+			search_range = tmax, max(tmax, last_day)+self.pm_args['tfall']*0.2
 			tf = get_min_tfunc(search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 
 			assert tmax>=ti

@@ -47,13 +47,21 @@ if __name__== '__main__':
 	import pandas as pd
 	from synthsne import C_
 
-	save_rootdir = f'../save/{survey}/{cfilename}'
-	sd_kwargs = {
-		'synthetic_samples_per_curve':64,
-		'method':main_args.method,
-		'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
-	}
-	samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
-	obse_sampler_bdict = samplers['obse_sampler_bdict']
-	length_sampler_bdict = samplers['length_sampler_bdict']
-	errors = generate_synthetic_dataset(lcdataset, 'train', obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)
+	methods = main_args.method
+	if methods=='all':
+		methods = ['linear', 'bspline', 'uniformprior', 'curvefit', 'mcmc']
+
+	if isinstance(methods, str):
+		methods = [methods]
+
+	for method in methods:
+		save_rootdir = f'../save/{survey}/{cfilename}'
+		sd_kwargs = {
+			'synthetic_samples_per_curve':64,
+			'method':method,
+			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
+		}
+		samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
+		obse_sampler_bdict = samplers['obse_sampler_bdict']
+		length_sampler_bdict = samplers['length_sampler_bdict']
+		generate_synthetic_dataset(lcdataset, 'train', obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)

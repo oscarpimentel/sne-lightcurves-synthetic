@@ -27,11 +27,11 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	    plot_lightcurve(ax, lcobj, b, label=f'{b} observation')
 	    for k,new_smooth_lcojb in enumerate(new_smooth_lcojbs):
 	        label = f'{b} posterior pm-sample' if k==0 else None
-	        ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.15, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
+	        ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.12, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
 	title = ''
 	title += f'multiband light curve & parametric model samples\n'
-	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'+'\n'
+	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name} - class: {lcset.class_names[lcobj.y]}'+'\n'
 	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])
 	ax.set_title(title)
 	ax.legend(loc='upper right')

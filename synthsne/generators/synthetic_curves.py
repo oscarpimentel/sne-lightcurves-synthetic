@@ -10,7 +10,6 @@ import pymc3 as pm
 from . import lc_utils as lu
 from .sne_models import SNeModel
 from . import bounds as b_
-from . import metrics as metrics
 from flamingchoripan.datascience.statistics import XError
 from flamingchoripan.times import Cronometer
 

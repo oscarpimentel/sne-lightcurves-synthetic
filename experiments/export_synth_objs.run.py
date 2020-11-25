@@ -16,7 +16,7 @@ if __name__== '__main__':
 
 	###################################################################################################################################################
 	from flamingchoripan.files import search_for_filedirs
-	from lchandler import C_
+	from synthsne import C_
 
 	root_folder = '../../surveys-save'
 	filedirs = search_for_filedirs(root_folder, fext=C_.EXT_SPLIT_LIGHTCURVE)
@@ -25,7 +25,7 @@ if __name__== '__main__':
 	import numpy as np
 	from flamingchoripan.files import load_pickle, save_pickle
 	from flamingchoripan.files import get_dict_from_filedir
-	from lchandler import C_
+	from synthsne import C_
 
 	def load_lcdataset(filename):
 		assert filename.split('.')[-1]==C_.EXT_SPLIT_LIGHTCURVE
@@ -45,6 +45,7 @@ if __name__== '__main__':
 	###################################################################################################################################################
 	from synthsne.generators.synthetic_datasets import generate_synthetic_dataset
 	import pandas as pd
+	from synthsne import C_
 
 	save_rootdir = f'../save/{survey}/{cfilename}'
 	sd_kwargs = {
@@ -52,7 +53,7 @@ if __name__== '__main__':
 		'method':main_args.method,
 		'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 	}
-	samplers = load_pickle(f'{save_rootdir}/samplers.s')
+	samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
 	obse_sampler_bdict = samplers['obse_sampler_bdict']
 	length_sampler_bdict = samplers['length_sampler_bdict']
 	errors = generate_synthetic_dataset(lcdataset, 'train', obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)

@@ -22,11 +22,8 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 		ax = axs[kb]
 		obse_sampler = obse_sampler_bdict[b]
 		if original_space:
-			label='original samples $\sim p(\sigma_x,x)$'
+			label = '$p(x_{ij},\sigma_{xij})$'+f' {set_name} samples'
 			ax.plot(obse_sampler.raw_obse, obse_sampler.raw_obs, 'k.', markersize=2, alpha=0.2); ax.plot(np.nan, np.nan, 'k.', label=label)
-			x = np.linspace(obse_sampler.raw_obse.min(), obse_sampler.raw_obse.max(), 100)
-			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
-			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
 			### add samples
 			if add_samples:
@@ -36,10 +33,15 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 				new_obs = [np.random.normal(to_sample[np.random.randint(0, len(to_sample))], std) for _ in range(n)] # kde
 				#x = 0.05; new_obs = np.linspace(x, x+0.001, 1000) # sanity check
 				new_obse, new_obs = obse_sampler.conditional_sample(new_obs)
-				ax.plot(new_obse, new_obs, 'r.', markersize=2, alpha=1); ax.plot(np.nan, np.nan, 'r.', label='synthetic samples $\sim \hat{p}(\sigma_x,x)$')
+				ax.plot(new_obse, new_obs, 'r.', markersize=2, alpha=1); ax.plot(np.nan, np.nan, 'r.', label='$\hat{p}(x_{ij},\sigma_{xij})$ samples')
+
+			### rot axis
+			x = np.linspace(obse_sampler.raw_obse.min(), obse_sampler.raw_obse.max(), 100)
+			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
+			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
 		else:
-			label='original samples $\sim p(\sigma_x'+"'"+',x'+"'"+')$'
+			label='$p(x_{ij}'+"'"+',\sigma_{xij}'+"'"+')$'+f' {set_name} samples'
 			ax.plot(obse_sampler.obse, obse_sampler.obs, 'k.', markersize=2, alpha=0.2); ax.plot(np.nan, np.nan, 'k.', label=label)
 			min_obse = obse_sampler.obse.min()
 			max_obse = obse_sampler.obse.max()
@@ -54,17 +56,17 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 					pdfy = d['distr'].pdf(pdfx, *d['params'])
 					pdfy = pdfy/pdfy.max()*pdf_scale+pdf_offset
 					c = colors[p_idx]
-					label = '$\hat{p}(\sigma_x'+"'"+'|x'+"'"+')$ Gamma fit'
+					label = '$\hat{p}(\sigma_{xij}'+"'"+'|x_{ij}'+"'"+')$ Gaussian conditional fit'
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
 				
 		if original_space:
-			title = f'survey:{lcset.survey} - set: {set_name} - band: {b}'
+			title = f'survey:{lcset.survey} - band: {b}'
 			ax.set_xlabel('obs-error')
 			ax.set_ylabel('obs' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
 			#ax.set_ylim([0.0, 0.25])
 		else:
-			title = f'survey:{lcset.survey} - set: {set_name} - band: {b}'
+			title = f'survey:{lcset.survey} - band: {b}'
 			ax.set_xlabel('rotated-flipped obs-error')
 			ax.set_ylabel('rotated obs' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
@@ -89,22 +91,23 @@ def plot_length_samplers(length_sampler_bdict, lcdataset, set_name:str,
 	for kb,b in enumerate(lcdataset[set_name].band_names):
 		ax = axs[kb]
 		length_sampler = length_sampler_bdict[b]
-		#print(len_sampler.sample(10))
+		lengths = length_sampler.lengths
 		to_plot = {
-			'original':length_sampler.lengths,
-			'sampler':length_sampler.sample(1e4),
+			'original':lengths,
+			'sampler':length_sampler.sample(len(lengths)),
 				  }
 		plot_kwargs = {
 			'fig':fig,
 			'ax':ax,
 			'title':'$\{L_i\}_i^N$',
 			'xlabel':'$L_i$ values',
-			'bins':len(length_sampler.pdf),
+			'bins':int(len(length_sampler.pdf)/2),
 			'uses_density':1,
 			'return_legend_patches':1,
 			'label_samples':0,
-			'histtype':'stepfilled',
-			'alpha':0.8,
+			#'histtype':'stepfilled',
+			'alpha':0.75,
+			'xlim':(0,110),
 		}
 		cplots.plot_hist_bins(to_plot, **plot_kwargs)
 

@@ -36,7 +36,7 @@ def get_perf_times(rootdir, method):
 		if fdict['has_corrects_samples']:
 			times.append(fdict['segs'])
 
-	return times
+	return XError(times)
 
 def get_ranks(rootdir, method):
 	band_names = get_band_names(rootdir, method)

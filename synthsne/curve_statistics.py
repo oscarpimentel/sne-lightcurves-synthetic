@@ -66,14 +66,15 @@ def get_info_dict(rootdir, methods):
 	for method in methods:
 		method_k = f'method-{method}'
 		info_dict[method_k] = {
-			'mb-fit-error':[],
+			'trace-time[segs]':[],
+			'mb-fit-log-error':[],
 			'mb-ok-fits-n':0,
 			'mb-n':0,
 			'mb-ok-fits[%]':None,
 		}
 		for b in band_names:
 			info_dict[method_k].update({
-				f'{b}-fit-error':[],
+				f'{b}-fit-log-error':[],
 				f'{b}-ok-fits-n':0,
 				f'{b}-n':0,
 				f'{b}-ok-fits[%]':None,
@@ -85,22 +86,27 @@ def get_info_dict(rootdir, methods):
 		for filedir in filedirs:
 			fdict = ff.load_pickle(filedir, verbose=0)
 			lcobj_name = fdict['lcobj_name']
+			segs = fdict['segs']
 			for b in band_names:
 				trace = fdict['trace_bdict'][b]
 				errors = trace.get_valid_errors()
-				info_dict[method_k][f'{b}-fit-error'] += errors
+				info_dict[method_k][f'{b}-fit-log-error'] += errors
 				info_dict[method_k][f'{b}-ok-fits-n'] += len(errors)
 				info_dict[method_k][f'{b}-n'] += len(trace)
-				info_dict[method_k][f'mb-fit-error'] += errors
+
+				### mb
+				info_dict[method_k][f'trace-time[segs]'] += [segs]
+				info_dict[method_k][f'mb-fit-log-error'] += errors
 				info_dict[method_k][f'mb-ok-fits-n'] += len(errors)
 				info_dict[method_k][f'mb-n'] += len(trace)
 
 	for method in methods:
 		method_k = f'method-{method}'
-		info_dict[method_k]['mb-fit-error'] = XError(info_dict[method_k]['mb-fit-error'], 0)
-		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].get('mb-ok-fits-n')/info_dict[method_k].get('mb-n')*100
+		info_dict[method_k]['trace-time[segs]'] = XError(info_dict[method_k]['trace-time[segs]'])
+		info_dict[method_k]['mb-fit-log-error'] = XError(np.log(info_dict[method_k]['mb-fit-log-error']))
+		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].pop('mb-ok-fits-n')/info_dict[method_k].pop('mb-n')*100
 		for b in band_names:
-			info_dict[method_k][f'{b}-fit-error'] = XError(info_dict[method_k][f'{b}-fit-error'], 0)
+			info_dict[method_k][f'{b}-fit-log-error'] = XError(np.log(info_dict[method_k][f'{b}-fit-log-error']))
 			info_dict[method_k][f'{b}-ok-fits[%]'] = info_dict[method_k].pop(f'{b}-ok-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
 
 	info_df = pd.DataFrame.from_dict(info_dict, orient='index')

@@ -109,5 +109,6 @@ def get_info_dict(rootdir, methods):
 			info_dict[method_k][f'{b}-fit-log-error'] = XError(np.log(info_dict[method_k][f'{b}-fit-log-error']))
 			info_dict[method_k][f'{b}-ok-fits[%]'] = info_dict[method_k].pop(f'{b}-ok-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
 
-	info_df = pd.DataFrame.from_dict(info_dict, orient='index')
+	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(list(info_dict.keys()))
+	info_df = info_df.sort_values(by=['trace-time[segs]'])
 	return info_df

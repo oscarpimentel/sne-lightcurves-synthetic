@@ -18,7 +18,7 @@ def is_in_column(lcobj_name, sne_specials_df, column):
 	return lcobj_name in list(sne_specials_df[column].values)
 
 def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,
-	method='curve_fit',
+	method='linear',
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
 	sne_specials_df=None,
@@ -35,7 +35,7 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 
 	### save file
 	ignored = is_in_column(lcobj_name, sne_specials_df, 'fit_ignored')
-	outlier = is_in_column(lcobj_name, sne_specials_df, 'outliers')
+	outlier = 0
 	method_folder = f'{method}_outliers' if outlier else method
 
 	to_save = {

@@ -32,7 +32,7 @@ if __name__== '__main__':
 		assert filename.split('.')[-1]==C_.EXT_SPLIT_LIGHTCURVE
 		return load_pickle(filename)
 
-	filedir = '../../surveys-save/alerceZTFv7.1/survey-alerceZTFv7.1_bands-gr_mode-onlySNe_kfid-0.splcds'
+	filedir = '../../surveys-save/alerceZTFv7.1/survey-alerceZTFv7.1_bands-gr_mode-onlySNe.splcds'
 
 	filedict = get_dict_from_filedir(filedir)
 	root_folder = filedict['*rootdir*']

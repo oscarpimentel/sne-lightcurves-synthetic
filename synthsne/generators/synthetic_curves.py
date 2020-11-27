@@ -369,7 +369,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			'check_finite':True,
 			'bounds':([pm_bounds[p][0] for p in pm_bounds.keys()], [pm_bounds[p][-1] for p in pm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
-			'sigma':(obs_error+1e-20),
+			'sigma':(obs_error+1e-20)**2,
 		}
 
 		### fitting

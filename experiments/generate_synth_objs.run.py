@@ -55,9 +55,9 @@ if __name__== '__main__':
 	if isinstance(methods, str):
 		methods = [methods]
 
-	set_name = main_args.set
+	lcset_name = main_args.set
 	for method in methods:
-		save_rootdir = f'../save/{survey}/{cfilename}/{set_name}'
+		save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
 		sd_kwargs = {
 			'synthetic_samples_per_curve':64,
 			'method':method,
@@ -66,4 +66,4 @@ if __name__== '__main__':
 		samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
 		obse_sampler_bdict = samplers['obse_sampler_bdict']
 		length_sampler_bdict = samplers['length_sampler_bdict']
-		generate_synthetic_dataset(lcdataset, set_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)
+		generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)

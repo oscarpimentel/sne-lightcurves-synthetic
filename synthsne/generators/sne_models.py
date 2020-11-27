@@ -75,7 +75,7 @@ class SNeModel():
 					obs = interp(times)
 
 				elif self.kind=='bspline':
-					spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse)
+					spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2)
 					obs = splev(times, spl)
 			except:
 				raise ex.InterpError()

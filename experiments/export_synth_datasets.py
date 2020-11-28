@@ -79,7 +79,7 @@ if __name__== '__main__':
 					synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
 
 		bar.done()
-		new_lcset_name = f'{lcset_name}[{method}]'
+		new_lcset_name = f'{lcset_name}.{method}'
 		lcdataset.set_lcset(new_lcset_name, synth_lcset)
 
 		save_rootdir = f'{root_folder}'

@@ -3,7 +3,7 @@ import lchandler.C_ as C_lchandler
 
 ###################################################################################################################################################
 EPS = 1e-10
-N_TRACE_SAMPLES = 350
+N_TRACE_SAMPLES = 300
 ERROR_SCALE = 1e2
 
 ### EXPORT
@@ -13,8 +13,8 @@ CHUNK_SIZE = N_JOBS*1
 ### LENGTHS & DURATIONS
 MIN_POINTS_LIGHTCURVE_SURVEY_EXPORT = C_lchandler.MIN_POINTS_LIGHTCURVE_SURVEY_EXPORT
 MIN_POINTS_LIGHTCURVE_DEFINITION = C_lchandler.MIN_POINTS_LIGHTCURVE_DEFINITION
-MIN_POINTS_LIGHTCURVE_TO_PMFIT = 3
-MIN_DUR_LIGHTCURVE_TO_PMFIT = 10 # 5, 10, 15, 20
+MIN_POINTS_LIGHTCURVE_TO_PMFIT = 4
+MIN_DUR_LIGHTCURVE_TO_PMFIT = 12 # 5, 10, 15, 20
 
 ### FILE TYPES
 EXT_RAW_LIGHTCURVE = C_lchandler.EXT_RAW_LIGHTCURVE # no split, as RAW ZTF/FSNes

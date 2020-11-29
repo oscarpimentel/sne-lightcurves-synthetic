@@ -47,7 +47,10 @@ if __name__== '__main__':
 	from synthsne.generators.synthetic_datasets import generate_synthetic_dataset
 	import pandas as pd
 	from synthsne import C_
-
+	import flamingchoripan.files as ff
+	from flamingchoripan.progress_bars import ProgressBar
+	from flamingchoripan.files import load_pickle, save_pickle
+	
 	methods = main_args.method
 	if methods=='all':
 		methods = ['linear', 'curvefit', 'bspline', 'uniformprior', 'mcmc']

@@ -50,7 +50,7 @@ if __name__== '__main__':
 
 	methods = main_args.method
 	if methods=='all':
-		methods = ['linear', 'bspline', 'uniformprior', 'curvefit', 'mcmc']
+		methods = ['linear', 'curvefit', 'bspline', 'uniformprior', 'mcmc']
 
 	if isinstance(methods, str):
 		methods = [methods]
@@ -67,3 +67,32 @@ if __name__== '__main__':
 		obse_sampler_bdict = samplers['obse_sampler_bdict']
 		length_sampler_bdict = samplers['length_sampler_bdict']
 		generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)
+
+		### export
+		lcset = lcdataset[lcset_name]
+		synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
+		print('synth_rootdir:', synth_rootdir)
+		synth_lcset = lcset.copy({})
+		filedirs = ff.get_filedirs(synth_rootdir, fext='synsne')
+		bar = ProgressBar(len(filedirs))
+		for filedir in filedirs:
+			d = ff.load_pickle(filedir, verbose=0)
+			lcobj_name = d['lcobj_name']
+			bar(f'{lcobj_name}')
+			lcobj = d['lcobj']
+			synth_lcset.set_lcobj(f'{lcobj_name}.0', lcobj) # set orinal anyways
+			
+			has_corrects_samples = d['has_corrects_samples']
+			ignored = d['ignored']
+			if has_corrects_samples and not ignored:
+				for k,new_lcobj in enumerate(d['new_lcobjs']):
+					synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
+
+		bar.done()
+		new_lcset_name = f'{lcset_name}.{method}'
+		lcdataset.set_lcset(new_lcset_name, synth_lcset)
+
+		save_rootdir = f'{root_folder}'
+		save_filedir = f'{save_rootdir}/{cfilename}_method-{method}.{C_.EXT_SPLIT_LIGHTCURVE}'
+		save_pickle(save_filedir, lcdataset)
+		lcdataset.del_lcset(new_lcset_name)

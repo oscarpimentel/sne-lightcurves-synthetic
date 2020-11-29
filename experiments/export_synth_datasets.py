@@ -52,7 +52,7 @@ if __name__== '__main__':
 
 	methods = main_args.method
 	if methods=='all':
-		methods = ['linear', 'bspline', 'uniformprior', 'curvefit', 'mcmc']
+		methods = ['linear', 'bspline', 'curvefit', 'mcmc', 'uniformprior']
 
 	if isinstance(methods, str):
 		methods = [methods]

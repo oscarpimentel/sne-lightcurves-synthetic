@@ -392,8 +392,8 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		trace = Trace()
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-			lcobjb.add_obs_noise_gaussian(1, self.min_obs_bdict[b]) # add obs noise
+			lcobjb.add_day_noise_uniform(self.hours_noise_amp, self.std_scale) # add day noise
+			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b]) # add obs noise
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 			sne_model = SNeModel(lcobjb, None)
 
@@ -548,8 +548,8 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		trace = Trace()
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-			lcobjb.add_obs_noise_gaussian(1, self.min_obs_bdict[b]) # add obs noise
+			lcobjb.add_day_noise_uniform(self.hours_noise_amp, self.std_scale) # add day noise
+			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b]) # add obs noise
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 
 			try:
@@ -592,8 +592,8 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 		trace = Trace()
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-			lcobjb.add_obs_noise_gaussian(1, self.min_obs_bdict[b]) # add obs noise
+			lcobjb.add_day_noise_uniform(self.hours_noise_amp, self.std_scale) # add day noise
+			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b]) # add obs noise
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 
 			try:

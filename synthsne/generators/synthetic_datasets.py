@@ -53,7 +53,7 @@ def generate_synthetic_samples(lcobj_name, lcdataset, lcset_name, obse_sampler_b
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images
-	save_filedirs = [f'{save_rootdir}/{method_folder}/{lcobj_name}.png', f'{save_rootdir}/{method}_{c}/{lcobj_name}.png']
+	save_filedirs = [f'{save_rootdir}/{c}_{method}/{lcobj_name}.png']
 	if is_in_column(lcobj_name, sne_specials_df, 'vis'):
 		save_filedirs += [f'{save_rootdir}/{method}_vis/{lcobj_name}.png']
 

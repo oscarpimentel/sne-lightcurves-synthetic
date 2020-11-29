@@ -16,7 +16,7 @@ def get_pm_bounds(lcobjb, class_names,
 	days, obs, obs_error = lu.extract_arrays(lcobjb)
 
 	### checks
-	if len(lcobjb)<min_required_points or lcobjb.get_days_duration()<min_required_duration:
+	if len(lcobjb)<min_required_points or lcobjb.get_days_duration()<min_required_duration or lcobjb.get_snr()<=C_.MIN_SNR:
 		raise ex.TooShortCurveError()
 
 	### utils

@@ -32,6 +32,7 @@ def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcob
 	title = ''
 	title += f'multiband light curve & parametric model samples\n'
 	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name} - class: {lcset.class_names[lcobj.y]}'+'\n'
+	title += ' - '.join([f'{b}-snr: {lcobj.get_b(b).get_snr():.2f}' for b in band_names])+'\n'
 	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])
 	ax.set_title(title)
 	ax.legend(loc='upper right')

@@ -64,7 +64,7 @@ def get_info_dict(rootdir, methods):
 	info_dict = {}
 	# $\chi_{\sigma_x^2}$
 	for method in methods:
-		method_k = f'method-{method}'
+		method_k = f'method={method}'
 		info_dict[method_k] = {
 			'trace-time[segs]':[],
 			'mb-fit-log-error':[],
@@ -81,7 +81,7 @@ def get_info_dict(rootdir, methods):
 			})
 
 	for method in methods:
-		method_k = f'method-{method}'
+		method_k = f'method={method}'
 		filedirs = get_filedirs(rootdir, method)
 		for filedir in filedirs:
 			fdict = ff.load_pickle(filedir, verbose=0)
@@ -101,7 +101,7 @@ def get_info_dict(rootdir, methods):
 				info_dict[method_k][f'mb-n'] += len(trace)
 
 	for method in methods:
-		method_k = f'method-{method}'
+		method_k = f'method={method}'
 		info_dict[method_k]['trace-time[segs]'] = XError(info_dict[method_k]['trace-time[segs]'])
 		info_dict[method_k]['mb-fit-log-error'] = XError(np.log(info_dict[method_k]['mb-fit-log-error']))
 		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].pop('mb-ok-fits-n')/info_dict[method_k].get('mb-n')*100 # get, pop

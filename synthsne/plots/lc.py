@@ -9,14 +9,13 @@ from lchandler.plots.lc import plot_lightcurve
 
 ###################################################################################################################################################
 
-def plot_synthetic_samples(lcdataset, set_name:str, method, lcobj_name, new_lcobjs, new_smooth_lcojbs,
+def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, new_smooth_lcojbs,
 	trace_bdict=None,
 	figsize:tuple=(8,12),
 	lw=1.5,
 	save_filedir=None,
 	idx=0,
 	):
-	lcset = lcdataset[set_name]
 	fig, axs = plt.subplots(2, 1, figsize=figsize)
 	band_names = lcset.band_names
 	lcobj = lcset[lcobj_name]

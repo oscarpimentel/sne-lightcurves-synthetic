@@ -32,7 +32,7 @@ if __name__== '__main__':
 		assert filename.split('.')[-1]==C_.EXT_SPLIT_LIGHTCURVE
 		return load_pickle(filename)
 
-	filedir = '../../surveys-save/alerceZTFv7.1/survey-alerceZTFv7.1_bands-gr_mode-onlySNe.splcds'
+	filedir = '../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
 
 	filedict = get_dict_from_filedir(filedir)
 	root_folder = filedict['*rootdir*']
@@ -50,7 +50,7 @@ if __name__== '__main__':
 	import flamingchoripan.files as ff
 	from flamingchoripan.progress_bars import ProgressBar
 	from flamingchoripan.files import load_pickle, save_pickle
-	
+
 	methods = main_args.method
 	if methods=='all':
 		methods = ['linear', 'curvefit', 'bspline', 'uniformprior', 'mcmc']
@@ -96,6 +96,6 @@ if __name__== '__main__':
 		lcdataset.set_lcset(new_lcset_name, synth_lcset)
 
 		save_rootdir = f'{root_folder}'
-		save_filedir = f'{save_rootdir}/{cfilename}_method-{method}.{C_.EXT_SPLIT_LIGHTCURVE}'
+		save_filedir = f'{save_rootdir}/{cfilename}°method={method}.{C_.EXT_SPLIT_LIGHTCURVE}'
 		save_pickle(save_filedir, lcdataset)
 		lcdataset.del_lcset(new_lcset_name)

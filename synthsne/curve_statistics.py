@@ -68,16 +68,16 @@ def get_info_dict(rootdir, methods):
 		info_dict[method_k] = {
 			'trace-time[segs]':[],
 			'mb-fit-log-error':[],
-			'mb-ok-fits-n':0,
+			'mb-fits-n':0,
 			'mb-n':0,
-			'mb-ok-fits[%]':None,
+			'mb-fits[%]':None,
 		}
 		for b in band_names:
 			info_dict[method_k].update({
 				f'{b}-fit-log-error':[],
-				f'{b}-ok-fits-n':0,
+				f'{b}-fits-n':0,
 				f'{b}-n':0,
-				f'{b}-ok-fits[%]':None,
+				f'{b}-fits[%]':None,
 			})
 
 	for method in methods:
@@ -91,23 +91,23 @@ def get_info_dict(rootdir, methods):
 				trace = fdict['trace_bdict'][b]
 				errors = trace.get_valid_errors()
 				info_dict[method_k][f'{b}-fit-log-error'] += errors
-				info_dict[method_k][f'{b}-ok-fits-n'] += len(errors)
+				info_dict[method_k][f'{b}-fits-n'] += len(errors)
 				info_dict[method_k][f'{b}-n'] += len(trace)
 
 				### mb
 				info_dict[method_k][f'trace-time[segs]'] += [segs]
 				info_dict[method_k][f'mb-fit-log-error'] += errors
-				info_dict[method_k][f'mb-ok-fits-n'] += len(errors)
+				info_dict[method_k][f'mb-fits-n'] += len(errors)
 				info_dict[method_k][f'mb-n'] += len(trace)
 
 	for method in methods:
 		method_k = f'method={method}'
 		info_dict[method_k]['trace-time[segs]'] = XError(info_dict[method_k]['trace-time[segs]'])
 		info_dict[method_k]['mb-fit-log-error'] = XError(np.log(info_dict[method_k]['mb-fit-log-error']))
-		info_dict[method_k]['mb-ok-fits[%]'] = info_dict[method_k].pop('mb-ok-fits-n')/info_dict[method_k].get('mb-n')*100 # get, pop
+		info_dict[method_k]['mb-fits[%]'] = info_dict[method_k].get('mb-fits-n')/info_dict[method_k].pop('mb-n')*100 # get, pop
 		for b in band_names:
 			info_dict[method_k][f'{b}-fit-log-error'] = XError(np.log(info_dict[method_k][f'{b}-fit-log-error']))
-			info_dict[method_k][f'{b}-ok-fits[%]'] = info_dict[method_k].pop(f'{b}-ok-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
+			info_dict[method_k][f'{b}-fits[%]'] = info_dict[method_k].get(f'{b}-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
 
 	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(list(info_dict.keys()))
 	info_df = info_df.sort_values(by=['trace-time[segs]'])

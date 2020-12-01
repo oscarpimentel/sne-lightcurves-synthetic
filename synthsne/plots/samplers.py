@@ -33,7 +33,7 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 				new_obs = [np.random.normal(to_sample[np.random.randint(0, len(to_sample))], std) for _ in range(n)] # kde
 				#x = 0.05; new_obs = np.linspace(x, x+0.001, 1000) # sanity check
 				new_obse, new_obs = obse_sampler.conditional_sample(new_obs)
-				ax.plot(new_obse, new_obs, 'r.', markersize=2, alpha=1); ax.plot(np.nan, np.nan, 'r.', label='$\hat{p}(x_{ij},\sigma_{xij})$ samples')
+				ax.plot(new_obse, new_obs, 'r.', markersize=2, alpha=1); ax.plot(np.nan, np.nan, 'r.', label='$\hat{p}(x_{ij},\sigma_{xij})$ samples (KDE)')
 
 			### rot axis
 			x = np.linspace(obse_sampler.raw_obse.min(), obse_sampler.raw_obse.max(), 100)
@@ -60,11 +60,11 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
 				
 		if original_space:
-			title = f'survey:{lcset.survey} - band: {b}'
+			title = f'survey: {lcset.survey} - band: {b}'
 			ax.set_xlabel('obs-error')
 			ax.set_ylabel('obs' if kb==0 else None)
-			#ax.set_xlim([0.0, 0.02])
-			#ax.set_ylim([0.0, 0.25])
+			ax.set_xlim([0.0, 0.05])
+			ax.set_ylim([0.0, 0.3])
 		else:
 			title = f'survey:{lcset.survey} - band: {b}'
 			ax.set_xlabel('rotated-flipped obs-error')

@@ -41,7 +41,7 @@ def get_pm_bounds(lcobjb, class_names,
 			#'s':(1e-1, 1e3),
 		}
 		ret = {c:pm_bounds for c in class_names}
-	else:
+	else: # new bounds
 		pm_bounds = {
 			'A':(max_flux / 3, max_flux * 3),
 			't0':(day_max_flux-30, day_max_flux+10),

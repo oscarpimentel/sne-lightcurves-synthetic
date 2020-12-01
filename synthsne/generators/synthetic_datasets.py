@@ -29,9 +29,6 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	c = class_names[lcobj.y]
 
 	### generate curves
-	if check_filedir_exists(f'{save_rootdir}/{method}/{lcobj_name}.synsne'):
-		#print('exists',f'{save_rootdir}/{method}/{lcobj_name}.synsne')
-		return
 	sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict)
 	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
 
@@ -72,12 +69,16 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	sne_specials_df=None,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
+	backend='threading', # explodes with mcmc
 	):
 	if method in ['mcmc']:
-		n_jobs = 1
-		chunk_size = 1
+		backend = 'loky'
+		#n_jobs = 1
+		#chunk_size = 1
+
 	lcset = lcdataset[lcset_name]
-	chunks = get_list_chunks(lcset.get_lcobj_names(), chunk_size)
+	lcobj_names = [n for n in lcset.get_lcobj_names() if not check_filedir_exists(f'{save_rootdir}/{method}/{n}.synsne')]
+	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
 		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method}')
@@ -89,6 +90,6 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 				add_original,
 				sne_specials_df,
 				))
-		results = Parallel(n_jobs=n_jobs, backend='threading')(jobs)
+		results = Parallel(n_jobs=n_jobs, backend=backend)(jobs)
 
 	bar.done()

@@ -40,6 +40,12 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
 			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
+			title = f'survey: {lcset.survey} - band: {b}'
+			ax.set_xlabel('obs-error')
+			ax.set_ylabel('obs' if kb==0 else None)
+			ax.set_xlim([0.0, 0.05])
+			ax.set_ylim([0.0, 0.3])
+
 		else:
 			label='$p(x_{ij}'+"'"+',\sigma_{xij}'+"'"+')$'+f' {set_name} samples'
 			ax.plot(obse_sampler.obse, obse_sampler.obs, 'k.', markersize=2, alpha=0.2); ax.plot(np.nan, np.nan, 'k.', label=label)
@@ -47,9 +53,9 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 			max_obse = obse_sampler.obse.max()
 			pdfx = np.linspace(min_obse, max_obse, 200)
 			colors = cm.viridis(np.linspace(0, 1, len(obse_sampler.distrs)))
+			min_pdfy = np.infty
 			for p_idx in range(len(obse_sampler.distrs)):
 				d = obse_sampler.distrs[p_idx]
-				
 				if p_idx%10==0:
 					rank_ranges = obse_sampler.rank_ranges[p_idx]
 					pdf_offset = rank_ranges[1] # upper of rank range
@@ -58,22 +64,16 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 					c = colors[p_idx]
 					label = '$\hat{p}(\sigma_{xij}'+"'"+'|x_{ij}'+"'"+')$ Gaussian conditional fit'
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
-				
-		if original_space:
-			title = f'survey: {lcset.survey} - band: {b}'
-			ax.set_xlabel('obs-error')
-			ax.set_ylabel('obs' if kb==0 else None)
-			ax.set_xlim([0.0, 0.05])
-			ax.set_ylim([0.0, 0.3])
-		else:
+					min_pdfy = pdfy.min() if pdfy.min()<min_pdfy else min_pdfy
+			
 			title = f'survey:{lcset.survey} - band: {b}'
 			ax.set_xlabel('rotated-flipped obs-error')
 			ax.set_ylabel('rotated obs' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
-			#ax.set_ylim([0.0, 0.25])
+			ax.set_ylim([min_pdfy, 1])
 
 		ax.set_title(title)
-		ax.legend(loc='lower right')
+		ax.legend(loc='upper left')
 
 		### multiband colors
 		#ax.grid(color=C_.COLOR_DICT[b])

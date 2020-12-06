@@ -8,6 +8,7 @@ import scipy
 import scipy.stats as stats
 from sklearn import preprocessing as prep
 from flamingchoripan.datascience.statistics import dropout_extreme_percentiles, get_linspace_ranks
+from sklearn.decomposition import PCA
 
 ###################################################################################################################################################
 
@@ -112,9 +113,20 @@ class ObsErrorConditionalSampler():
 		valid_indexs = self.raw_obs<y0
 		self.lr_x = self.raw_obse[valid_indexs]#[self.raw_obse>x0]
 		self.lr_y = self.raw_obs[valid_indexs]#[self.raw_obs>y0]
-		#slope, pcov = scipy.optimize.curve_fit(lambda x, m: m*(x+x0)+0, self.lr_x, self.lr_y)
-		slope, intercept, r_value, p_value, std_err = stats.linregress(self.lr_x, self.lr_y)
-		print(slope)
+		mode = 'pca'
+		if mode=='pca':
+			pca_x = np.concatenate([self.lr_x[...,None], self.lr_y[...,None]], axis=-1)
+			#print(pca_x.shape)
+			pca = PCA(n_components=1)
+			pca.fit(pca_x)
+			slope = pca.components_[0][1]/pca.components_[0][0]
+			intercept = 0-pca.mean_[1]
+			#print(a.shape, b.shape)
+			#assert 0
+		else:
+			slope, intercept, r_value, p_value, std_err = stats.linregress(self.lr_x, self.lr_y)
+		
+		#print(slope)
 		self.m = slope
 		self.n = intercept
 		self.rotor = CustomRotor(self.m, self.n)

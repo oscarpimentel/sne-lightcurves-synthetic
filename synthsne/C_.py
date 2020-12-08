@@ -27,7 +27,7 @@ EXT_SAMPLER = 'smplr'
 ### SYNTHETIC
 OBSE_STD_SCALE = 1
 CPDS_P = 0.015 # curve points down sampling probability
-HOURS_NOISE_AMP = 16.
+HOURS_NOISE_AMP = 5.
 MIN_CADENCE_DAYS = 3.
 MAX_OBS_ERROR = 1e10
 

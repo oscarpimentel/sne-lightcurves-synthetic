@@ -24,8 +24,7 @@ if __name__== '__main__':
 
 	###################################################################################################################################################
 	import numpy as np
-	from flamingchoripan.files import load_pickle, save_pickle
-	from flamingchoripan.files import get_dict_from_filedir
+	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
 	from synthsne import C_
 
 	def load_lcdataset(filename):
@@ -53,7 +52,7 @@ if __name__== '__main__':
 
 	methods = main_args.method
 	if methods=='all':
-		methods = ['linear', 'curvefit', 'bspline', 'uniformprior', 'mcmc']
+		methods = ['linear', 'curvefit', 'bspline', 'mcmc']
 
 	if isinstance(methods, str):
 		methods = [methods]

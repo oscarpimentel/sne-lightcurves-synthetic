@@ -7,7 +7,7 @@ from flamingchoripan.progress_bars import ProgressBar
 from flamingchoripan.files import save_pickle, check_filedir_exists
 from .synthetic_curves import get_syn_sne_generator
 from ..plots.lc import plot_synthetic_samples
-from flamingchoripan.strings import get_list_chunks
+from flamingchoripan.lists import get_list_chunks
 from joblib import Parallel, delayed
 
 ###################################################################################################################################################

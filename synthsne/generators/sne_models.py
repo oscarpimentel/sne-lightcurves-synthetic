@@ -110,6 +110,8 @@ class SNeModel():
 				'tmax':tmax_day,
 				'tf':last_day,
 			}
+			ti_search_range = None
+			tf_search_range = None
 		else:
 			func_args = tuple([self.pm_args[p] for p in self.parameters])
 			t0 = self.pm_args['t0']

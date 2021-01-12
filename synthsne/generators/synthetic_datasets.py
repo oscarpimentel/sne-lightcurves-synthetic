@@ -51,7 +51,7 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images
-	save_filedirs = [f'{save_rootdir}/{c}_{method}/{lcobj_name}.png']
+	save_filedirs = [f'{save_rootdir}/{method}_{c}/{lcobj_name}.png']
 	if is_in_column(lcobj_name, sne_specials_df, 'vis'):
 		save_filedirs += [f'{save_rootdir}/{method}_vis/{lcobj_name}.png']
 
@@ -69,7 +69,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	sne_specials_df=None,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
-	backend='threading', # explodes with mcmc
+	backend=None#'threading', # explodes with mcmc
 	):
 	if method in ['mcmc']:
 		backend = 'loky'
@@ -81,7 +81,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
-		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method}')
+		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method} - chunk:{chunk}')
 		jobs = []
 		for lcobj_name in chunk:
 			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,

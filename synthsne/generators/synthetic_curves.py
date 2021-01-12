@@ -335,7 +335,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		tfall_guess = 40.
 
 		### s
-		s_guess = 1/3.
+		#s_guess = 1/3.
 
 		### set
 		p0 = {
@@ -345,7 +345,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			'f':np.clip(gamma_guess, pm_bounds['f'][0], pm_bounds['f'][-1]),
 			'trise':np.clip(trise_guess, pm_bounds['trise'][0], pm_bounds['trise'][-1]),
 			'tfall':np.clip(tfall_guess, pm_bounds['tfall'][0], pm_bounds['tfall'][-1]),
-			's':np.clip(s_guess, pm_bounds['s'][0], pm_bounds['s'][-1]),
+			#'s':np.clip(s_guess, pm_bounds['s'][0], pm_bounds['s'][-1]),
 		}
 		return p0
 
@@ -422,7 +422,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 
-		n_tune=500, # 500, 1000
+		n_tune=1000, # 500, 1000
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -455,21 +455,26 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		basic_model = pm.Model()
 		with basic_model:
 			try:
-			#if 1:
-				A = pm.Uniform('A', *pm_bounds['A'])
-				t0 = pm.Uniform('t0', *pm_bounds['t0'])
-				#gamma = pm.Normal('gamma', mu=35, sigma=10)
-				gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
-				#gamma = pm.Normal('gamma', mu=pm_bounds['gamma'][0]+(pm_bounds['gamma'][-1]-pm_bounds['gamma'][0])/2., sigma=10)
-				#gamma = pm.Gamma('gamma', alpha=pm_bounds['gamma'][0]+(pm_bounds['gamma'][-1]-pm_bounds['gamma'][0])/2., beta=1)
-				f = pm.Uniform('f', 0, 1)
-				#f = pm.Beta('f', alpha=2.5, beta=1)
-				trise = pm.Uniform('trise', *pm_bounds['trise'])
-				tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
-				s = pm.Uniform('s', *pm_bounds['s'])
-				#g = pm.Bernoulli('g', 0.5)
+				is_slsn = 'SLSN' in self.c
+				uses_uniform_priors = is_slsn
 
-				pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall, s), sigma=obs_error*0.5, observed=obs)
+				if uses_uniform_priors:
+					t0 = pm.Uniform('t0', *pm_bounds['t0'])
+					A = pm.Uniform('A', *pm_bounds['A'])
+					gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
+					f = pm.Uniform('f', *pm_bounds['f'])
+					trise = pm.Uniform('trise', *pm_bounds['trise'])
+					tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
+
+				else:
+					t0 = pm.Normal('t0', mu=3.758283242131816, sigma=7.452700389005965)
+					A = pm.Uniform('A', *pm_bounds['A'])
+					gamma = pm.Gamma('gamma', alpha=3.8860107949654714, beta=0.13165976206759655)
+					f = pm.Beta('f', alpha=2.8296671008527303, beta=0.8178755329149567)
+					trise = pm.Gamma('trise', alpha=2.3176922646406415, beta=0.6283185357534864)
+					tfall = pm.Gamma('tfall', alpha=1.8201041729120007, beta=0.043531217180457646)
+
+				pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*1, observed=obs)
 				#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall, s), sigma=np.sqrt(obs_error), observed=obs)
 				#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error, observed=obs)
 				#pm_obs = pm.StudentT('pm_obs', nu=5, mu=pm_obs, sigma=obs_error, observed=obs)

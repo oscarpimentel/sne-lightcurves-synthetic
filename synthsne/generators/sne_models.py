@@ -31,15 +31,20 @@ def inverse_syn_sne_func(t, A, t0, gamma, f, trise, tfall):
 '''
 
 
-def syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall, s):
+def syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall,
+	#s=1/3,
+	):
+	s = 1/3
 	g = sgm(t, gamma+t0, s)
 	early = 1.0*(A*(1 - (f*(t-t0)/gamma))   /   (1 + np.exp(-(t-t0)/trise)))
 	late = 1.0*(A*(1-f)*np.exp(-(t-(gamma+t0))/tfall)   /   (1 + np.exp(-(t-t0)/trise)))
 	flux = (1-g)*early + g*late
 	return flux
 
-def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall, s):
-	return -syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall, s)
+def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall,
+	#s=1/3,
+	):
+	return -syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall)
 
 def get_min_tfunc(search_range, func, func_args,
 	min_obs_threshold=0,
@@ -58,7 +63,8 @@ class SNeModel():
 	def __init__(self, lcobjb, pm_args,
 		kind=None, # linear, bspline
 		):
-		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall', 's']
+		#self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall', 's']
+		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']
 		self.lcobjb = lcobjb.copy()
 		self.pm_args = {} if pm_args is None else pm_args.copy()
 		self.kind = kind

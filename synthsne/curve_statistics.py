@@ -38,6 +38,43 @@ def get_perf_times(rootdir, method):
 
 	return XError(times)
 
+def get_classes(rootdir, method):
+	classes = []
+	filedirs = get_filedirs(rootdir, method)
+	for filedir in filedirs:
+		fdict = ff.load_pickle(filedir, verbose=0)
+		c = fdict['c']
+		if not c in classes:
+			classes.append(c)
+
+	return classes
+
+def get_spm_parameters(rootdir, method, b):
+	filedirs = get_filedirs(rootdir, method)
+	for filedir in filedirs:
+		fdict = ff.load_pickle(filedir, verbose=0)
+		if fdict['has_corrects_samples']:
+			sne_models = fdict['trace_bdict'][b].sne_model_l
+			for sne_model in sne_models:
+				if not sne_model is None:
+					return sne_model.parameters
+
+def xxx(rootdir, method, b):
+	filedirs = get_filedirs(rootdir, method)
+	spm_args = {p:[] for p in get_spm_parameters(rootdir, method, b)}
+	for filedir in filedirs:
+		fdict = ff.load_pickle(filedir, verbose=0)
+		if fdict['has_corrects_samples']:
+			#print(fdict.keys())
+			c = fdict['c']
+			sne_models = fdict['trace_bdict'][b].sne_model_l
+			for sne_model in sne_models:
+				if not sne_model is None:
+					for p in sne_model.parameters:
+						spm_args[p].append({'p':sne_model.pm_args[p], 'c':c})
+
+	return spm_args
+
 def get_ranks(rootdir, method):
 	band_names = get_band_names(rootdir, method)
 	rank = TopRank('mb-rank')

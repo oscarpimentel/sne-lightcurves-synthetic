@@ -28,30 +28,31 @@ def get_pm_bounds(lcobjb, class_names,
 	first_day = days.min()
 	last_day = days.max()
 
-	if not uses_new_bounds:
+	if 0:
 		pm_bounds = {
-			'A':(max_flux / 3, max_flux * 3),
-			't0':(-80, +80),
-			'gamma':(1, 100),
+			'A':(max_flux / 3, max_flux * 3), # curve-wise
+			't0':(day_max_flux-100, day_max_flux+100), # curve-wise
+			'gamma':(5, 100),
 			'f':(0, 1),
-			'trise':(1, 100),
-			'tfall':(1, 100),
+			'trise':(1, 30),
+			'tfall':(2, 100),
 			#'s':(1/3.-0.01, 1/3.+0.01),
-			's':(1e-1, 2e1),
+			#'s':(1e-1, 2e1),
 			#'s':(1e-1, 1e3),
+			#'s':(1/3, 3),
 		}
 		ret = {c:pm_bounds for c in class_names}
 	else: # new bounds
 		pm_bounds = {
-			'A':(max_flux / 3, max_flux * 3),
-			't0':(day_max_flux-30, day_max_flux+10),
+			'A':(max_flux / 3, max_flux * 3), # curve-wise
+			't0':(first_day-50, day_max_flux+50), # curve-wise
 			#'gamma':(3, 100),
-			'gamma':(5, 100), # gamma is important important
+			'gamma':(6, 100), # gamma is important important
 			'f':(0, 1),
-			'trise':(1, 18),
-			'tfall':(5, 100),
+			'trise':(1, 25),
+			'tfall':(6, 100),
 			#'s':(1e-1, 1e1),
-			's':(1/3, 3),
+			#'s':(1/3, 3),
 		}
 		'''
 		pm_bounds_slsn = {

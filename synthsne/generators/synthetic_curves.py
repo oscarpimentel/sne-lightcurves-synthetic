@@ -438,7 +438,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		self.n_tune = n_tune
 		#self.mcmc_trace_bdict = {}
 		
-	def get_mcmc_trace(self, lcobjb, pm_bounds, n, func):
+	def get_mcmc_trace(self, lcobjb, pm_bounds, n, func, b):
 		days, obs, obs_error = lu.extract_arrays(lcobjb)
 		
 		### pymc3
@@ -455,24 +455,55 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		basic_model = pm.Model()
 		with basic_model:
 			try:
-				is_slsn = 'SLSN' in self.c
-				uses_uniform_priors = is_slsn
+				if b=='g':
+					if self.c in ['SNIa']:
+						t0 = pm.Normal('t0', mu=4.576384176680837, sigma=5.467885820092564) # SNIa-g
+						A = pm.Gamma('A', alpha=1.5151811987281683, beta=3.362845578349844) # SNIa-g
+						gamma = pm.Gamma('gamma', alpha=5.880317283716181, beta=0.22443994620997665) # SNIa-g
+						f = pm.Uniform('f', *pm_bounds['f'])
+						trise = pm.Gamma('trise', alpha=3.516858751797114, beta=1.0376963068116736) # SNIa-g
+						tfall = pm.Gamma('tfall', alpha=1.8074618842199504, beta=0.04609504970632992) # SNIa-g
 
-				if uses_uniform_priors:
-					t0 = pm.Uniform('t0', *pm_bounds['t0'])
-					A = pm.Uniform('A', *pm_bounds['A'])
-					gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
-					f = pm.Uniform('f', *pm_bounds['f'])
-					trise = pm.Uniform('trise', *pm_bounds['trise'])
-					tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
+					elif self.c in ['allSNII']:
+						t0 = pm.Normal('t0', mu=0.27563253205113836, sigma=12.537935456565675) # allSNII-g
+						A = pm.Gamma('A', alpha=1.496184907931449, beta=3.9817532985146507) # allSNII-g
+						gamma = pm.Gamma('gamma', alpha=2.5437956334262948, beta=0.05638490700001304) # allSNII-g
+						f = pm.Uniform('f', *pm_bounds['f'])
+						trise = pm.Gamma('trise', alpha=1.1152156693825557, beta=0.2249247495388476) # allSNII-g
+						tfall = pm.Gamma('tfall', alpha=2.0683353932479904, beta=0.039528922772609665) # allSNII-g
 
-				else:
-					t0 = pm.Normal('t0', mu=3.758283242131816, sigma=7.452700389005965)
-					A = pm.Uniform('A', *pm_bounds['A'])
-					gamma = pm.Gamma('gamma', alpha=3.8860107949654714, beta=0.13165976206759655)
-					f = pm.Beta('f', alpha=2.8296671008527303, beta=0.8178755329149567)
-					trise = pm.Gamma('trise', alpha=2.3176922646406415, beta=0.6283185357534864)
-					tfall = pm.Gamma('tfall', alpha=1.8201041729120007, beta=0.043531217180457646)
+					elif self.c in ['SLSN', 'SNIbc']:
+						t0 = pm.Uniform('t0', *pm_bounds['t0'])
+						A = pm.Uniform('A', *pm_bounds['A'])
+						gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
+						f = pm.Uniform('f', *pm_bounds['f'])
+						trise = pm.Uniform('trise', *pm_bounds['trise'])
+						tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
+
+				elif b=='r':
+					if self.c in ['SNIa']:
+						t0 = pm.Normal('t0', mu=4.2622156123918655, sigma=6.160306584686678) # SNIa-r
+						A = pm.Gamma('A', alpha=1.6295878841431979, beta=4.06965579370581) # SNIa-r
+						gamma = pm.Gamma('gamma', alpha=3.7671693404689943, beta=0.11317404885852039) # SNIa-r
+						f = pm.Uniform('f', *pm_bounds['f'])
+						trise = pm.Gamma('trise', alpha=3.2060897920813187, beta=0.9286472696334975) # SNIa-r
+						tfall = pm.Gamma('tfall', alpha=1.9221053591217423, beta=0.05160385030651316) # SNIa-r
+
+					elif self.c in ['allSNII']:
+						t0 = pm.Normal('t0', mu=2.3661816904323603, sigma=16.144141888217376) # allSNII-r
+						A = pm.Gamma('A', alpha=1.302257200342924, beta=3.2561295996420108) # allSNII-r
+						gamma = pm.Gamma('gamma', alpha=3.816637261550581, beta=0.05603201442031885) # allSNII-r
+						f = pm.Uniform('f', *pm_bounds['f'])
+						trise = pm.Gamma('trise', alpha=0.9859131635735596, beta=0.14027799368952035) # allSNII-r
+						tfall = pm.Gamma('tfall', alpha=1.5143957235530716, beta=0.030210843888135785) # allSNII-r
+
+					elif self.c in ['SLSN', 'SNIbc']:
+						t0 = pm.Uniform('t0', *pm_bounds['t0'])
+						A = pm.Uniform('A', *pm_bounds['A'])
+						gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
+						f = pm.Uniform('f', *pm_bounds['f'])
+						trise = pm.Uniform('trise', *pm_bounds['trise'])
+						tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
 
 				pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*1, observed=obs)
 				#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall, s), sigma=np.sqrt(obs_error), observed=obs)
@@ -503,7 +534,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			sne_model = SNeModel(lcobjb, None) # auxiliar
 			pm_bounds = b_.get_pm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
 			#print('get_mcmc_trace')
-			mcmc_trace = self.get_mcmc_trace(lcobjb, pm_bounds, n, sne_model.func)
+			mcmc_trace = self.get_mcmc_trace(lcobjb, pm_bounds, n, sne_model.func, b)
 			#print(len(mcmc_trace))
 			for k in range(len(mcmc_trace)):
 				pm_args = {p:mcmc_trace[p][-k] for p in sne_model.parameters}

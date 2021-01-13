@@ -458,7 +458,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				if b=='g':
 					if self.c in ['SNIa']:
 						t0 = pm.Normal('t0', mu=4.576384176680837, sigma=5.467885820092564) # SNIa-g
-						A = pm.Gamma('A', alpha=1.5151811987281683, beta=3.362845578349844) # SNIa-g
+						A = pm.Uniform('A', *pm_bounds['A'])
 						gamma = pm.Gamma('gamma', alpha=5.880317283716181, beta=0.22443994620997665) # SNIa-g
 						f = pm.Uniform('f', *pm_bounds['f'])
 						trise = pm.Gamma('trise', alpha=3.516858751797114, beta=1.0376963068116736) # SNIa-g
@@ -466,7 +466,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 
 					elif self.c in ['allSNII']:
 						t0 = pm.Normal('t0', mu=0.27563253205113836, sigma=12.537935456565675) # allSNII-g
-						A = pm.Gamma('A', alpha=1.496184907931449, beta=3.9817532985146507) # allSNII-g
+						A = pm.Uniform('A', *pm_bounds['A'])
 						gamma = pm.Gamma('gamma', alpha=2.5437956334262948, beta=0.05638490700001304) # allSNII-g
 						f = pm.Uniform('f', *pm_bounds['f'])
 						trise = pm.Gamma('trise', alpha=1.1152156693825557, beta=0.2249247495388476) # allSNII-g
@@ -483,7 +483,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				elif b=='r':
 					if self.c in ['SNIa']:
 						t0 = pm.Normal('t0', mu=4.2622156123918655, sigma=6.160306584686678) # SNIa-r
-						A = pm.Gamma('A', alpha=1.6295878841431979, beta=4.06965579370581) # SNIa-r
+						A = pm.Uniform('A', *pm_bounds['A'])
 						gamma = pm.Gamma('gamma', alpha=3.7671693404689943, beta=0.11317404885852039) # SNIa-r
 						f = pm.Uniform('f', *pm_bounds['f'])
 						trise = pm.Gamma('trise', alpha=3.2060897920813187, beta=0.9286472696334975) # SNIa-r
@@ -491,7 +491,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 
 					elif self.c in ['allSNII']:
 						t0 = pm.Normal('t0', mu=2.3661816904323603, sigma=16.144141888217376) # allSNII-r
-						A = pm.Gamma('A', alpha=1.302257200342924, beta=3.2561295996420108) # allSNII-r
+						A = pm.Uniform('A', *pm_bounds['A'])
 						gamma = pm.Gamma('gamma', alpha=3.816637261550581, beta=0.05603201442031885) # allSNII-r
 						f = pm.Uniform('f', *pm_bounds['f'])
 						trise = pm.Gamma('trise', alpha=0.9859131635735596, beta=0.14027799368952035) # allSNII-r

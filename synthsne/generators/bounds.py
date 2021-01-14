@@ -44,13 +44,13 @@ def get_pm_bounds(lcobjb, class_names,
 		ret = {c:pm_bounds for c in class_names}
 	else: # new bounds
 		pm_bounds = {
-			'A':(max_flux / 3, max_flux * 3), # curve-wise
-			't0':(first_day-50, day_max_flux+50), # curve-wise
+			'A':(max_flux / 5, max_flux * 5), # curve-wise
+			't0':(first_day-100, day_max_flux+100), # curve-wise
 			#'gamma':(3, 100),
-			'gamma':(6, 100), # gamma is important important
+			'gamma':(5, 120), # gamma is important important
 			'f':(0, 1),
-			'trise':(1, 25),
-			'tfall':(6, 100),
+			'trise':(1, 30),
+			'tfall':(2, 150),
 			#'s':(1e-1, 1e1),
 			#'s':(1/3, 3),
 		}

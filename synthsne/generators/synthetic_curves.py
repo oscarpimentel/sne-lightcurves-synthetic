@@ -5,7 +5,7 @@ from . import C_
 import numpy as np
 from scipy.optimize import curve_fit
 from . import exceptions as ex
-from lchandler.lc_classes import diff_vector
+from lchandler.lc_classes import diff_vector, get_obs_noise_gaussian
 import pymc3 as pm
 from . import lc_utils as lu
 from .sne_models import SNeModel
@@ -246,7 +246,7 @@ class SynSNeGenerator():
 
 				if len(new_days)<=self.min_synthetic_len_b: # need to be long enough
 					continue
-					pass
+					#pass
 
 			### generate parametric observations
 			pm_obs = sne_model.evaluate(new_days)
@@ -260,7 +260,7 @@ class SynSNeGenerator():
 				new_obs = pm_obs
 			else:
 				new_obse, new_obs = obse_sampler.conditional_sample(pm_obs)
-				new_obs = np.clip(np.random.normal(pm_obs, new_obse*self.std_scale), min_obs_threshold, None)
+				new_obs = get_obs_noise_gaussian(pm_obs, new_obse, min_obs_threshold)
 			
 			if new_obs.max()>max_obs_threshold: # flux can't be too high
 				#continue
@@ -369,7 +369,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			'check_finite':True,
 			'bounds':([pm_bounds[p][0] for p in pm_bounds.keys()], [pm_bounds[p][-1] for p in pm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
-			'sigma':(obs_error+1e-20)**2,
+			'sigma':obs_error+C_.EPS,
 		}
 
 		### fitting
@@ -392,8 +392,8 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		trace = Trace()
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp, self.std_scale) # add day noise
-			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b]) # add obs noise
+			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
+			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 			sne_model = SNeModel(lcobjb, None)
 
@@ -423,6 +423,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 
 		n_tune=1000, # 500, 1000
+		mcmc_std_scale=1/2,
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -436,7 +437,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			hours_noise_amp,
 			)
 		self.n_tune = n_tune
-		#self.mcmc_trace_bdict = {}
+		self.mcmc_std_scale = mcmc_std_scale
 		
 	def get_mcmc_trace(self, lcobjb, pm_bounds, n, func, b):
 		days, obs, obs_error = lu.extract_arrays(lcobjb)
@@ -454,62 +455,84 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		import logging; logger = logging.getLogger('pymc3'); logger.setLevel(logging.ERROR) # remove logger
 		basic_model = pm.Model()
 		with basic_model:
+			A = pm.Uniform('A', *pm_bounds['A'])
+			f = pm.Uniform('f', *pm_bounds['f'])
+			if b=='g':
+				if self.c in ['SNIa']:
+					t0 = pm.Normal('t0', mu=4.365905723504798, sigma=5.529874654928809) # SNIa-g
+					#A = pm.Gamma('A', alpha=1.5465301476133086, beta=3.4567876275452005) # SNIa-g
+					gamma = pm.Gamma('gamma', alpha=5.384285519343311, beta=0.20911759410130787) # SNIa-g
+					#f = pm.Beta('f', alpha=2.2337942975372136, beta=0.7694487888066903) # SNIa-g
+					trise = pm.Gamma('trise', alpha=4.109951026169785, beta=1.1844229955210739) # SNIa-g
+					tfall = pm.Gamma('tfall', alpha=1.3638454798211739, beta=0.02967994231545823) # SNIa-g
+
+				elif self.c in ['allSNII']:
+					t0 = pm.Normal('t0', mu=0.75431978676462, sigma=13.67883496857286) # allSNII-g
+					#A = pm.Gamma('A', alpha=1.2912721084108443, beta=3.0716490506430683) # allSNII-g
+					gamma = pm.Gamma('gamma', alpha=2.1911617118284528, beta=0.049988808472167) # allSNII-g
+					#f = pm.Beta('f', alpha=2.678462263260078, beta=1.4723170991034573) # allSNII-g
+					trise = pm.Gamma('trise', alpha=1.1183176463205833, beta=0.2344211214073604) # allSNII-g
+					tfall = pm.Gamma('tfall', alpha=1.556684657805669, beta=0.026409323696280494) # allSNII-g
+
+				elif self.c in ['SNIbc']:
+					t0 = pm.Normal('t0', mu=3.024096852291102, sigma=7.2843513154563) # SNIbc-g
+					#A = pm.Gamma('A', alpha=1.6356532794525511, beta=3.733290629018999) # SNIbc-g
+					gamma = pm.Gamma('gamma', alpha=3.249445502530175, beta=0.12407716743630635) # SNIbc-g
+					#f = pm.Beta('f', alpha=3.880260453405173, beta=1.1982433572432067) # SNIbc-g
+					trise = pm.Gamma('trise', alpha=1.5614941885089983, beta=0.38670924795827927) # SNIbc-g
+					tfall = pm.Gamma('tfall', alpha=1.6275837290766215, beta=0.028478485678806367) # SNIbc-g
+
+				elif self.c in ['SLSN']:
+					t0 = pm.Normal('t0', mu=12.64339038055975, sigma=12.661731704838669) # SLSN-g
+					#A = pm.Gamma('A', alpha=1.7399692852239206, beta=6.587229513776782) # SLSN-g
+					gamma = pm.Gamma('gamma', alpha=7.019424934588083, beta=0.08655347698258382) # SLSN-g
+					#f = pm.Beta('f', alpha=2.096320378359062, beta=0.8105136936739176) # SLSN-g
+					trise = pm.Gamma('trise', alpha=3.4501113065904487, beta=0.28641870980611267) # SLSN-g
+					tfall = pm.Gamma('tfall', alpha=1.0036469863306465, beta=0.014997990563205518) # SLSN-g
+					#t0 = pm.Uniform('t0', *pm_bounds['t0'])
+					#A = pm.Uniform('A', *pm_bounds['A'])
+					#gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
+					#f = pm.Uniform('f', *pm_bounds['f'])
+					#trise = pm.Uniform('trise', *pm_bounds['trise'])
+					#tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
+
+			elif b=='r':
+				if self.c in ['SNIa']:
+					t0 = pm.Normal('t0', mu=4.595113681669969, sigma=6.459403262297658) # SNIa-r
+					#A = pm.Gamma('A', alpha=1.5810087534139081, beta=3.785218046848472) # SNIa-r
+					gamma = pm.Gamma('gamma', alpha=2.9534210866173938, beta=0.09752502088497779) # SNIa-r
+					#f = pm.Beta('f', alpha=1.6384779253353938, beta=0.8527811967524541) # SNIa-r
+					trise = pm.Gamma('trise', alpha=3.3795485407743615, beta=0.9128329608226307) # SNIa-r
+					tfall = pm.Gamma('tfall', alpha=1.547712849555183, beta=0.03922351989883987) # SNIa-r
+
+				elif self.c in ['allSNII']:
+					t0 = pm.Normal('t0', mu=1.9942432917879076, sigma=15.933060650911466) # allSNII-r
+					#A = pm.Gamma('A', alpha=1.3305520073957164, beta=3.2570945188805704) # allSNII-r
+					gamma = pm.Gamma('gamma', alpha=2.8154934934052176, beta=0.03880324011329748) # allSNII-r
+					#f = pm.Beta('f', alpha=1.5153693687065422, beta=0.9557172122078145) # allSNII-r
+					trise = pm.Gamma('trise', alpha=0.90515497184705, beta=0.11492902265421578) # allSNII-r
+					tfall = pm.Gamma('tfall', alpha=1.0506553184730494, beta=0.017727087597786594) # allSNII-r
+
+				elif self.c in ['SNIbc']:
+					t0 = pm.Normal('t0', mu=3.5747026051262702, sigma=7.714552149873768) # SNIbc-r
+					#A = pm.Gamma('A', alpha=1.4850704784978577, beta=3.144307847615352) # SNIbc-r
+					gamma = pm.Gamma('gamma', alpha=4.964227075087452, beta=0.14420414785840863) # SNIbc-r
+					#f = pm.Beta('f', alpha=2.8875199672875485, beta=1.1795424489497128) # SNIbc-r
+					trise = pm.Gamma('trise', alpha=2.4262099182914887, beta=0.572582489506811) # SNIbc-r
+					tfall = pm.Gamma('tfall', alpha=1.7573378992355453, beta=0.033384485984632985) # SNIbc-r
+
+				elif self.c in ['SLSN']:
+					t0 = pm.Normal('t0', mu=20.648196989578643, sigma=16.16317180300956) # SLSN-r
+					#A = pm.Gamma('A', alpha=2.6808608452677443, beta=9.387266227550606) # SLSN-r
+					gamma = pm.Gamma('gamma', alpha=5.311621628413626, beta=0.06052967400021039) # SLSN-r
+					#f = pm.Beta('f', alpha=0.8131473336903119, beta=0.20768595288654876) # SLSN-r
+					trise = pm.Gamma('trise', alpha=3.1594146634690836, beta=0.21476050627622054) # SLSN-r
+					tfall = pm.Gamma('tfall', alpha=1.081545595694394, beta=0.0181645632396688) # SLSN-r
+
+			#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs)
+			pm_obs = pm.StudentT('pm_obs', nu=5, mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs)
+
 			try:
-				if b=='g':
-					if self.c in ['SNIa']:
-						t0 = pm.Normal('t0', mu=4.576384176680837, sigma=5.467885820092564) # SNIa-g
-						A = pm.Uniform('A', *pm_bounds['A'])
-						gamma = pm.Gamma('gamma', alpha=5.880317283716181, beta=0.22443994620997665) # SNIa-g
-						f = pm.Uniform('f', *pm_bounds['f'])
-						trise = pm.Gamma('trise', alpha=3.516858751797114, beta=1.0376963068116736) # SNIa-g
-						tfall = pm.Gamma('tfall', alpha=1.8074618842199504, beta=0.04609504970632992) # SNIa-g
-
-					elif self.c in ['allSNII']:
-						t0 = pm.Normal('t0', mu=0.27563253205113836, sigma=12.537935456565675) # allSNII-g
-						A = pm.Uniform('A', *pm_bounds['A'])
-						gamma = pm.Gamma('gamma', alpha=2.5437956334262948, beta=0.05638490700001304) # allSNII-g
-						f = pm.Uniform('f', *pm_bounds['f'])
-						trise = pm.Gamma('trise', alpha=1.1152156693825557, beta=0.2249247495388476) # allSNII-g
-						tfall = pm.Gamma('tfall', alpha=2.0683353932479904, beta=0.039528922772609665) # allSNII-g
-
-					elif self.c in ['SLSN', 'SNIbc']:
-						t0 = pm.Uniform('t0', *pm_bounds['t0'])
-						A = pm.Uniform('A', *pm_bounds['A'])
-						gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
-						f = pm.Uniform('f', *pm_bounds['f'])
-						trise = pm.Uniform('trise', *pm_bounds['trise'])
-						tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
-
-				elif b=='r':
-					if self.c in ['SNIa']:
-						t0 = pm.Normal('t0', mu=4.2622156123918655, sigma=6.160306584686678) # SNIa-r
-						A = pm.Uniform('A', *pm_bounds['A'])
-						gamma = pm.Gamma('gamma', alpha=3.7671693404689943, beta=0.11317404885852039) # SNIa-r
-						f = pm.Uniform('f', *pm_bounds['f'])
-						trise = pm.Gamma('trise', alpha=3.2060897920813187, beta=0.9286472696334975) # SNIa-r
-						tfall = pm.Gamma('tfall', alpha=1.9221053591217423, beta=0.05160385030651316) # SNIa-r
-
-					elif self.c in ['allSNII']:
-						t0 = pm.Normal('t0', mu=2.3661816904323603, sigma=16.144141888217376) # allSNII-r
-						A = pm.Uniform('A', *pm_bounds['A'])
-						gamma = pm.Gamma('gamma', alpha=3.816637261550581, beta=0.05603201442031885) # allSNII-r
-						f = pm.Uniform('f', *pm_bounds['f'])
-						trise = pm.Gamma('trise', alpha=0.9859131635735596, beta=0.14027799368952035) # allSNII-r
-						tfall = pm.Gamma('tfall', alpha=1.5143957235530716, beta=0.030210843888135785) # allSNII-r
-
-					elif self.c in ['SLSN', 'SNIbc']:
-						t0 = pm.Uniform('t0', *pm_bounds['t0'])
-						A = pm.Uniform('A', *pm_bounds['A'])
-						gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
-						f = pm.Uniform('f', *pm_bounds['f'])
-						trise = pm.Uniform('trise', *pm_bounds['trise'])
-						tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
-
-				pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*1, observed=obs)
-				#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall, s), sigma=np.sqrt(obs_error), observed=obs)
-				#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error, observed=obs)
-				#pm_obs = pm.StudentT('pm_obs', nu=5, mu=pm_obs, sigma=obs_error, observed=obs)
-
 				# trace
 				#step = pm.Metropolis()
 				#step = pm.NUTS()
@@ -584,8 +607,8 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		trace = Trace()
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp, self.std_scale) # add day noise
-			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b]) # add obs noise
+			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
+			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 
 			try:
@@ -628,8 +651,8 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 		trace = Trace()
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
-			lcobjb.add_day_noise_uniform(self.hours_noise_amp, self.std_scale) # add day noise
-			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b]) # add obs noise
+			lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
+			lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 
 			try:

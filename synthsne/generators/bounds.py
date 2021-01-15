@@ -28,43 +28,17 @@ def get_pm_bounds(lcobjb, class_names,
 	first_day = days.min()
 	last_day = days.max()
 
-	if 0:
-		pm_bounds = {
-			'A':(max_flux / 3, max_flux * 3), # curve-wise
-			't0':(day_max_flux-100, day_max_flux+100), # curve-wise
-			'gamma':(5, 100),
-			'f':(0, 1),
-			'trise':(1, 30),
-			'tfall':(2, 100),
-			#'s':(1/3.-0.01, 1/3.+0.01),
-			#'s':(1e-1, 2e1),
-			#'s':(1e-1, 1e3),
-			#'s':(1/3, 3),
-		}
-		ret = {c:pm_bounds for c in class_names}
-	else: # new bounds
-		pm_bounds = {
-			'A':(max_flux / 5, max_flux * 5), # curve-wise
-			't0':(first_day-100, day_max_flux+100), # curve-wise
-			#'gamma':(3, 100),
-			'gamma':(5, 120), # gamma is important important
-			'f':(0, 1),
-			'trise':(1, 30),
-			'tfall':(2, 150),
-			#'s':(1e-1, 1e1),
-			#'s':(1/3, 3),
-		}
-		'''
-		pm_bounds_slsn = {
-			'A':(max_flux / 3, max_flux * 3),
-			't0':(day_max_flux-100, day_max_flux+10),
-			'gamma':(3, 150),
-			'f':(0, 1),
-			'trise':(1, 100),
-			'tfall':(50, 300),
-			's':(1/3, 3),
-		}
-		'''
-		ret = {c:pm_bounds for c in class_names}
-		#ret.update({'SLSN':pm_bounds_slsn})
+	pm_bounds = {
+		'A':(max_flux / 5, max_flux * 5), # curve-wise
+		't0':(first_day-100, day_max_flux+100), # curve-wise
+		#'gamma':(3, 100),
+		'gamma':(10, 120), # gamma is important important
+		'f':(0, .85),
+		'trise':(5, 50),
+		'tfall':(10, 130),
+		#'s':(1e-1, 1e1),
+		#'s':(1/3, 3),
+	}
+	ret = {c:pm_bounds for c in class_names}
+	#ret.update({'SLSN':pm_bounds_slsn})
 	return ret

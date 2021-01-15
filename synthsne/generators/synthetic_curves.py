@@ -326,7 +326,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		gamma_guess = new_days[mask].max() - new_days[mask].min() if mask.sum() > 0 else pm_bounds['gamma'][0]
 
 		### f
-		f_guess = 0.5 if not self.uses_random_guess else get_random_mean(pm_bounds['f'][0], pm_bounds['f'][-1], frac_r)
+		f_guess = (pm_bounds['f'][0]+pm_bounds['f'][-1])/2 if not self.uses_random_guess else get_random_mean(pm_bounds['f'][0], pm_bounds['f'][-1], frac_r)
 		
 		### trise
 		trise_guess = (max_flux_day - first_day) / 2.

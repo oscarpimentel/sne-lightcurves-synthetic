@@ -455,80 +455,78 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		import logging; logger = logging.getLogger('pymc3'); logger.setLevel(logging.ERROR) # remove logger
 		basic_model = pm.Model()
 		with basic_model:
+			#t0 = pm.Uniform('t0', *pm_bounds['t0'])
 			#A = pm.Uniform('A', *pm_bounds['A'])
+			#gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
 			f = pm.Uniform('f', *pm_bounds['f'])
+			#trise = pm.Uniform('trise', *pm_bounds['trise'])
+			#tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
+
 			if b=='g':
 				if self.c in ['SNIa']:
-					t0 = pm.Normal('t0', mu=4.365905723504798, sigma=5.529874654928809) # SNIa-g
-					A = pm.Gamma('A', alpha=1.5465301476133086, beta=3.4567876275452005) # SNIa-g
-					gamma = pm.Gamma('gamma', alpha=5.384285519343311, beta=0.20911759410130787) # SNIa-g
-					#f = pm.Beta('f', alpha=2.2337942975372136, beta=0.7694487888066903) # SNIa-g
-					trise = pm.Gamma('trise', alpha=4.109951026169785, beta=1.1844229955210739) # SNIa-g
-					tfall = pm.Gamma('tfall', alpha=1.3638454798211739, beta=0.02967994231545823) # SNIa-g
+					t0 = pm.Normal('t0', mu=4.825709378956986, sigma=5.5819258725914205) # SNIa-g
+					A = pm.Gamma('A', alpha=1.6416077429529141, beta=3.6473248796600015) # SNIa-g
+					gamma = pm.Gamma('gamma', alpha=5.670962797825013, beta=0.24024905611249736) # SNIa-g
+					#f = pm.Beta('f', alpha=4.29965582517183, beta=1.9284849192939126) # SNIa-g
+					trise = pm.Gamma('trise', alpha=5.595808874663219, beta=1.5279304959702806) # SNIa-g
+					tfall = pm.Gamma('tfall', alpha=1.944543716900337, beta=0.058638009823029566) # SNIa-g
 
 				elif self.c in ['allSNII']:
-					t0 = pm.Normal('t0', mu=0.75431978676462, sigma=13.67883496857286) # allSNII-g
-					A = pm.Gamma('A', alpha=1.2912721084108443, beta=3.0716490506430683) # allSNII-g
-					gamma = pm.Gamma('gamma', alpha=2.1911617118284528, beta=0.049988808472167) # allSNII-g
-					#f = pm.Beta('f', alpha=2.678462263260078, beta=1.4723170991034573) # allSNII-g
-					trise = pm.Gamma('trise', alpha=1.1183176463205833, beta=0.2344211214073604) # allSNII-g
-					tfall = pm.Gamma('tfall', alpha=1.556684657805669, beta=0.026409323696280494) # allSNII-g
+					t0 = pm.Normal('t0', mu=0.5196854721845471, sigma=14.954644767893033) # allSNII-g
+					A = pm.Gamma('A', alpha=1.3606902363613893, beta=3.1506181917202007) # allSNII-g
+					gamma = pm.Gamma('gamma', alpha=2.0575191959006256, beta=0.049067299497742516) # allSNII-g
+					#f = pm.Beta('f', alpha=5.517567658613803, beta=3.4192216528164985) # allSNII-g
+					trise = pm.Gamma('trise', alpha=1.19885811869537, beta=0.18673896508479088) # allSNII-g
+					tfall = pm.Gamma('tfall', alpha=2.155839081652375, beta=0.039329800220804276) # allSNII-g
 
 				elif self.c in ['SNIbc']:
-					t0 = pm.Normal('t0', mu=3.024096852291102, sigma=7.2843513154563) # SNIbc-g
-					A = pm.Gamma('A', alpha=1.6356532794525511, beta=3.733290629018999) # SNIbc-g
-					gamma = pm.Gamma('gamma', alpha=3.249445502530175, beta=0.12407716743630635) # SNIbc-g
-					#f = pm.Beta('f', alpha=3.880260453405173, beta=1.1982433572432067) # SNIbc-g
-					trise = pm.Gamma('trise', alpha=1.5614941885089983, beta=0.38670924795827927) # SNIbc-g
-					tfall = pm.Gamma('tfall', alpha=1.6275837290766215, beta=0.028478485678806367) # SNIbc-g
+					t0 = pm.Normal('t0', mu=3.3384858933217845, sigma=7.624493623970253) # SNIbc-g
+					A = pm.Gamma('A', alpha=1.575102705300546, beta=3.355682608500827) # SNIbc-g
+					gamma = pm.Gamma('gamma', alpha=3.342107477729543, beta=0.1352085804247672) # SNIbc-g
+					#f = pm.Beta('f', alpha=10.33949951351907, beta=4.151503663373921) # SNIbc-g
+					trise = pm.Gamma('trise', alpha=2.008292364792166, beta=0.4563938765178107) # SNIbc-g
+					tfall = pm.Gamma('tfall', alpha=2.0627599185205687, beta=0.04397957938789728) # SNIbc-g
 
 				elif self.c in ['SLSN']:
-					t0 = pm.Normal('t0', mu=12.64339038055975, sigma=12.661731704838669) # SLSN-g
-					A = pm.Gamma('A', alpha=1.7399692852239206, beta=6.587229513776782) # SLSN-g
-					gamma = pm.Gamma('gamma', alpha=7.019424934588083, beta=0.08655347698258382) # SLSN-g
-					#f = pm.Beta('f', alpha=2.096320378359062, beta=0.8105136936739176) # SLSN-g
-					trise = pm.Gamma('trise', alpha=3.4501113065904487, beta=0.28641870980611267) # SLSN-g
-					tfall = pm.Gamma('tfall', alpha=1.0036469863306465, beta=0.014997990563205518) # SLSN-g
-					
-					#t0 = pm.Uniform('t0', *pm_bounds['t0'])
-					#A = pm.Uniform('A', *pm_bounds['A'])
-					#gamma = pm.Uniform('gamma', *pm_bounds['gamma'])
-					#f = pm.Uniform('f', *pm_bounds['f'])
-					#trise = pm.Uniform('trise', *pm_bounds['trise'])
-					#tfall = pm.Uniform('tfall', *pm_bounds['tfall'])
+					t0 = pm.Normal('t0', mu=12.588163077473537, sigma=12.066773055811744) # SLSN-g
+					A = pm.Gamma('A', alpha=1.771829082671391, beta=6.621546480698072) # SLSN-g
+					gamma = pm.Gamma('gamma', alpha=5.625900294956408, beta=0.07578323851762474) # SLSN-g
+					#f = pm.Beta('f', alpha=2.4423614173790233, beta=1.6441707267237269) # SLSN-g
+					trise = pm.Gamma('trise', alpha=2.4499984639440893, beta=0.18187128125710836) # SLSN-g
+					tfall = pm.Gamma('tfall', alpha=1.8844139580199561, beta=0.025067680598546395) # SLSN-g
 
 			elif b=='r':
 				if self.c in ['SNIa']:
-					t0 = pm.Normal('t0', mu=4.595113681669969, sigma=6.459403262297658) # SNIa-r
-					A = pm.Gamma('A', alpha=1.5810087534139081, beta=3.785218046848472) # SNIa-r
-					gamma = pm.Gamma('gamma', alpha=2.9534210866173938, beta=0.09752502088497779) # SNIa-r
-					#f = pm.Beta('f', alpha=1.6384779253353938, beta=0.8527811967524541) # SNIa-r
-					trise = pm.Gamma('trise', alpha=3.3795485407743615, beta=0.9128329608226307) # SNIa-r
-					tfall = pm.Gamma('tfall', alpha=1.547712849555183, beta=0.03922351989883987) # SNIa-r
+					t0 = pm.Normal('t0', mu=5.379485383389309, sigma=7.29032215437369) # SNIa-r
+					A = pm.Gamma('A', alpha=1.6778354736955787, beta=3.7088123480935087) # SNIa-r
+					gamma = pm.Gamma('gamma', alpha=2.354567627457444, beta=0.09860737507829256) # SNIa-r
+					#f = pm.Beta('f', alpha=4.6172014795049625, beta=3.274256204806697) # SNIa-r
+					trise = pm.Gamma('trise', alpha=4.6870544298725925, beta=1.1467907919215876) # SNIa-r
+					tfall = pm.Gamma('tfall', alpha=2.4612354161443593, beta=0.054316713558019036) # SNIa-r
 
 				elif self.c in ['allSNII']:
-					t0 = pm.Normal('t0', mu=1.9942432917879076, sigma=15.933060650911466) # allSNII-r
-					A = pm.Gamma('A', alpha=1.3305520073957164, beta=3.2570945188805704) # allSNII-r
-					gamma = pm.Gamma('gamma', alpha=2.8154934934052176, beta=0.03880324011329748) # allSNII-r
-					#f = pm.Beta('f', alpha=1.5153693687065422, beta=0.9557172122078145) # allSNII-r
-					trise = pm.Gamma('trise', alpha=0.90515497184705, beta=0.11492902265421578) # allSNII-r
-					tfall = pm.Gamma('tfall', alpha=1.0506553184730494, beta=0.017727087597786594) # allSNII-r
+					t0 = pm.Normal('t0', mu=3.1387199838729063, sigma=19.41880423270187) # allSNII-r
+					A = pm.Gamma('A', alpha=1.2888761480471171, beta=3.080107280645589) # allSNII-r
+					gamma = pm.Gamma('gamma', alpha=2.7240962002355666, beta=0.04006039829037667) # allSNII-r
+					#f = pm.Beta('f', alpha=1.8060630592662028, beta=1.5000740145987317) # allSNII-r
+					trise = pm.Gamma('trise', alpha=0.957971037924409, beta=0.10691699663414807) # allSNII-r
+					tfall = pm.Gamma('tfall', alpha=1.6057264458471743, beta=0.0324349410682724) # allSNII-r
 
 				elif self.c in ['SNIbc']:
-					t0 = pm.Normal('t0', mu=3.5747026051262702, sigma=7.714552149873768) # SNIbc-r
-					A = pm.Gamma('A', alpha=1.4850704784978577, beta=3.144307847615352) # SNIbc-r
-					gamma = pm.Gamma('gamma', alpha=4.964227075087452, beta=0.14420414785840863) # SNIbc-r
-					#f = pm.Beta('f', alpha=2.8875199672875485, beta=1.1795424489497128) # SNIbc-r
-					trise = pm.Gamma('trise', alpha=2.4262099182914887, beta=0.572582489506811) # SNIbc-r
-					tfall = pm.Gamma('tfall', alpha=1.7573378992355453, beta=0.033384485984632985) # SNIbc-r
+					t0 = pm.Normal('t0', mu=3.6917566111434446, sigma=8.786486396379752) # SNIbc-r
+					A = pm.Gamma('A', alpha=1.5254395920542172, beta=3.101119856082535) # SNIbc-r
+					gamma = pm.Gamma('gamma', alpha=3.7424429154205496, beta=0.12022264367419071) # SNIbc-r
+					#f = pm.Beta('f', alpha=7.984311178323888, beta=4.034154880176986) # SNIbc-r
+					trise = pm.Gamma('trise', alpha=3.406856606765631, beta=0.7401374376294634) # SNIbc-r
+					tfall = pm.Gamma('tfall', alpha=2.2885477616588203, beta=0.04587396908183451) # SNIbc-r
 
 				elif self.c in ['SLSN']:
-					t0 = pm.Normal('t0', mu=20.648196989578643, sigma=16.16317180300956) # SLSN-r
-					A = pm.Gamma('A', alpha=2.6808608452677443, beta=9.387266227550606) # SLSN-r
-					gamma = pm.Gamma('gamma', alpha=5.311621628413626, beta=0.06052967400021039) # SLSN-r
-					#f = pm.Beta('f', alpha=0.8131473336903119, beta=0.20768595288654876) # SLSN-r
-					trise = pm.Gamma('trise', alpha=3.1594146634690836, beta=0.21476050627622054) # SLSN-r
-					tfall = pm.Gamma('tfall', alpha=1.081545595694394, beta=0.0181645632396688) # SLSN-r
+					t0 = pm.Normal('t0', mu=19.47625113642454, sigma=15.171995561664644) # SLSN-r
+					A = pm.Gamma('A', alpha=2.788407879494774, beta=9.977101267853243) # SLSN-r
+					gamma = pm.Gamma('gamma', alpha=5.263302368183219, beta=0.06559384688320556) # SLSN-r
+					#f = pm.Beta('f', alpha=2.9329086411857928, beta=2.1757995973727344) # SLSN-r
+					trise = pm.Gamma('trise', alpha=3.5177594498008986, beta=0.2477455847152269) # SLSN-r
+					tfall = pm.Gamma('tfall', alpha=2.0631105735232627, beta=0.029520368725583696) # SLSN-r
 
 			#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs)
 			pm_obs = pm.StudentT('pm_obs', nu=5, mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs)

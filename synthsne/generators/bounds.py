@@ -29,7 +29,7 @@ def get_pm_bounds(lcobjb, class_names,
 	last_day = days.max()
 
 	pm_bounds = {
-		'A':(max_flux / 5, max_flux * 5), # curve-wise
+		'A':(max_flux / 2, max_flux * 2), # curve-wise
 		't0':(first_day-100, day_max_flux+100), # curve-wise
 		#'gamma':(3, 100),
 		'gamma':(5, 120), # gamma is important

@@ -74,7 +74,7 @@ if __name__== '__main__':
 				ignored = d['ignored']
 				if not ignored:# and d['has_corrects_samples']:
 					for k,new_lcobj in enumerate(d['new_lcobjs']):
-						synth_lcset.set_lcobj(f'{lcobj_name}.{k}', new_lcobj)
+						synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
 
 			bar.done()
 			new_lcset_name = f'{lcset_name}.{method}'

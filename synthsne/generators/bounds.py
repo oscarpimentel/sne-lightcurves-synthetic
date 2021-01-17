@@ -29,16 +29,15 @@ def get_pm_bounds(lcobjb, class_names,
 	last_day = days.max()
 
 	pm_bounds = {
-		'A':(max_flux / 2, max_flux * 2), # curve-wise
-		't0':(first_day-100, day_max_flux+100), # curve-wise
+		'A':(max_flux / 3, max_flux * 3), # curve-wise
+		't0':(first_day-50, day_max_flux+50), # curve-wise
 		#'gamma':(3, 100),
-		'gamma':(5, 120), # gamma is important
-		'f':(0, .9), # .5 .75 .9 1
-		'trise':(2, 50),
-		'tfall':(10, 130),
+		'gamma':(1, 120), # gamma is important
+		'f':(0, .8), # .5 .75 .9 1
+		'trise':(1, 50),
+		'tfall':(1, 130),
 		#'s':(1e-1, 1e1),
 		#'s':(1/3, 3),
 	}
 	ret = {c:pm_bounds for c in class_names}
-	#ret.update({'SLSN':pm_bounds_slsn})
 	return ret

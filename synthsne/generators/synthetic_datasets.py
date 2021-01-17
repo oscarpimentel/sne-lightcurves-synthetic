@@ -85,6 +85,14 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
+		try:
+			theano_compilation = 'compiledir_Linux-4.15--generic-x86_64-with-debian-buster-sid-x86_64-3.7.9-64'
+			theano_folder = f'/home/{os.getlogin()}/.theano/{theano_compilation}/lock_dir'
+			shutil.rmtree(theano_folder)
+			print(f'deleted: {theano_folder}')
+		except:
+			pass
+
 		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method} - chunk:{chunk}')
 		jobs = []
 		for lcobj_name in chunk:

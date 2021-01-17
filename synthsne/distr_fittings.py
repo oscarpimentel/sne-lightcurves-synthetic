@@ -58,8 +58,8 @@ class ObsErrorConditionalSampler():
 		self.min_obs = self.raw_obs.min()
 		self.min_obse = self.raw_obse.min()
 		self.max_obse = self.raw_obse.max()
-		assert self.min_obs>=0
-		assert self.min_obse>=0
+		assert self.min_obs>0
+		assert self.min_obse>0
 		self.reset()
 		
 	def get_m_n(self):
@@ -171,8 +171,10 @@ class ObsErrorConditionalSampler():
 		d = self.distrs[self.get_percentile_range(new_obs)]
 		new_obse = d['distr'].rvs(*d['params'], size=1)
 		new_obse,_ = self.rotor.inverse_transform(new_obse, new_obs)
-		new_obse = np.clip(new_obse, self.min_obse, self.max_obse)
-		return new_obse[0], obs
+		new_obse = np.clip(new_obse, self.min_obse, self.max_obse)[0]
+		if not np.all(new_obse>0):
+			raise Exception(f'wrong new_obse: {new_obse}')
+		return new_obse, obs
 		
 	def conditional_sample(self, obs):
 		x = np.concatenate([np.array(self.conditional_sample_i(obs_))[None] for obs_ in obs], axis=0)

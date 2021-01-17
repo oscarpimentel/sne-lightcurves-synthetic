@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from flamingchoripan.cuteplots.utils import save_fig
 from lchandler.plots.lc import plot_lightcurve
+import random
 
 ###################################################################################################################################################
 
@@ -14,7 +15,6 @@ def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, 
 	figsize:tuple=(8,12),
 	lw=1.5,
 	save_filedir=None,
-	idx=0,
 	):
 	fig, axs = plt.subplots(2, 1, figsize=figsize)
 	band_names = lcset.band_names
@@ -40,6 +40,7 @@ def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, 
 
 	###
 	ax = axs[1]
+	idx = random.randint(0, len(new_smooth_lcojbs)-1)
 	for b in band_names:
 	    plot_lightcurve(ax, lcobj, b, label=f'{b} observation', alpha=0.25)
 	    for k,new_lcobj in enumerate([new_lcobjs[idx]]):

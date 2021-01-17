@@ -43,6 +43,18 @@ if __name__== '__main__':
 	print(lcdataset)
 
 	###################################################################################################################################################
+	import os
+	import shutil
+
+	try:
+		theano_compilation = 'compiledir_Linux-4.15--generic-x86_64-with-debian-buster-sid-x86_64-3.7.9-64'
+		theano_folder = f'/home/{os.getlogin()}/.theano/{theano_compilation}'
+		shutil.rmtree(theano_folder)
+		print(f'deleted: {theano_folder}')
+	except:
+		pass
+
+	###################################################################################################################################################
 	from synthsne.generators.synthetic_datasets import generate_synthetic_dataset
 	import pandas as pd
 	from synthsne import C_

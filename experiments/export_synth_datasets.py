@@ -58,7 +58,9 @@ if __name__== '__main__':
 
 	for method in methods:
 		new_lcdataset = lcdataset.copy()
-		for lcset_name in ['train', 'val']:
+		lcset_names = ['train', 'val']
+		lcset_names = ['train']
+		for lcset_name in lcset_names:
 			lcset = new_lcdataset[lcset_name]
 			synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
 			print('synth_rootdir:', synth_rootdir)

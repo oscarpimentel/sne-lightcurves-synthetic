@@ -9,6 +9,9 @@ from .synthetic_curves import get_syn_sne_generator
 from ..plots.lc import plot_synthetic_samples
 from flamingchoripan.lists import get_list_chunks
 from joblib import Parallel, delayed
+import os
+import shutil
+import glob
 
 ###################################################################################################################################################
 
@@ -71,7 +74,8 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	chunk_size=C_.CHUNK_SIZE,
 	backend=None#'threading', # explodes with mcmc
 	):
-	if method in ['mcmc']:
+	is_mcmc = method in ['mcmc']
+	if is_mcmc:
 		backend = 'loky'
 		#n_jobs = 1
 		#chunk_size = 1
@@ -91,5 +95,4 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 				sne_specials_df,
 				))
 		results = Parallel(n_jobs=n_jobs, backend=backend)(jobs)
-
 	bar.done()

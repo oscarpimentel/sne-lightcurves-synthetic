@@ -25,7 +25,7 @@ EXT_FATS_LIGHTCURVE = 'flcd' # with sigma clipping and FATS
 EXT_SAMPLER = 'smplr'
 
 ### SYNTHETIC
-OBSE_STD_SCALE = 1/2
+OBSE_STD_SCALE = C_lchandler.OBSE_STD_SCALE
 CPDS_P = 0.015 # curve points down sampling probability
 HOURS_NOISE_AMP = 5.
 MIN_CADENCE_DAYS = 3.

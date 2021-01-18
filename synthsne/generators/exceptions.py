@@ -8,6 +8,10 @@ class TooShortCurveError(Exception):
 	def __init__(self):
 		pass
 
+class TooFaintCurveError(Exception):
+	def __init__(self):
+		pass
+		
 class TraceError(Exception):
 	def __init__(self):
 		pass

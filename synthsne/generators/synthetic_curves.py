@@ -98,7 +98,7 @@ class Trace():
 		return len(self.sne_model_l)
 
 	def __getitem__(self, k):
-		return self.sne_model_l[k], self.pm_bounds_l[k], self.fit_errors[k], self.correct_fit_tags[k]
+		return self.sne_model_l[k], self.pm_bounds_l[k], self.correct_fit_tags[k]
 
 ###################################################################################################################################################
 
@@ -126,7 +126,7 @@ class SynSNeGenerator():
 		self.n_trace_samples = n_trace_samples
 		self.uses_new_bounds = uses_new_bounds
 		self.replace_nan_inf = replace_nan_inf,
-		self.max_fit_error = max_fit_error,
+		self.max_fit_error = max_fit_error
 		self.std_scale = std_scale
 		self.min_cadence_days = min_cadence_days
 		self.min_synthetic_len_b = min_synthetic_len_b
@@ -185,8 +185,10 @@ class SynSNeGenerator():
 		new_smooth_lcobjbs = []
 		curve_sizes = self.length_sampler_bdict[b].sample(n)
 		for k in range(n):
-			sne_model, pm_bounds, fit_error, correct_fit_tag = trace[k]
+			sne_model, pm_bounds, correct_fit_tag = trace[k]
+			fit_error = trace.fit_errors[k]
 			try:
+				#print(not correct_fit_tag, self.ignored, fit_error>self.max_fit_error)
 				if not correct_fit_tag or self.ignored or fit_error>self.max_fit_error:
 					raise ex.TraceError()
 				sne_model.get_pm_times(self.min_obs_bdict[b])
@@ -242,12 +244,13 @@ class SynSNeGenerator():
 
 				### generate actual observation times
 				idxs = np.random.permutation(np.arange(0, len(new_days)))
+				actual_points = len(lcobjb)
 				#new_days = new_days[idxs][:min(curve_size, len(new_days))] # random select
-				alive_p = 0.65
-				min_points = 5
-				mask = np.random.uniform(size=len(idxs))<alive_p
-				mask[:min_points] = True
-				idxs = idxs[mask]
+				min_points = 10
+				#alive_p = 0.65
+				#mask = np.random.uniform(size=len(idxs))<alive_p
+				#mask[:max(min_points, actual_points)] = True
+				idxs = idxs[:max(min_points, actual_points)]
 				new_days = new_days[idxs]
 				new_days = new_days+np.random.uniform(-self.hours_noise_amp/24., self.hours_noise_amp/24., len(new_days))
 				new_days = np.sort(new_days) # sort
@@ -590,7 +593,7 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 			n_trace_samples,
 			uses_new_bounds,
 			replace_nan_inf,
-			max_fit_error,
+			1/C_.EPS,
 			std_scale,
 			min_cadence_days,
 			min_synthetic_len_b,
@@ -628,7 +631,7 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
-		ignored,
+		ignored=False,
 
 		cpds_p:float=C_.CPDS_P,
 		):
@@ -636,7 +639,7 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 			n_trace_samples,
 			uses_new_bounds,
 			replace_nan_inf,
-			max_fit_error,
+			1/C_.EPS,
 			std_scale,
 			min_cadence_days,
 			min_synthetic_len_b,

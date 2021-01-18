@@ -16,8 +16,11 @@ def get_pm_bounds(lcobjb, class_names,
 	days, obs, obs_error = lu.extract_arrays(lcobjb)
 
 	### checks
-	if len(lcobjb)<min_required_points or lcobjb.get_days_duration()<min_required_duration or lcobjb.get_snr()<=C_.MIN_SNR:
+	if len(lcobjb)<min_required_points or lcobjb.get_days_duration()<min_required_duration:
 		raise ex.TooShortCurveError()
+	if lcobjb.get_snr()<=C_.MIN_SNR:
+		#raise ex.TooFaintCurveError()
+		pass
 
 	### utils
 	min_flux = np.min(obs)
@@ -33,7 +36,7 @@ def get_pm_bounds(lcobjb, class_names,
 		't0':(first_day-50, day_max_flux+50), # curve-wise
 		#'gamma':(3, 100),
 		'gamma':(1, 120), # gamma is important
-		'f':(0, .8), # .5 .75 .9 1
+		'f':(0, .9), # .5 .75 .9 1
 		'trise':(1, 50),
 		'tfall':(1, 130),
 		#'s':(1e-1, 1e1),

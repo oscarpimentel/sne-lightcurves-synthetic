@@ -30,15 +30,16 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	class_names = lcset.class_names
 	lcobj = lcset[lcobj_name]
 	c = class_names[lcobj.y]
+	
 
 	### generate curves
-	sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict)
+	gc_kwargs = {
+		'ignored':is_in_column(lcobj_name, sne_specials_df, 'fit_ignored'),
+	}
+	sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, **gc_kwargs)
 	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
 
 	### save file
-	ignored = is_in_column(lcobj_name, sne_specials_df, 'fit_ignored')
-	outlier = 0
-	method_folder = f'{method}_outliers' if outlier else method
 	to_save = {
 		'lcobj_name':lcobj_name,
 		'lcobj':lcobj,
@@ -50,7 +51,7 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 		'has_corrects_samples':has_corrects_samples,
 		'ignored':ignored,
 	}
-	save_filedir = f'{save_rootdir}/{method_folder}/{lcobj_name}.synsne'
+	save_filedir = f'{save_rootdir}/{method}/{lcobj_name}.synsne'
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images
@@ -72,7 +73,9 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	sne_specials_df=None,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
-	backend=None#'threading', # explodes with mcmc
+	backend=None,
+	#backend='threading', # explodes with mcmc
+	remove_lock_dir=True,
 	):
 	is_mcmc = method in ['mcmc']
 	if is_mcmc:
@@ -86,10 +89,11 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
 		try:
-			theano_compilation = 'compiledir_Linux-4.15--generic-x86_64-with-debian-buster-sid-x86_64-3.7.9-64'
-			theano_folder = f'/home/{os.getlogin()}/.theano/{theano_compilation}/lock_dir'
-			shutil.rmtree(theano_folder)
-			print(f'deleted: {theano_folder}')
+			if remove_lock_dir:
+				theano_compilation = 'compiledir_Linux-4.15--generic-x86_64-with-debian-buster-sid-x86_64-3.7.9-64'
+				theano_folder = f'/home/{os.getlogin()}/.theano/{theano_compilation}/lock_dir'
+				shutil.rmtree(theano_folder)
+				print(f'deleted: {theano_folder}')
 		except:
 			pass
 

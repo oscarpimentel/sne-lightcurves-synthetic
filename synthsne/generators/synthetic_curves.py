@@ -98,7 +98,7 @@ class Trace():
 		return len(self.sne_model_l)
 
 	def __getitem__(self, k):
-		return self.sne_model_l[k], self.pm_bounds_l[k], self.correct_fit_tags[k]
+		return self.sne_model_l[k], self.pm_bounds_l[k], self.fit_errors[k], self.correct_fit_tags[k]
 
 ###################################################################################################################################################
 
@@ -108,12 +108,13 @@ class SynSNeGenerator():
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		replace_nan_inf:bool=True,
-		max_obs_error:float=1e10,
+		max_fit_error:float=C_.MAX_FIT_ERROR,
 		std_scale:float=C_.OBSE_STD_SCALE,
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		ignored=False,
 		):
 		self.lcobj = lcobj.copy()
 		self.class_names = class_names.copy()
@@ -125,12 +126,13 @@ class SynSNeGenerator():
 		self.n_trace_samples = n_trace_samples
 		self.uses_new_bounds = uses_new_bounds
 		self.replace_nan_inf = replace_nan_inf,
-		self.max_obs_error = max_obs_error,
+		self.max_fit_error = max_fit_error,
 		self.std_scale = std_scale
 		self.min_cadence_days = min_cadence_days
 		self.min_synthetic_len_b = min_synthetic_len_b
 		self.min_required_points_to_fit = min_required_points_to_fit
 		self.hours_noise_amp = hours_noise_amp
+		self.ignored = ignored
 		self.min_obs_bdict = {b:self.obse_sampler_bdict[b].min_obs for b in self.band_names}
 
 	def reset(self):
@@ -159,6 +161,7 @@ class SynSNeGenerator():
 		else:
 			return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs()
 
+	@override
 	def get_pm_trace_b(self, b, n): # override this method
 		trace = Trace()
 		for k in range(max(n, self.n_trace_samples)):
@@ -182,15 +185,14 @@ class SynSNeGenerator():
 		new_smooth_lcobjbs = []
 		curve_sizes = self.length_sampler_bdict[b].sample(n)
 		for k in range(n):
-			sne_model, pm_bounds, correct_fit_tag = trace[k]
+			sne_model, pm_bounds, fit_error, correct_fit_tag = trace[k]
 			try:
-				if not correct_fit_tag:
+				if not correct_fit_tag or self.ignored or fit_error>self.max_fit_error:
 					raise ex.TraceError()
 				sne_model.get_pm_times(self.min_obs_bdict[b])
 				min_obs_threshold = self.min_obs_bdict[b]
-				max_obs_threshold = lcobjb.obs.max()*10
-				new_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, max_obs_threshold, False)
-				new_smooth_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, max_obs_threshold, True)
+				new_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, False)
+				new_smooth_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, True)
 
 			except ex.SyntheticCurveTimeoutError:
 				trace.correct_fit_tags[k] = False # update
@@ -212,7 +214,7 @@ class SynSNeGenerator():
 
 		return new_lcobjbs, new_smooth_lcobjbs, trace
 
-	def __sample_curve__(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold, max_obs_threshold,
+	def __sample_curve__(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold,
 		uses_smooth_obs:bool=False,
 		timeout_counter=1000,
 		pm_obs_n=100,
@@ -269,10 +271,6 @@ class SynSNeGenerator():
 				#syn_std_scale = 1/10
 				syn_std_scale = self.std_scale
 				new_obs = get_obs_noise_gaussian(pm_obs, new_obse, min_obs_threshold, syn_std_scale)
-			
-			if new_obs.max()>max_obs_threshold: # flux can't be too high
-				continue
-				#new_obs = np.clip(new_obs, None, max_obs_threshold)
 
 			new_lcobjb.set_values(new_days, new_obs, new_obse)
 			return new_lcobjb
@@ -284,12 +282,13 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		replace_nan_inf:bool=True,
-		max_obs_error:float=1e10,
+		max_fit_error:float=C_.MAX_FIT_ERROR,
 		std_scale:float=C_.OBSE_STD_SCALE,
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		ignored=False,
 
 		uses_random_guess:bool=False,
 		cpds_p:float=C_.CPDS_P,
@@ -298,12 +297,13 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			n_trace_samples,
 			uses_new_bounds,
 			replace_nan_inf,
-			max_obs_error,
+			max_fit_error,
 			std_scale,
 			min_cadence_days,
 			min_synthetic_len_b,
 			min_required_points_to_fit,
 			hours_noise_amp,
+			ignored,
 			)
 		self.uses_random_guess = uses_random_guess
 		self.cpds_p = cpds_p
@@ -365,7 +365,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		if self.replace_nan_inf:
 			invalid_indexs = (obs == np.infty) | (obs == -np.infty) | np.isnan(obs)
 			obs[invalid_indexs] = 0 # as a patch, use 0
-			obs_error[invalid_indexs] = self.max_obs_error # as a patch, use a big obs error to null obs
+			obs_error[invalid_indexs] = 1/C_.EPS # as a patch, use a big obs error to null obs
 
 		### bounds
 		fit_kwargs = {
@@ -423,12 +423,13 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		replace_nan_inf:bool=True,
-		max_obs_error:float=1e10,
+		max_fit_error:float=C_.MAX_FIT_ERROR,
 		std_scale:float=C_.OBSE_STD_SCALE,
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		ignored=False,
 
 		n_tune=1000, # 500, 1000
 		mcmc_std_scale=1/2,
@@ -437,12 +438,13 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			n_trace_samples,
 			uses_new_bounds,
 			replace_nan_inf,
-			max_obs_error,
+			max_fit_error,
 			std_scale,
 			min_cadence_days,
 			min_synthetic_len_b,
 			min_required_points_to_fit,
 			hours_noise_amp,
+			ignored,
 			)
 		self.n_tune = n_tune
 		self.mcmc_std_scale = mcmc_std_scale
@@ -574,12 +576,13 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		replace_nan_inf:bool=True,
-		max_obs_error:float=1e10,
+		max_fit_error:float=C_.MAX_FIT_ERROR,
 		std_scale:float=C_.OBSE_STD_SCALE,
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		ignored=False,
 
 		cpds_p:float=C_.CPDS_P,
 		):
@@ -587,12 +590,13 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 			n_trace_samples,
 			uses_new_bounds,
 			replace_nan_inf,
-			max_obs_error,
+			max_fit_error,
 			std_scale,
 			min_cadence_days,
 			min_synthetic_len_b,
 			min_required_points_to_fit,
 			hours_noise_amp,
+			ignored,
 			)
 		self.cpds_p = cpds_p
 
@@ -618,12 +622,13 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		replace_nan_inf:bool=True,
-		max_obs_error:float=1e10,
+		max_fit_error:float=C_.MAX_FIT_ERROR,
 		std_scale:float=C_.OBSE_STD_SCALE,
 		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
 		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
 		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		ignored,
 
 		cpds_p:float=C_.CPDS_P,
 		):
@@ -631,12 +636,13 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 			n_trace_samples,
 			uses_new_bounds,
 			replace_nan_inf,
-			max_obs_error,
+			max_fit_error,
 			std_scale,
 			min_cadence_days,
 			min_synthetic_len_b,
 			min_required_points_to_fit,
 			hours_noise_amp,
+			ignored,
 			)
 		self.cpds_p = cpds_p
 

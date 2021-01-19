@@ -3,6 +3,7 @@ from __future__ import division
 from . import C_
 
 import numpy as np
+import random
 from scipy.optimize import curve_fit
 from . import exceptions as ex
 from lchandler.lc_classes import diff_vector, get_obs_noise_gaussian
@@ -14,6 +15,31 @@ from flamingchoripan.datascience.statistics import XError
 from flamingchoripan.times import Cronometer
 
 ###################################################################################################################################################
+
+def get_random_time_mesh(ti, tf, min_dt):
+    if tf<=ti:
+        return []
+    t0 = ti+np.random.uniform(0, min_dt)
+    new_times = []
+    while t0<tf:
+        new_times.append(t0)
+        t0 += min_dt
+    return new_times
+    
+def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times):
+    new_times = [ti-min_dt]+[t for t in times if t>=ti and t<=tf]+[tf+min_dt]
+    possible_times = []
+    for i in range(0, len(new_times)-1):
+        ti_ = new_times[i]
+        tf_ = new_times[i+1]
+        assert tf_>=ti_
+        times_ = get_random_time_mesh(ti_+min_dt, tf_-min_dt, min_dt)
+        #print(ti_+min_dt, tf_-min_dt, times_)
+        possible_times += times_
+    
+    possible_times = np.random.permutation(possible_times)[:extra_times]
+    augmented_time_mesh = np.sort(np.concatenate([times, possible_times])) # sort
+    return augmented_time_mesh
 
 def get_syn_sne_generator(method_name):
 	if method_name=='uniformprior':
@@ -235,23 +261,10 @@ class SynSNeGenerator():
 				new_days = np.linspace(pm_times['ti'], pm_times['tf'], pm_obs_n)
 			else:
 				### generate days grid according to cadence
-				new_day = pm_times['ti']
-				new_days = []
-				while new_day<pm_times['tf']:
-					new_days.append(new_day)
-					new_day += self.min_cadence_days
-				new_days = np.array(new_days)
-
-				### generate actual observation times
-				idxs = np.random.permutation(np.arange(0, len(new_days)))
-				actual_points = len(lcobjb)
-				#new_days = new_days[idxs][:min(curve_size, len(new_days))] # random select
-				min_points = 10
-				#alive_p = 0.65
-				#mask = np.random.uniform(size=len(idxs))<alive_p
-				#mask[:max(min_points, actual_points)] = True
-				idxs = idxs[:max(min_points, actual_points)]
-				new_days = new_days[idxs]
+				original_days = lcobjb.days
+				extra_times = int(len(original_days)*0.5)
+				#print(pm_times['ti'], pm_times['tf'], original_days)
+				new_days = get_augmented_time_mesh(original_days, pm_times['ti'], pm_times['tf'], self.min_cadence_days, extra_times)
 				new_days = new_days+np.random.uniform(-self.hours_noise_amp/24., self.hours_noise_amp/24., len(new_days))
 				new_days = np.sort(new_days) # sort
 
@@ -264,6 +277,8 @@ class SynSNeGenerator():
 			if pm_obs.min()<min_obs_threshold: # can't have observation above the threshold
 				#continue
 				pm_obs = np.clip(pm_obs, min_obs_threshold, None)
+			if np.any(np.isnan(pm_obs)):
+				continue
 
 			### resampling obs using obs error
 			if uses_smooth_obs:
@@ -271,8 +286,8 @@ class SynSNeGenerator():
 				new_obs = pm_obs
 			else:
 				new_obse, new_obs = obse_sampler.conditional_sample(pm_obs)
-				#syn_std_scale = 1/10
-				syn_std_scale = self.std_scale
+				syn_std_scale = 1/10
+				#syn_std_scale = self.std_scale
 				new_obs = get_obs_noise_gaussian(pm_obs, new_obse, min_obs_threshold, syn_std_scale)
 
 			new_lcobjb.set_values(new_days, new_obs, new_obse)

@@ -41,7 +41,7 @@ if __name__== '__main__':
 	print(lcdataset['raw'].keys())
 	print(lcdataset['raw'].get_random_lcobj(False).keys())
 	print(lcdataset)
-	
+
 	###################################################################################################################################################
 	from synthsne.generators.synthetic_datasets import generate_synthetic_dataset
 	import pandas as pd
@@ -61,7 +61,7 @@ if __name__== '__main__':
 	for method in methods:
 		save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
 		sd_kwargs = {
-			'synthetic_samples_per_curve':64,
+			'synthetic_samples_per_curve':16,
 			'method':method,
 			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 		}

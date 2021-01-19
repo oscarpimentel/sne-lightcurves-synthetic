@@ -3,7 +3,7 @@ import lchandler.C_ as C_lchandler
 
 ###################################################################################################################################################
 EPS = 1e-10
-N_TRACE_SAMPLES = 300
+N_TRACE_SAMPLES = 32
 ERROR_SCALE = 1e2
 
 ### EXPORT
@@ -26,9 +26,9 @@ EXT_SAMPLER = 'smplr'
 
 ### SYNTHETIC
 OBSE_STD_SCALE = C_lchandler.OBSE_STD_SCALE
-CPDS_P = 0.015 # curve points down sampling probability
+CPDS_P = 0.0 # curve points down sampling probability
 HOURS_NOISE_AMP = 5.
-MIN_CADENCE_DAYS = 3.
+MIN_CADENCE_DAYS = 2.
 MAX_FIT_ERROR = 1e3
 
 ### DICTS

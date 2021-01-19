@@ -36,7 +36,7 @@ def get_pm_bounds(lcobjb, class_names,
 		't0':(first_day-50, day_max_flux+50), # curve-wise
 		#'gamma':(3, 100),
 		'gamma':(1, 120), # gamma is important
-		'f':(0, .9), # .5 .75 .9 1
+		'f':(0, .95), # .5 .75 .9 1
 		'trise':(1, 50),
 		'tfall':(1, 130),
 		#'s':(1e-1, 1e1),

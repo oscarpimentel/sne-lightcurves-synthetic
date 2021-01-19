@@ -45,7 +45,7 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 		'lcobj':lcobj,
 		'band_names':band_names,
 		'c':c,
-		'new_lcobjs':new_lcobjs,
+		'new_lcobjs':[new_lcobj.copy().reset_day_offset_serial() for new_lcobj in new_lcobjs],
 		'trace_bdict':trace_bdict,
 		'segs':segs,
 		'has_corrects_samples':has_corrects_samples,
@@ -92,8 +92,8 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 			if remove_lock_dir:
 				theano_compilation = 'compiledir_Linux-4.15--generic-x86_64-with-debian-buster-sid-x86_64-3.7.9-64'
 				theano_folder = f'/home/{os.getlogin()}/.theano/{theano_compilation}/lock_dir'
-				shutil.rmtree(theano_folder)
-				print(f'deleted: {theano_folder}')
+				#shutil.rmtree(theano_folder)
+				#print(f'deleted: {theano_folder}')
 		except:
 			pass
 

@@ -3,8 +3,9 @@ import lchandler.C_ as C_lchandler
 
 ###################################################################################################################################################
 EPS = 1e-10
-N_TRACE_SAMPLES = 32
+N_TRACE_SAMPLES = 64*3
 ERROR_SCALE = 1e2
+MAX_FIT_ERROR = 2e3
 
 ### EXPORT
 N_JOBS = 6 # The number of jobs to use for the computation. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used.
@@ -27,9 +28,8 @@ EXT_SAMPLER = 'smplr'
 ### SYNTHETIC
 OBSE_STD_SCALE = C_lchandler.OBSE_STD_SCALE
 CPDS_P = 0.0 # curve points down sampling probability
-HOURS_NOISE_AMP = 5.
-MIN_CADENCE_DAYS = 2.
-MAX_FIT_ERROR = 1e3
+HOURS_NOISE_AMP = 2.5
+MIN_CADENCE_DAYS = 1.
 
 ### DICTS
 COLOR_DICT = C_lchandler.COLOR_DICT

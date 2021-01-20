@@ -17,29 +17,30 @@ from flamingchoripan.times import Cronometer
 ###################################################################################################################################################
 
 def get_random_time_mesh(ti, tf, min_dt):
-    if tf<=ti:
-        return []
-    t0 = ti+np.random.uniform(0, min_dt)
-    new_times = []
-    while t0<tf:
-        new_times.append(t0)
-        t0 += min_dt
-    return new_times
-    
+	if tf<=ti:
+		return []
+	t0 = ti+np.random.uniform(0, min_dt)
+	new_times = []
+	while t0<tf:
+		new_times.append(t0)
+		t0 += min_dt
+	return new_times
+	
 def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times):
-    new_times = [ti-min_dt]+[t for t in times if t>=ti and t<=tf]+[tf+min_dt]
-    possible_times = []
-    for i in range(0, len(new_times)-1):
-        ti_ = new_times[i]
-        tf_ = new_times[i+1]
-        assert tf_>=ti_
-        times_ = get_random_time_mesh(ti_+min_dt, tf_-min_dt, min_dt)
-        #print(ti_+min_dt, tf_-min_dt, times_)
-        possible_times += times_
-    
-    possible_times = np.random.permutation(possible_times)[:extra_times]
-    augmented_time_mesh = np.sort(np.concatenate([times, possible_times])) # sort
-    return augmented_time_mesh
+
+	new_times = [ti-min_dt]+[t for t in np.sort(times) if t>=ti and t<=tf]+[tf+min_dt]
+	possible_times = []
+	for i in range(0, len(new_times)-1):
+		ti_ = new_times[i]
+		tf_ = new_times[i+1]
+		assert tf_>=ti_
+		times_ = get_random_time_mesh(ti_+min_dt, tf_-min_dt, min_dt)
+		#print(ti_+min_dt, tf_-min_dt, times_)
+		possible_times += times_
+	
+	possible_times = np.random.permutation(possible_times)[:extra_times]
+	augmented_time_mesh = np.sort(np.concatenate([times, possible_times])) # sort
+	return augmented_time_mesh
 
 def get_syn_sne_generator(method_name):
 	if method_name=='uniformprior':
@@ -262,9 +263,13 @@ class SynSNeGenerator():
 			else:
 				### generate days grid according to cadence
 				original_days = lcobjb.days
-				extra_times = int(len(original_days)*0.5)
+				days_to_preserve = original_days[:len(original_days)//2]
+				#days_to_preserve = np.random.permutation(original_days)[::2]
 				#print(pm_times['ti'], pm_times['tf'], original_days)
-				new_days = get_augmented_time_mesh(original_days, pm_times['ti'], pm_times['tf'], self.min_cadence_days, extra_times)
+				#new_days = get_augmented_time_mesh(days_to_preserve, pm_times['ti'], pm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
+				#new_days = get_augmented_time_mesh(original_days, pm_times['ti'], pm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
+				new_days = get_augmented_time_mesh(days_to_preserve, pm_times['ti'], pm_times['tf'], self.min_cadence_days, int(len(original_days)*1))
+				#new_days = get_augmented_time_mesh([], pm_times['ti'], pm_times['tf'], self.min_cadence_days, int(len(original_days)*1.5))
 				new_days = new_days+np.random.uniform(-self.hours_noise_amp/24., self.hours_noise_amp/24., len(new_days))
 				new_days = np.sort(new_days) # sort
 
@@ -278,16 +283,19 @@ class SynSNeGenerator():
 				#continue
 				pm_obs = np.clip(pm_obs, min_obs_threshold, None)
 			if np.any(np.isnan(pm_obs)):
+				print(pm_obs)
 				continue
-
+			
 			### resampling obs using obs error
 			if uses_smooth_obs:
 				new_obse = pm_obs*0+C_.EPS
 				new_obs = pm_obs
 			else:
 				new_obse, new_obs = obse_sampler.conditional_sample(pm_obs)
-				syn_std_scale = 1/10
+				#new_obse = new_obse*0+new_obse[0]# dummy
+				#syn_std_scale = 1/10
 				#syn_std_scale = self.std_scale
+				syn_std_scale = self.std_scale*0.5
 				new_obs = get_obs_noise_gaussian(pm_obs, new_obse, min_obs_threshold, syn_std_scale)
 
 			new_lcobjb.set_values(new_days, new_obs, new_obse)

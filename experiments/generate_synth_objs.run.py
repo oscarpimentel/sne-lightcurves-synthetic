@@ -61,7 +61,7 @@ if __name__== '__main__':
 	for method in methods:
 		save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
 		sd_kwargs = {
-			'synthetic_samples_per_curve':16,
+			'synthetic_samples_per_curve':32, # 16 32 64
 			'method':method,
 			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 		}

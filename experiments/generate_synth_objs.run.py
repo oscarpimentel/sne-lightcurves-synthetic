@@ -52,7 +52,7 @@ if __name__== '__main__':
 
 	methods = main_args.method
 	if methods=='all':
-		methods = ['linear', 'curvefit', 'bspline', 'mcmc']
+		methods = ['linear', 'curvefit', 'bspline', 'mcmc', 'tmcmc']
 
 	if isinstance(methods, str):
 		methods = [methods]
@@ -61,7 +61,7 @@ if __name__== '__main__':
 	for method in methods:
 		save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
 		sd_kwargs = {
-			'synthetic_samples_per_curve':32, # 16 32 64
+			'synthetic_samples_per_curve':64, # 16 32 64
 			'method':method,
 			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 		}

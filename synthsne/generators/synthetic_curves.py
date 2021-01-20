@@ -43,12 +43,12 @@ def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times):
 	return augmented_time_mesh
 
 def get_syn_sne_generator(method_name):
-	if method_name=='uniformprior':
-		return SynSNeGenerator
 	if method_name=='curvefit':
 		return SynSNeGeneratorCF
 	if method_name=='mcmc':
 		return SynSNeGeneratorMCMC
+	if method_name=='tmcmc':
+		return SynSNeGeneratorTMCMC
 	if method_name=='linear':
 		return SynSNeGeneratorLinear
 	if method_name=='bspline':
@@ -474,6 +474,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			)
 		self.n_tune = n_tune
 		self.mcmc_std_scale = mcmc_std_scale
+		self.obs_dist_name = 'Normal'
+		self.obs_dist_kwargs = {}
 		
 	def get_mcmc_trace(self, lcobjb, pm_bounds, n, func, b):
 		days, obs, obs_error = lu.extract_arrays(lcobjb)
@@ -500,59 +502,58 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 
 			if self.c in ['SNIa']:
 				if b=='g':
-					t0 = pm.Normal('t0', mu=4.674322949753754, sigma=4.785818330910857) # SNIa-g
-					A = pm.Gamma('A', alpha=1.5967294655402011, beta=3.5539389385961746)+0 # SNIa-g
-					gamma = pm.Gamma('gamma', alpha=4.321591836851491, beta=0.1752106962605086)+1 # SNIa-g
-					trise = pm.Gamma('trise', alpha=2.9817682740875524, beta=1.1281152989421492)+1 # SNIa-g
-					tfall = pm.Gamma('tfall', alpha=1.6513192451909173, beta=0.03549304506504123)+1 # SNIa-g
+					t0 = pm.Normal('t0', mu=4.659249210315087, sigma=5.350418860022723) # \normdist{4.66}{5.35}
+					A = pm.Gamma('A', alpha=1.562125821812763, beta=3.6040387045799616)+0 # \gammadist{1.56}{3.60}
+					gamma = pm.Gamma('gamma', alpha=3.7586176301789584, beta=0.1526237797283781)+1 # \gammadist{3.76}{0.15}
+					trise = pm.Gamma('trise', alpha=2.9470430925199564, beta=1.101958662096775)+1 # \gammadist{2.95}{1.10}
+					tfall = pm.Gamma('tfall', alpha=1.6528941805791997, beta=0.03350165441283507)+1 # \gammadist{1.65}{0.03}
 				if b=='r':
-					t0 = pm.Normal('t0', mu=5.6128790356561105, sigma=6.503021151607142) # SNIa-r
-					A = pm.Gamma('A', alpha=1.6961026504508947, beta=3.8980485116349572)+0 # SNIa-r
-					gamma = pm.Gamma('gamma', alpha=1.6424384314678633, beta=0.06645199076501196)+1 # SNIa-r
-					trise = pm.Gamma('trise', alpha=2.4742536868257026, beta=0.7995172390557502)+1 # SNIa-r
-					tfall = pm.Gamma('tfall', alpha=2.0755524074722786, beta=0.04724714473831391)+1 # SNIa-r
+					t0 = pm.Normal('t0', mu=5.541947751251396, sigma=6.524875027743679) # \normdist{5.54}{6.52}
+					A = pm.Gamma('A', alpha=1.6790249451644361, beta=3.8936870678729356)+0 # \gammadist{1.68}{3.89}
+					gamma = pm.Gamma('gamma', alpha=1.6108986496450433, beta=0.06282197060009514)+1 # \gammadist{1.61}{0.06}
+					trise = pm.Gamma('trise', alpha=2.374464471671413, beta=0.7713128797336563)+1 # \gammadist{2.37}{0.77}
+					tfall = pm.Gamma('tfall', alpha=1.9620491711509604, beta=0.045150231556847276)+1 # \gammadist{1.96}{0.05}
 			if self.c in ['allSNII']:
 				if b=='g':
-					t0 = pm.Normal('t0', mu=1.7645162555368188, sigma=13.552654395564838) # allSNII-g
-					A = pm.Gamma('A', alpha=1.3023973790113619, beta=3.073803382562481)+0 # allSNII-g
-					gamma = pm.Gamma('gamma', alpha=1.8933209054717104, beta=0.045173545248091085)+1 # allSNII-g
-					trise = pm.Gamma('trise', alpha=0.6910293544740663, beta=0.10924779809810437)+1 # allSNII-g
-					tfall = pm.Gamma('tfall', alpha=1.819305484294791, beta=0.03259872153054321)+1 # allSNII-g
+					t0 = pm.Normal('t0', mu=1.759587311936204, sigma=13.614984487593611) # \normdist{1.76}{13.61}
+					A = pm.Gamma('A', alpha=1.2515158668340511, beta=3.21828026368239)+0 # \gammadist{1.25}{3.22}
+					gamma = pm.Gamma('gamma', alpha=1.795487203263114, beta=0.041871088859673965)+1 # \gammadist{1.80}{0.04}
+					trise = pm.Gamma('trise', alpha=0.6841141896892713, beta=0.09992353407967454)+1 # \gammadist{0.68}{0.10}
+					tfall = pm.Gamma('tfall', alpha=1.6909429790746184, beta=0.030268964809497756)+1 # \gammadist{1.69}{0.03}
 				if b=='r':
-					t0 = pm.Normal('t0', mu=5.056436081477667, sigma=21.36627371654857) # allSNII-r
-					A = pm.Gamma('A', alpha=1.3442650676430778, beta=3.2329166433031418)+0 # allSNII-r
-					gamma = pm.Gamma('gamma', alpha=2.527728780288656, beta=0.03760923255894235)+1 # allSNII-r
-					trise = pm.Gamma('trise', alpha=0.6036503930283864, beta=0.05414416427876371)+1 # allSNII-r
-					tfall = pm.Gamma('tfall', alpha=1.2513320516887572, beta=0.024691343363515864)+1 # allSNII-r
+					t0 = pm.Normal('t0', mu=5.211535387638031, sigma=21.756321053109396) # \normdist{5.21}{21.76}
+					A = pm.Gamma('A', alpha=1.3495104688378858, beta=3.2695897856185576)+0 # \gammadist{1.35}{3.27}
+					gamma = pm.Gamma('gamma', alpha=2.540175116166474, beta=0.03700858201070383)+1 # \gammadist{2.54}{0.04}
+					trise = pm.Gamma('trise', alpha=0.6082321491931155, beta=0.05403599438807471)+1 # \gammadist{0.61}{0.05}
+					tfall = pm.Gamma('tfall', alpha=1.2128423538558193, beta=0.024006366171282486)+1 # \gammadist{1.21}{0.02}
 			if self.c in ['SNIbc']:
 				if b=='g':
-					t0 = pm.Normal('t0', mu=4.711688468433379, sigma=7.074199383447141) # SNIbc-g
-					A = pm.Gamma('A', alpha=1.6509526249636426, beta=3.65343173147311)+0 # SNIbc-g
-					gamma = pm.Gamma('gamma', alpha=3.056632957058858, beta=0.1307811099455435)+1 # SNIbc-g
-					trise = pm.Gamma('trise', alpha=1.0755677513877528, beta=0.2680149657801833)+1 # SNIbc-g
-					tfall = pm.Gamma('tfall', alpha=2.0438194246672694, beta=0.041174686612376075)+1 # SNIbc-g
+					t0 = pm.Normal('t0', mu=5.033365864401862, sigma=7.669319215573517) # \normdist{5.03}{7.67}
+					A = pm.Gamma('A', alpha=1.4109594281817543, beta=3.74937921017218)+0 # \gammadist{1.41}{3.75}
+					gamma = pm.Gamma('gamma', alpha=2.2987206277006735, beta=0.10032329779991193)+1 # \gammadist{2.30}{0.10}
+					trise = pm.Gamma('trise', alpha=1.1032160625121028, beta=0.29058543430646216)+1 # \gammadist{1.10}{0.29}
+					tfall = pm.Gamma('tfall', alpha=1.9669165705074316, beta=0.034451473899712134)+1 # \gammadist{1.97}{0.03}
 				if b=='r':
-					t0 = pm.Normal('t0', mu=4.157981736281336, sigma=7.164596533400681) # SNIbc-r
-					A = pm.Gamma('A', alpha=1.5039110349606228, beta=3.1417839641276983)+0 # SNIbc-r
-					gamma = pm.Gamma('gamma', alpha=3.6056287900933066, beta=0.11605751311020587)+1 # SNIbc-r
-					trise = pm.Gamma('trise', alpha=1.5535699995661292, beta=0.4241694758499036)+1 # SNIbc-r
-					tfall = pm.Gamma('tfall', alpha=2.049968935670142, beta=0.03948445201281736)+1 # SNIbc-r
+					t0 = pm.Normal('t0', mu=4.122916374468605, sigma=7.267432859863303) # \normdist{4.12}{7.27}
+					A = pm.Gamma('A', alpha=1.5053383016524007, beta=3.1682813652980086)+0 # \gammadist{1.51}{3.17}
+					gamma = pm.Gamma('gamma', alpha=3.784271901221374, beta=0.12049469461793495)+1 # \gammadist{3.78}{0.12}
+					trise = pm.Gamma('trise', alpha=1.4355863028350293, beta=0.38867555527313746)+1 # \gammadist{1.44}{0.39}
+					tfall = pm.Gamma('tfall', alpha=2.1960393518180124, beta=0.04112048163743286)+1 # \gammadist{2.20}{0.04}
 			if self.c in ['SLSN']:
 				if b=='g':
-					t0 = pm.Normal('t0', mu=12.356672388716207, sigma=12.26461881576808) # SLSN-g
-					A = pm.Gamma('A', alpha=1.8279713691582853, beta=6.569312540752642)+0 # SLSN-g
-					gamma = pm.Gamma('gamma', alpha=5.941874076576824, beta=0.07932236311963373)+1 # SLSN-g
-					trise = pm.Gamma('trise', alpha=2.12128829271404, beta=0.17367693148685978)+1 # SLSN-g
-					tfall = pm.Gamma('tfall', alpha=1.617113285654361, beta=0.02281032227105219)+1 # SLSN-g
+					t0 = pm.Normal('t0', mu=12.254579252483346, sigma=10.957857182559481) # \normdist{12.25}{10.96}
+					A = pm.Gamma('A', alpha=1.7135351716213902, beta=6.472298399471126)+0 # \gammadist{1.71}{6.47}
+					gamma = pm.Gamma('gamma', alpha=7.023971454464478, beta=0.08791106305890829)+1 # \gammadist{7.02}{0.09}
+					trise = pm.Gamma('trise', alpha=2.1078879847572223, beta=0.16823310043034334)+1 # \gammadist{2.11}{0.17}
+					tfall = pm.Gamma('tfall', alpha=1.516834126009786, beta=0.021816523764273135)+1 # \gammadist{1.52}{0.02}
 				if b=='r':
-					t0 = pm.Normal('t0', mu=17.893874443791674, sigma=12.07227123098901) # SLSN-r
-					A = pm.Gamma('A', alpha=2.7327871101558605, beta=9.791422827579856)+0 # SLSN-r
-					gamma = pm.Gamma('gamma', alpha=7.564436073302234, beta=0.08859690694347389)+1 # SLSN-r
-					trise = pm.Gamma('trise', alpha=3.3434380258242724, beta=0.26054092568561943)+1 # SLSN-r
-					tfall = pm.Gamma('tfall', alpha=1.4960708411766017, beta=0.024197491295477068)+1 # SLSN-r
+					t0 = pm.Normal('t0', mu=16.22933107923224, sigma=11.28508369834741) # \normdist{16.23}{11.29}
+					A = pm.Gamma('A', alpha=2.2299490311194714, beta=8.94989782394901)+0 # \gammadist{2.23}{8.95}
+					gamma = pm.Gamma('gamma', alpha=4.95275281713852, beta=0.06207661845103551)+1 # \gammadist{4.95}{0.06}
+					trise = pm.Gamma('trise', alpha=2.994833874789099, beta=0.244820659028758)+1 # \gammadist{2.99}{0.24}
+					tfall = pm.Gamma('tfall', alpha=1.3136037028978675, beta=0.024218584751623296)+1 # \gammadist{1.31}{0.02}
 
-			#pm_obs = pm.Normal('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs)
-			pm_obs = pm.StudentT('pm_obs', nu=5, mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs)
+			pm_obs = getattr(pm, self.obs_dist_name)('pm_obs', mu=func(days, A, t0, gamma, f, trise, tfall), sigma=obs_error*self.mcmc_std_scale, observed=obs, **self.obs_dist_kwargs)
 
 			try:
 				# trace
@@ -594,6 +595,44 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				trace.add_null()
 
 		return trace
+
+###################################################################################################################################################
+
+class SynSNeGeneratorTMCMC(SynSNeGeneratorMCMC):
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+		n_trace_samples=C_.N_TRACE_SAMPLES,
+		uses_new_bounds=True,
+		replace_nan_inf:bool=True,
+		max_fit_error:float=C_.MAX_FIT_ERROR,
+		std_scale:float=C_.OBSE_STD_SCALE,
+		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		min_required_points_to_fit:int=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
+		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		ignored=False,
+
+		n_tune=1000, # 500, 1000
+		mcmc_std_scale=1/2,
+		):
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+			n_trace_samples,
+			uses_new_bounds,
+			replace_nan_inf,
+			max_fit_error,
+			std_scale,
+			min_cadence_days,
+			min_synthetic_len_b,
+			min_required_points_to_fit,
+			hours_noise_amp,
+			ignored,
+
+			n_tune,
+			mcmc_std_scale,
+			)
+		self.obs_dist_name = 'StudentT'
+		self.obs_dist_kwargs = {
+			'nu':5,
+		}
 
 ###################################################################################################################################################
 

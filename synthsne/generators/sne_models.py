@@ -125,7 +125,7 @@ class SNeModel():
 			tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
 
 			### ti
-			ti_offset = 0
+			ti_offset = 5 # 0 1 5
 			ti_search_range = min(tmax, first_day)-self.pm_args['trise']*0.8, tmax
 			#ti = get_min_tfunc(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			ti = min(first_day, tmax-ti_offset)

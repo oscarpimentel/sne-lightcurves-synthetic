@@ -294,8 +294,8 @@ class SynSNeGenerator():
 				new_obse, new_obs = obse_sampler.conditional_sample(pm_obs)
 				#new_obse = new_obse*0+new_obse[0]# dummy
 				#syn_std_scale = 1/10
-				#syn_std_scale = self.std_scale
-				syn_std_scale = self.std_scale*0.5
+				syn_std_scale = self.std_scale
+				#syn_std_scale = self.std_scale*0.5
 				new_obs = get_obs_noise_gaussian(pm_obs, new_obse, min_obs_threshold, syn_std_scale)
 
 			new_lcobjb.set_values(new_days, new_obs, new_obse)

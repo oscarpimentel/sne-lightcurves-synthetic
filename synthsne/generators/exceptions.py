@@ -24,7 +24,7 @@ class CurveFitError(Exception):
 	def __init__(self):
 		pass
 
-class PYMCError(Exception):
+class MCMCError(Exception):
 	def __init__(self):
 		pass
 

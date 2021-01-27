@@ -401,6 +401,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 
 		n_tune=C_.N_TUNE, # 500, 1000
 		n_chains=24,
+		thin_by=10,
 		):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
 			n_trace_samples,
@@ -415,6 +416,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			)
 		self.n_tune = n_tune
 		self.n_chains = n_chains
+		self.thin_by = thin_by
 		
 	def get_curvefit_spm_args(self, lcobjb, spm_bounds, func):
 		days, obs, obse = lu.extract_arrays(lcobjb)
@@ -487,7 +489,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		days, obs, obse = lu.extract_arrays(lcobjb)
 		
 		mcmc_kwargs = {
-			'thin_by':10,
+			'thin_by':self.thin_by,
 			'progress':False,
 		}
 		assert self.n_trace_samples%self.n_chains==0
@@ -524,7 +526,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				spm_args = {p:mcmc_trace[p][-k] for p in sne_model.parameters}
 				trace.add_ok(SNeModel(lcobjb, spm_args), spm_bounds)
 
-		except ex.PYMCError:
+		except ex.MCMCError:
 			for _ in range(max(n, self.n_trace_samples)):
 				trace.add_null()
 		

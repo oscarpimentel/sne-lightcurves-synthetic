@@ -10,7 +10,7 @@ if __name__== '__main__':
 	from flamingchoripan.prints import print_big_bar
 
 	parser = argparse.ArgumentParser('usage description')
-	parser.add_argument('-method',  type=str, default='all', help='method')
+	parser.add_argument('-method',  type=str, default='.', help='method')
 	main_args = parser.parse_args()
 	print_big_bar()
 
@@ -50,8 +50,8 @@ if __name__== '__main__':
 	from synthsne import C_
 
 	methods = main_args.method
-	if methods=='all':
-		methods = ['linear', 'bspline', 'curvefit', 'mcmc']
+	if methods=='.':
+		methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mcmc-fstw', 'spm-mle-estw', 'spm-mcmc-estw']
 
 	if isinstance(methods, str):
 		methods = [methods]

@@ -10,7 +10,7 @@ if __name__== '__main__':
 	from flamingchoripan.prints import print_big_bar
 
 	parser = argparse.ArgumentParser('usage description')
-	parser.add_argument('-method',  type=str, default='all', help='method')
+	parser.add_argument('-method',  type=str, default='.', help='method')
 	parser.add_argument('-set',  type=str, default='train', help='set')
 	main_args = parser.parse_args()
 	print_big_bar()
@@ -51,8 +51,8 @@ if __name__== '__main__':
 	from flamingchoripan.files import load_pickle, save_pickle
 
 	methods = main_args.method
-	if methods=='all':
-		methods = ['linear', 'curvefit', 'bspline', 'mcmc', 'tmcmc']
+	if methods=='.':
+		methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mcmc-fstw', 'spm-mle-estw', 'spm-mcmc-estw']
 
 	if isinstance(methods, str):
 		methods = [methods]
@@ -68,4 +68,5 @@ if __name__== '__main__':
 		samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
 		obse_sampler_bdict = samplers['obse_sampler_bdict']
 		length_sampler_bdict = samplers['length_sampler_bdict']
-		generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir, **sd_kwargs)
+		uses_estw = method.split('-')[-1]=='estw'
+		generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)

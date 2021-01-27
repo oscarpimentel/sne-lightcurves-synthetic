@@ -62,26 +62,26 @@ def get_min_tfunc(search_range, func, func_args,
 
 class SNeModel():
 	def __init__(self, lcobjb, spm_args,
-		kind=None, # linear, bspline
+		iterpolation_mode=None, # linear, bspline
 		):
 		#self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall', 's']
 		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']
 		self.lcobjb = lcobjb.copy()
 		self.spm_args = {} if spm_args is None else spm_args.copy()
-		self.kind = kind
-		self.uses_interp = not self.kind is None
+		self.iterpolation_mode = iterpolation_mode
 
+		self.uses_interp = not self.iterpolation_mode is None
 		self.func = syn_sne_sfunc
 		self.inv_func = inverse_syn_sne_sfunc
 
 	def evaluate(self, times):
 		if self.uses_interp:
 			try:
-				if self.kind=='linear':
+				if self.iterpolation_mode=='linear':
 					interp = interp1d(self.lcobjb.days, self.lcobjb.obs, kind='linear', fill_value='extrapolate')
 					obs = interp(times)
 
-				elif self.kind=='bspline':
+				elif self.iterpolation_mode=='bspline':
 					spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2)
 					obs = splev(times, spl)
 			except:
@@ -106,20 +106,13 @@ class SNeModel():
 		error = (real_obs-syn_obs)**2/(real_obse**2)
 		return error.mean()*scale
 
-	def get_spm_times(self, min_obs_threshold):
+	def get_spm_times(self, min_obs_threshold, uses_estw):
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]
 		tmax_day = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
-		ti_search_range = None
-		tf_search_range = None
 
-		if self.uses_interp:
-			spm_times = {
-				'ti':first_day,
-				'tmax':tmax_day,
-				'tf':last_day,
-			}
-		else:
+		if uses_estw:
+			assert not self.uses_interp
 			func_args = tuple([self.spm_args[p] for p in self.parameters])
 			t0 = self.spm_args['t0']
 			tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
@@ -139,13 +132,20 @@ class SNeModel():
 			#tf = max(tmax, last_day)
 			tf = last_day
 
-			#assert tmax>=ti
-			#assert tf>=tmax
-			assert tf>ti
 			spm_times = {
 				'ti':ti,
 				'tmax':tmax,
 				'tf':tf,
+				'ti_search_range':ti_search_range,
 			}
+		else:
+			spm_times = {
+				'ti':first_day,
+				'tmax':tmax_day,
+				'tf':last_day,
+			}
+		#assert tmax>=ti
+		#assert tf>=tmax
+		assert spm_times['tf']>spm_times['ti']
 		self.spm_times = spm_times
-		return self.spm_times, ti_search_range, tf_search_range
+		return self.spm_times

@@ -20,7 +20,7 @@ def is_in_column(lcobj_name, sne_specials_df, column):
 		return False
 	return lcobj_name in list(sne_specials_df[column].values)
 
-def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,
+def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
 	method='linear',
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
@@ -36,7 +36,8 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	gc_kwargs = {
 		'ignored':ignored,
 	}
-	sne_generator = get_syn_sne_generator(method)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, **gc_kwargs)
+	cmethod = '-'.join(method.split('-')[:-1])
+	sne_generator = get_syn_sne_generator(cmethod)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw, **gc_kwargs)
 	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
 
 	### save file
@@ -66,7 +67,7 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	plot_synthetic_samples(lcset, lcset_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
 	return
 
-def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,
+def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
 	method='linear',
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
@@ -77,7 +78,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	#backend='threading', # explodes with mcmc
 	remove_lock_dir=True,
 	):
-	is_mcmc = method in ['mcmc']
+	is_mcmc = 0#method in ['mcmc']
 	if is_mcmc:
 		backend = 'loky'
 		#n_jobs = 1
@@ -100,7 +101,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method} - chunk:{chunk}')
 		jobs = []
 		for lcobj_name in chunk:
-			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, save_rootdir,
+			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
 				method,
 				synthetic_samples_per_curve,
 				add_original,

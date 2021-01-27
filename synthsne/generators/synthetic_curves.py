@@ -27,7 +27,10 @@ def get_random_time_mesh(ti, tf, min_dt):
 		t0 += min_dt
 	return new_times
 	
-def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times):
+def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times,
+	dropout_p=0.0,
+	):
+	assert dropout_p>=0 and dropout_p<=1
 
 	new_times = [ti-min_dt]+[t for t in np.sort(times) if t>=ti and t<=tf]+[tf+min_dt]
 	possible_times = []
@@ -39,19 +42,23 @@ def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times):
 		#print(ti_+min_dt, tf_-min_dt, times_)
 		possible_times += times_
 	
-	possible_times = np.random.permutation(possible_times)[:extra_times]
+	possible_times = np.array(possible_times) if extra_times is None else np.random.permutation(possible_times)[:extra_times]
+	valid_indexs = np.random.uniform(size=len(possible_times))>=dropout_p
+	possible_times = possible_times[valid_indexs]
 	augmented_time_mesh = np.sort(np.concatenate([times, possible_times])) # sort
 	return augmented_time_mesh
 
+###################################################################################################################################################
+
 def get_syn_sne_generator(method_name):
-	if method_name=='curvefit':
-		return SynSNeGeneratorCF
-	if method_name=='mcmc':
-		return SynSNeGeneratorMCMC
 	if method_name=='linear':
 		return SynSNeGeneratorLinear
 	if method_name=='bspline':
 		return SynSNeGeneratorBSpline
+	if method_name=='spm-mle':
+		return SynSNeGeneratorCF
+	if method_name=='spm-mcmc':
+		return SynSNeGeneratorMCMC
 	raise Exception(f'no method_name {method_name}')
 
 ###################################################################################################################################################
@@ -130,7 +137,7 @@ class Trace():
 
 def override(func): return func
 class SynSNeGenerator():
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -147,6 +154,7 @@ class SynSNeGenerator():
 		self.band_names = band_names.copy()
 		self.obse_sampler_bdict = obse_sampler_bdict
 		self.length_sampler_bdict = length_sampler_bdict
+		self.uses_estw = uses_estw
 		
 		self.n_trace_samples = n_trace_samples
 		self.uses_new_bounds = uses_new_bounds
@@ -186,12 +194,12 @@ class SynSNeGenerator():
 			return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs()
 
 	@override
-	def get_spm_trace_b(self, b, n): # override this method
+	def get_spm_trace_b(self, b, n): # override this method!!!
 		trace = Trace()
 		for k in range(max(n, self.n_trace_samples)):
 			try:
 				lcobjb = self.lcobj.get_b(b)
-				spm_bounds = b_.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
+				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 				spm_args = {pmf:np.random.uniform(*spm_bounds[pmf]) for pmf in spm_bounds.keys()}
 				trace.add_ok(SNeModel(lcobjb, spm_args), spm_bounds)
 			except ex.TooShortCurveError:
@@ -215,7 +223,7 @@ class SynSNeGenerator():
 				#print(not correct_fit_tag, self.ignored, fit_error>self.max_fit_error)
 				if not correct_fit_tag or self.ignored or fit_error>self.max_fit_error:
 					raise ex.TraceError()
-				sne_model.get_spm_times(self.min_obs_bdict[b])
+				sne_model.get_spm_times(self.min_obs_bdict[b], self.uses_estw)
 				min_obs_threshold = self.min_obs_bdict[b]
 				new_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, False)
 				new_smooth_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, True)
@@ -265,8 +273,10 @@ class SynSNeGenerator():
 				#print(spm_times['ti'], spm_times['tf'], original_days)
 				#new_days = get_augmented_time_mesh(days_to_preserve, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
 				#new_days = get_augmented_time_mesh(original_days, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
-				new_days = get_augmented_time_mesh(days_to_preserve, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1))
+				new_days = get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, None, 0.3333)
+				#new_days = get_augmented_time_mesh(days_to_preserve, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1))
 				#new_days = get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1.5))
+				
 				new_days = new_days+np.random.uniform(-self.hours_noise_amp/24., self.hours_noise_amp/24., len(new_days))
 				new_days = np.sort(new_days) # sort
 
@@ -301,7 +311,7 @@ class SynSNeGenerator():
 ###################################################################################################################################################
 
 class SynSNeGeneratorCF(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -314,7 +324,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 
 		cpds_p:float=C_.CPDS_P,
 		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -375,7 +385,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 			sne_model = SNeModel(lcobjb, None)
 
 			try:
-				spm_bounds = b_.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
+				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 				spm_args = self.get_curvefit_spm_args(lcobjb, spm_bounds, sne_model.func)
 				sne_model.spm_args = spm_args.copy()
 				trace.add_ok(sne_model, spm_bounds)
@@ -388,7 +398,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 ###################################################################################################################################################
 
 class SynSNeGeneratorMCMC(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -401,9 +411,9 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 
 		n_tune=C_.N_TUNE, # 500, 1000
 		n_chains=24,
-		thin_by=10,
+		thin_by=C_.THIN_BY,
 		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -539,7 +549,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 ###################################################################################################################################################
 
 class SynSNeGeneratorLinear(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -552,7 +562,7 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 
 		cpds_p:float=C_.CPDS_P,
 		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -575,7 +585,7 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 
 			try:
-				spm_bounds = b_.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
+				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 				sne_model = SNeModel(lcobjb, None, 'linear')
 				trace.add_ok(sne_model, spm_bounds)
 			except ex.TooShortCurveError:
@@ -583,7 +593,7 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		return trace
 
 class SynSNeGeneratorBSpline(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -596,7 +606,7 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 
 		cpds_p:float=C_.CPDS_P,
 		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict,
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -619,7 +629,7 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 			lcobjb.apply_downsampling(self.cpds_p) # curve points downsampling
 
 			try:
-				spm_bounds = b_.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)[self.c]
+				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 				sne_model = SNeModel(lcobjb, None, 'bspline')
 				trace.add_ok(sne_model, spm_bounds)
 			except ex.TooShortCurveError:

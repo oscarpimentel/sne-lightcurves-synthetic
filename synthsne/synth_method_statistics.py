@@ -59,7 +59,7 @@ def get_spm_parameters(rootdir, method, b):
 				if not sne_model is None:
 					return sne_model.parameters
 
-def xxx(rootdir, method, b):
+def get_spm_args(rootdir, method, b):
 	filedirs = get_filedirs(rootdir, method)
 	spm_args = {p:[] for p in get_spm_parameters(rootdir, method, b)}
 	for filedir in filedirs:
@@ -71,7 +71,7 @@ def xxx(rootdir, method, b):
 			for sne_model in sne_models:
 				if not sne_model is None:
 					for p in sne_model.parameters:
-						spm_args[p].append({'p':sne_model.pm_args[p], 'c':c})
+						spm_args[p].append({'p':sne_model.spm_args[p], 'c':c})
 
 	return spm_args
 
@@ -103,18 +103,18 @@ def get_info_dict(rootdir, methods):
 	for method in methods:
 		method_k = f'method={method}'
 		info_dict[method_k] = {
-			'trace-time[segs]':[],
+			'trace-time [segs]':[],
 			'mb-fit-log-error':[],
 			'mb-fits-n':0,
 			'mb-n':0,
-			'mb-fits[%]':None,
+			'mb-fits [%]':None,
 		}
 		for b in band_names:
 			info_dict[method_k].update({
 				f'{b}-fit-log-error':[],
 				f'{b}-fits-n':0,
 				f'{b}-n':0,
-				f'{b}-fits[%]':None,
+				f'{b}-fits [%]':None,
 			})
 
 	for method in methods:
@@ -132,20 +132,20 @@ def get_info_dict(rootdir, methods):
 				info_dict[method_k][f'{b}-n'] += len(trace)
 
 				### mb
-				info_dict[method_k][f'trace-time[segs]'] += [segs]
+				info_dict[method_k][f'trace-time [segs]'] += [segs]
 				info_dict[method_k][f'mb-fit-log-error'] += errors
 				info_dict[method_k][f'mb-fits-n'] += len(errors)
 				info_dict[method_k][f'mb-n'] += len(trace)
 
 	for method in methods:
 		method_k = f'method={method}'
-		info_dict[method_k]['trace-time[segs]'] = XError(info_dict[method_k]['trace-time[segs]'])
+		info_dict[method_k]['trace-time [segs]'] = XError(info_dict[method_k]['trace-time [segs]'])
 		info_dict[method_k]['mb-fit-log-error'] = XError(np.log(info_dict[method_k]['mb-fit-log-error']))
-		info_dict[method_k]['mb-fits[%]'] = info_dict[method_k].get('mb-fits-n')/info_dict[method_k].pop('mb-n')*100 # get, pop
+		info_dict[method_k]['mb-fits [%]'] = info_dict[method_k].get('mb-fits-n')/info_dict[method_k].pop('mb-n')*100 # get, pop
 		for b in band_names:
 			info_dict[method_k][f'{b}-fit-log-error'] = XError(np.log(info_dict[method_k][f'{b}-fit-log-error']))
-			info_dict[method_k][f'{b}-fits[%]'] = info_dict[method_k].get(f'{b}-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
+			info_dict[method_k][f'{b}-fits [%]'] = info_dict[method_k].get(f'{b}-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
 
 	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(list(info_dict.keys()))
-	info_df = info_df.sort_values(by=['trace-time[segs]'])
+	info_df = info_df.sort_values(by=['trace-time [segs]'])
 	return info_df

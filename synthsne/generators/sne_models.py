@@ -64,7 +64,6 @@ class SNeModel():
 	def __init__(self, lcobjb, spm_args,
 		iterpolation_mode=None, # linear, bspline
 		):
-		#self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall', 's']
 		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']
 		self.lcobjb = lcobjb.copy()
 		self.spm_args = {} if spm_args is None else spm_args.copy()
@@ -106,7 +105,9 @@ class SNeModel():
 		error = (real_obs-syn_obs)**2/(real_obse**2)
 		return error.mean()*scale
 
-	def get_spm_times(self, min_obs_threshold, uses_estw):
+	def get_spm_times(self, min_obs_threshold, uses_estw,
+		pre_tmax_offset=20, # 0 1 5 10 20
+		):
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]
 		tmax_day = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
@@ -118,7 +119,6 @@ class SNeModel():
 			tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
 
 			### ti
-			pre_tmax_offset = 20 # 0 1 5 10
 			if first_day>tmax-pre_tmax_offset:
 				ti_search_range = (tmax-pre_tmax_offset, tmax)
 				ti = get_min_tfunc(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
@@ -127,7 +127,7 @@ class SNeModel():
 
 			### tf
 			#tf_offset = 5 # 0 1 5
-			tf_search_range = tmax, max(tmax, last_day)+self.spm_args['tfall']*0.2
+			#tf_search_range = tmax, max(tmax, last_day)+self.spm_args['tfall']*0.2
 			#tf = get_min_tfunc(tf_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			#tf = max(tmax, last_day)
 			tf = last_day
@@ -136,7 +136,6 @@ class SNeModel():
 				'ti':ti,
 				'tmax':tmax,
 				'tf':tf,
-				'ti_search_range':ti_search_range,
 			}
 		else:
 			spm_times = {

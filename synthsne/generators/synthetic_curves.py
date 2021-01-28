@@ -268,14 +268,10 @@ class SynSNeGenerator():
 			else:
 				### generate days grid according to cadence
 				original_days = lcobjb.days
-				days_to_preserve = original_days[:len(original_days)//2]
-				#days_to_preserve = np.random.permutation(original_days)[::2]
 				#print(spm_times['ti'], spm_times['tf'], original_days)
-				#new_days = get_augmented_time_mesh(days_to_preserve, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
 				#new_days = get_augmented_time_mesh(original_days, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
-				new_days = get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, None, 0.3333)
-				#new_days = get_augmented_time_mesh(days_to_preserve, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1))
-				#new_days = get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1.5))
+				#new_days = get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, None, 0.3333)
+				new_days = get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1.5))
 				
 				new_days = new_days+np.random.uniform(-self.hours_noise_amp/24., self.hours_noise_amp/24., len(new_days))
 				new_days = np.sort(new_days) # sort
@@ -339,7 +335,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 
 	def get_curvefit_spm_args(self, lcobjb, spm_bounds, func):
 		days, obs, obse = lu.extract_arrays(lcobjb)
-		p0 = self.get_p0(lcobjb, spm_bounds)
+		p0 = priors.get_p0(lcobjb, spm_bounds)
 
 		### solve nans
 		invalid_indexs = (obs == np.infty) | (obs == -np.infty) | np.isnan(obs)

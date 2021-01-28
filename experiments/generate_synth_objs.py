@@ -25,21 +25,13 @@ if __name__== '__main__':
 	###################################################################################################################################################
 	import numpy as np
 	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
-	from synthsne import C_
 
-	def load_lcdataset(filename):
-		assert filename.split('.')[-1]==C_.EXT_SPLIT_LIGHTCURVE
-		return load_pickle(filename)
-
-	filedir = '../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
-
+	filedir = f'../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
 	root_folder = filedict['*rootdir*']
 	cfilename = filedict['*cfilename*']
 	survey = filedict['survey']
-	lcdataset = load_lcdataset(filedir)
-	print(lcdataset['raw'].keys())
-	print(lcdataset['raw'].get_random_lcobj(False).keys())
+	lcdataset = load_pickle(filedir)
 	print(lcdataset)
 
 	###################################################################################################################################################
@@ -51,17 +43,14 @@ if __name__== '__main__':
 	from flamingchoripan.files import load_pickle, save_pickle
 
 	methods = main_args.method
-	if methods=='.':
-		methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mcmc-fstw', 'spm-mle-estw', 'spm-mcmc-estw']
-
-	if isinstance(methods, str):
-		methods = [methods]
-
+	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if methods=='.' else methods
+	methods = [methods] if isinstance(methods, str) else methods
+		
 	lcset_name = main_args.set
 	for method in methods:
 		save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
 		sd_kwargs = {
-			'synthetic_samples_per_curve':64, # 16 32 64
+			'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
 			'method':method,
 			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 		}

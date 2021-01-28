@@ -9,9 +9,6 @@ from .synthetic_curves import get_syn_sne_generator
 from ..plots.lc import plot_synthetic_samples
 from flamingchoripan.lists import get_list_chunks
 from joblib import Parallel, delayed
-import os
-import shutil
-import glob
 
 ###################################################################################################################################################
 
@@ -56,9 +53,9 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images
-	save_filedirs = [f'{save_rootdir}/{method}_{c}/{lcobj_name}.png']
+	save_filedirs = [f'{save_rootdir}/__figs__/{c}/{method}/{lcobj_name}.png']
 	if is_in_column(lcobj_name, sne_specials_df, 'vis'):
-		save_filedirs += [f'{save_rootdir}/{method}_vis/{lcobj_name}.png']
+		save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
 
 	plot_kwargs = {
 		'trace_bdict':trace_bdict,
@@ -75,29 +72,14 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
 	backend=None,
-	#backend='threading', # explodes with mcmc
+	#backend='threading', # explodes with pymc3
 	remove_lock_dir=True,
 	):
-	is_mcmc = 0#method in ['mcmc']
-	if is_mcmc:
-		backend = 'loky'
-		#n_jobs = 1
-		#chunk_size = 1
-
 	lcset = lcdataset[lcset_name]
 	lcobj_names = [n for n in lcset.get_lcobj_names() if not check_filedir_exists(f'{save_rootdir}/{method}/{n}.synsne')]
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
-		try:
-			if remove_lock_dir:
-				theano_compilation = 'compiledir_Linux-4.15--generic-x86_64-with-debian-buster-sid-x86_64-3.7.9-64'
-				theano_folder = f'/home/{os.getlogin()}/.theano/{theano_compilation}/lock_dir'
-				#shutil.rmtree(theano_folder)
-				#print(f'deleted: {theano_folder}')
-		except:
-			pass
-
 		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method} - chunk:{chunk}')
 		jobs = []
 		for lcobj_name in chunk:

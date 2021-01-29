@@ -11,6 +11,7 @@ if __name__== '__main__':
 
 	parser = argparse.ArgumentParser('usage description')
 	parser.add_argument('-method',  type=str, default='.', help='method')
+	parser.add_argument('-kf',  type=str, default='.', help='kf')
 	main_args = parser.parse_args()
 	print_big_bar()
 
@@ -41,27 +42,28 @@ if __name__== '__main__':
 	from flamingchoripan.files import load_pickle, save_pickle
 	from synthsne import C_
 
-	methods = main_args.method
-	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if methods=='.' else methods
+	kfs = [str(kf) for kf in range(0,3)] if main_args.kf=='.' else main_args.kf
+	kfs = [kfs] if isinstance(kfs, str) else kfs
+	methods = ['bspline-fstw', 'linear-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
-
+	
 	for method in methods:
 		new_lcdataset = lcdataset.copy()
-		lcset_names = ['train', 'val']
-		lcset_names = ['train']
-		for lcset_name in lcset_names:
+		lcset_names = []
+		for kf in kfs:
+			lcset_name = f'{kf}@train'
 			lcset = new_lcdataset[lcset_name]
 			synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
 			print('synth_rootdir:', synth_rootdir)
 			synth_lcset = lcset.copy({})
 			filedirs = ff.get_filedirs(synth_rootdir, fext='synsne')
 			bar = ProgressBar(len(filedirs))
+
 			for filedir in filedirs:
 				d = ff.load_pickle(filedir, verbose=0)
 				lcobj_name = d['lcobj_name']
 				bar(f'lcset_name: {lcset_name} - lcobj_name: {lcobj_name}')
-				#synth_lcset.set_lcobj(f'{lcobj_name}.0', d['lcobj']) # set orinal anyways
-				
+
 				for k,new_lcobj in enumerate(d['new_lcobjs']):
 					synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
 

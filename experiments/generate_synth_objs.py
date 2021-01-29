@@ -11,7 +11,7 @@ if __name__== '__main__':
 
 	parser = argparse.ArgumentParser('usage description')
 	parser.add_argument('-method',  type=str, default='.', help='method')
-	parser.add_argument('-set',  type=str, default='train', help='set')
+	parser.add_argument('-kf',  type=str, default='.', help='kf')
 	main_args = parser.parse_args()
 	print_big_bar()
 
@@ -42,20 +42,22 @@ if __name__== '__main__':
 	from flamingchoripan.progress_bars import ProgressBar
 	from flamingchoripan.files import load_pickle, save_pickle
 
-	methods = main_args.method
-	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if methods=='.' else methods
+	kfs = [str(kf) for kf in range(0,3)] if main_args.kf=='.' else main_args.kf
+	kfs = [kfs] if isinstance(kfs, str) else kfs
+	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
-		
-	lcset_name = main_args.set
+	
 	for method in methods:
-		save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
-		sd_kwargs = {
-			'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
-			'method':method,
-			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
-		}
-		samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
-		obse_sampler_bdict = samplers['obse_sampler_bdict']
-		length_sampler_bdict = samplers['length_sampler_bdict']
-		uses_estw = method.split('-')[-1]=='estw'
-		generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
+		for kf in kfs:
+			lcset_name = f'{kf}@train'
+			save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
+			sd_kwargs = {
+				'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
+				'method':method,
+				'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
+			}
+			samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
+			obse_sampler_bdict = samplers['obse_sampler_bdict']
+			length_sampler_bdict = samplers['length_sampler_bdict']
+			uses_estw = method.split('-')[-1]=='estw'
+			generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)

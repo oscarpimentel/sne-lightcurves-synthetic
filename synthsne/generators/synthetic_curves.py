@@ -170,9 +170,7 @@ class SynSNeGenerator():
 	def reset(self):
 		pass
 
-	def sample_curves(self, n,
-		return_has_corrects_samples=False,
-		):
+	def sample_curves(self, n):
 		cr = Cronometer()
 		new_lcobjs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
 		new_smooth_lcojbs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
@@ -187,11 +185,7 @@ class SynSNeGenerator():
 			for new_smooth_lcojb,new_smooth_lcobjb in zip(new_smooth_lcojbs, new_smooth_lcobjbs):
 				new_smooth_lcojb.add_sublcobj_b(b, new_smooth_lcobjb)
 
-		has_corrects_samples = any([trace_bdict[b].has_corrects_samples() for b in self.band_names])
-		if return_has_corrects_samples:
-			return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs(), has_corrects_samples
-		else:
-			return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs()
+		return new_lcobjs, new_smooth_lcojbs, trace_bdict, cr.dt_segs()
 
 	@override
 	def get_spm_trace_b(self, b, n): # override this method!!!
@@ -215,7 +209,8 @@ class SynSNeGenerator():
 		trace.clip(n)
 		new_lcobjbs = []
 		new_smooth_lcobjbs = []
-		curve_sizes = self.length_sampler_bdict[b].sample(n)
+		#curve_sizes = self.length_sampler_bdict[b].sample(n)
+		curve_sizes = [None for k in range(n)]
 		for k in range(n):
 			sne_model, spm_bounds, correct_fit_tag = trace[k]
 			fit_error = trace.fit_errors[k]
@@ -230,18 +225,18 @@ class SynSNeGenerator():
 
 			except ex.SyntheticCurveTimeoutError:
 				trace.correct_fit_tags[k] = False # update
-				new_lcobjb = lcobjb.synthetic_copy()
-				new_smooth_lcobjb = lcobjb.synthetic_copy()
+				new_lcobjb = lcobjb.copy()
+				new_smooth_lcobjb = lcobjb.copy()
 
 			except ex.InterpError:
 				trace.correct_fit_tags[k] = False # update
-				new_lcobjb = lcobjb.synthetic_copy()
-				new_smooth_lcobjb = lcobjb.synthetic_copy()
+				new_lcobjb = lcobjb.copy()
+				new_smooth_lcobjb = lcobjb.copy()
 
 			except ex.TraceError:
 				trace.correct_fit_tags[k] = False # update
-				new_lcobjb = lcobjb.synthetic_copy()
-				new_smooth_lcobjb = lcobjb.synthetic_copy()
+				new_lcobjb = lcobjb.copy()
+				new_smooth_lcobjb = lcobjb.copy()
 
 			new_lcobjbs.append(new_lcobjb)
 			new_smooth_lcobjbs.append(new_smooth_lcobjb)

@@ -6,6 +6,7 @@ import flamingchoripan.files as ff
 from flamingchoripan.datascience.statistics import XError, TopRank
 import numpy as np
 import pandas as pd
+import math
 
 ###################################################################################################################################################
 
@@ -18,12 +19,32 @@ def get_band_names(rootdir, method):
 	filedirs = get_filedirs(rootdir, method)
 	return ff.load_pickle(filedirs[0], verbose=0)['band_names']
 
+def get_classes(rootdir, method):
+	classes = []
+	filedirs = get_filedirs(rootdir, method)
+	for filedir in filedirs:
+		fdict = ff.load_pickle(filedir, verbose=0)
+		c = fdict['c']
+		if not c in classes:
+			classes.append(c)
+	return classes
+
+def get_any_incorrects_fittings(rootdir, method):
+	filedirs = get_filedirs(rootdir, method)
+	obj_names = []
+	for filedir in filedirs:
+		fdict = ff.load_pickle(filedir, verbose=0)
+		if any([new_lcobj.any_real() for new_lcobj in fdict['new_lcobjs']]):
+			obj_names.append(fdict['lcobj_name'])
+
+	return obj_names
+
 def get_all_incorrects_fittings(rootdir, method):
 	filedirs = get_filedirs(rootdir, method)
 	obj_names = []
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)
-		if not fdict['has_corrects_samples']:
+		if all([new_lcobj.all_real() for new_lcobj in fdict['new_lcobjs']]):
 			obj_names.append(fdict['lcobj_name'])
 
 	return obj_names
@@ -33,21 +54,10 @@ def get_perf_times(rootdir, method):
 	times = []
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)
-		if fdict['has_corrects_samples']:
+		if all([new_lcobj.all_synthetic() for new_lcobj in fdict['new_lcobjs']]):
 			times.append(fdict['segs'])
 
 	return XError(times)
-
-def get_classes(rootdir, method):
-	classes = []
-	filedirs = get_filedirs(rootdir, method)
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
-		c = fdict['c']
-		if not c in classes:
-			classes.append(c)
-
-	return classes
 
 def get_spm_parameters(rootdir, method, b):
 	filedirs = get_filedirs(rootdir, method)
@@ -64,14 +74,14 @@ def get_spm_args(rootdir, method, b):
 	spm_args = {p:[] for p in get_spm_parameters(rootdir, method, b)}
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)
-		if fdict['has_corrects_samples']:
-			#print(fdict.keys())
-			c = fdict['c']
-			sne_models = fdict['trace_bdict'][b].sne_model_l
-			for sne_model in sne_models:
-				if not sne_model is None:
-					for p in sne_model.parameters:
-						spm_args[p].append({'p':sne_model.spm_args[p], 'c':c})
+		#if fdict['has_corrects_samples']:
+		#print(fdict.keys())
+		c = fdict['c']
+		sne_models = fdict['trace_bdict'][b].sne_model_l
+		for sne_model in sne_models:
+			if not sne_model is None:
+				for p in sne_model.parameters:
+					spm_args[p].append({'p':sne_model.spm_args[p], 'c':c})
 
 	return spm_args
 
@@ -139,13 +149,16 @@ def get_info_dict(rootdir, methods):
 
 	for method in methods:
 		method_k = f'method={method}'
-		info_dict[method_k]['trace-time [segs]'] = XError(info_dict[method_k]['trace-time [segs]'])
-		info_dict[method_k]['mb-fit-log-error'] = XError(np.log(info_dict[method_k]['mb-fit-log-error']))
+		info_dict[method_k]['trace-time [segs]'] = info_dict[method_k]['trace-time [segs]']
+		info_dict[method_k]['mb-fit-log-error'] = [math.log(v) for v in info_dict[method_k]['mb-fit-log-error']]
 		info_dict[method_k]['mb-fits [%]'] = info_dict[method_k].get('mb-fits-n')/info_dict[method_k].pop('mb-n')*100 # get, pop
 		for b in band_names:
-			info_dict[method_k][f'{b}-fit-log-error'] = XError(np.log(info_dict[method_k][f'{b}-fit-log-error']))
+			info_dict[method_k][f'{b}-fit-log-error'] = [math.log(v) for v in info_dict[method_k][f'{b}-fit-log-error']]
 			info_dict[method_k][f'{b}-fits [%]'] = info_dict[method_k].get(f'{b}-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
 
 	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(list(info_dict.keys()))
-	info_df = info_df.sort_values(by=['trace-time [segs]'])
+	for c in info_df.columns:
+		info_df[c].values[:] = [XError(v) if isinstance(v, list) else v for v in info_df[c].values[:]] # make xerror from list
+	#info_df = info_df.sort_values(by=['trace-time [segs]'])
+
 	return info_df

@@ -35,7 +35,7 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	}
 	cmethod = '-'.join(method.split('-')[:-1])
 	sne_generator = get_syn_sne_generator(cmethod)(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw, **gc_kwargs)
-	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs, has_corrects_samples = sne_generator.sample_curves(synthetic_samples_per_curve, return_has_corrects_samples=True)
+	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs = sne_generator.sample_curves(synthetic_samples_per_curve)
 
 	### save file
 	to_save = {
@@ -46,7 +46,6 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 		'new_lcobjs':[new_lcobj.copy().reset_day_offset_serial() for new_lcobj in new_lcobjs],
 		'trace_bdict':trace_bdict,
 		'segs':segs,
-		'has_corrects_samples':has_corrects_samples,
 		'ignored':ignored,
 	}
 	save_filedir = f'{save_rootdir}/{method}/{lcobj_name}.synsne'

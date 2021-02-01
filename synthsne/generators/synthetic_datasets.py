@@ -78,9 +78,11 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	lcobj_names = [n for n in lcset.get_lcobj_names() if not check_filedir_exists(f'{save_rootdir}/{method}/{n}.synsne')]
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
+	
 	for kc,chunk in enumerate(chunks):
 		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method} - chunk:{chunk}')
 		jobs = []
+
 		for lcobj_name in chunk:
 			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
 				method,
@@ -88,5 +90,6 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 				add_original,
 				sne_specials_df,
 				))
+
 		results = Parallel(n_jobs=n_jobs, backend=backend)(jobs)
 	bar.done()

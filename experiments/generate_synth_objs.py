@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*
 import sys
 sys.path.append('../') # or just install the module
 sys.path.append('../../flaming-choripan') # or just install the module
@@ -12,6 +13,7 @@ if __name__== '__main__':
 	parser = argparse.ArgumentParser('usage description')
 	parser.add_argument('-method',  type=str, default='.', help='method')
 	parser.add_argument('-kf',  type=str, default='.', help='kf')
+	parser.add_argument('-setn',  type=str, default='.', help='kf')
 	main_args = parser.parse_args()
 	print_big_bar()
 
@@ -46,18 +48,21 @@ if __name__== '__main__':
 	kfs = [kfs] if isinstance(kfs, str) else kfs
 	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
-	
-	for method in methods:
+	setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
+	setns = [setns] if isinstance(setns, str) else setns
+
+	for setn in setns:
 		for kf in kfs:
-			lcset_name = f'{kf}@train'
-			save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
-			sd_kwargs = {
-				'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
-				'method':method,
-				'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
-			}
-			samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
-			obse_sampler_bdict = samplers['obse_sampler_bdict']
-			length_sampler_bdict = samplers['length_sampler_bdict']
-			uses_estw = method.split('-')[-1]=='estw'
-			generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
+			for method in methods:
+				lcset_name = f'{kf}@{setn}'
+				save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
+				sd_kwargs = {
+					'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
+					'method':method,
+					'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
+				}
+				samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
+				obse_sampler_bdict = samplers['obse_sampler_bdict']
+				length_sampler_bdict = samplers['length_sampler_bdict']
+				uses_estw = method.split('-')[-1]=='estw'
+				generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)

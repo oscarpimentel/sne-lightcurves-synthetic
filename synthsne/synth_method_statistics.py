@@ -109,56 +109,80 @@ def get_ranks(rootdir, method):
 def get_info_dict(rootdir, methods):
 	band_names = get_band_names(rootdir, methods[0])
 	info_dict = {}
-	# $\chi_{\sigma_x^2}$
+	info_dict.update({
+		'trace-time [segs]':{},
+		'mb-fit-log-error':{},
+		'mb-fits-n':{},
+		'mb-n':{},
+		'mb-fits [%]':{},
+	})
+	for b in band_names:
+		info_dict.update({
+			f'{b}-fit-log-error':{},
+			f'{b}-fits-n':{},
+			f'{b}-n':{},
+			f'{b}-fits [%]':{},
+		})
 	for method in methods:
-		method_k = f'method={method}'
-		info_dict[method_k] = {
-			'trace-time [segs]':[],
-			'mb-fit-log-error':[],
-			'mb-fits-n':0,
-			'mb-n':0,
-			'mb-fits [%]':None,
-		}
-		for b in band_names:
-			info_dict[method_k].update({
-				f'{b}-fit-log-error':[],
-				f'{b}-fits-n':0,
-				f'{b}-n':0,
-				f'{b}-fits [%]':None,
-			})
-
-	for method in methods:
-		method_k = f'method={method}'
 		filedirs = get_filedirs(rootdir, method)
 		for filedir in filedirs:
 			fdict = ff.load_pickle(filedir, verbose=0)
 			lcobj_name = fdict['lcobj_name']
 			segs = fdict['segs']
+
 			for b in band_names:
 				trace = fdict['trace_bdict'][b]
 				errors = trace.get_valid_errors()
-				info_dict[method_k][f'{b}-fit-log-error'] += errors
-				info_dict[method_k][f'{b}-fits-n'] += len(errors)
-				info_dict[method_k][f'{b}-n'] += len(trace)
+
+				### b
+				try:
+					info_dict[f'{b}-fit-log-error'][method] += [math.log(e+1e-10) for e in errors]
+				except KeyError:
+					info_dict[f'{b}-fit-log-error'][method] = []
+
+				try:
+					info_dict[f'{b}-fits-n'][method].append(len(errors))
+				except KeyError:
+					info_dict[f'{b}-fits-n'][method] = []
+
+				try:
+					info_dict[f'{b}-n'][method].append(len(trace))
+				except KeyError:
+					info_dict[f'{b}-n'][method] = []
 
 				### mb
-				info_dict[method_k][f'trace-time [segs]'] += [segs]
-				info_dict[method_k][f'mb-fit-log-error'] += errors
-				info_dict[method_k][f'mb-fits-n'] += len(errors)
-				info_dict[method_k][f'mb-n'] += len(trace)
+				try:
+					info_dict['trace-time [segs]'][method].append(segs)
+				except KeyError:
+					info_dict['trace-time [segs]'][method] = []
+
+				try:
+					info_dict['mb-fit-log-error'][method] += [math.log(e+1e-10) for e in errors]
+				except KeyError:
+					info_dict['mb-fit-log-error'][method] = []
+
+				try:
+					info_dict['mb-fits-n'][method].append(len(errors))
+				except KeyError:
+					info_dict['mb-fits-n'][method] = []
+
+				try:
+					info_dict['mb-n'][method].append(len(trace))
+				except KeyError:
+					info_dict['mb-n'][method] = []
 
 	for method in methods:
-		method_k = f'method={method}'
-		info_dict[method_k]['trace-time [segs]'] = info_dict[method_k]['trace-time [segs]']
-		info_dict[method_k]['mb-fit-log-error'] = [math.log(v) for v in info_dict[method_k]['mb-fit-log-error']]
-		info_dict[method_k]['mb-fits [%]'] = info_dict[method_k].get('mb-fits-n')/info_dict[method_k].pop('mb-n')*100 # get, pop
+		info_dict['mb-fits-n'][method] = sum(info_dict['mb-fits-n'][method])
+		info_dict['mb-n'][method] = sum(info_dict['mb-n'][method])
+		info_dict['mb-fits [%]'][method] = info_dict['mb-fits-n'][method]/info_dict['mb-n'][method]*100
 		for b in band_names:
-			info_dict[method_k][f'{b}-fit-log-error'] = [math.log(v) for v in info_dict[method_k][f'{b}-fit-log-error']]
-			info_dict[method_k][f'{b}-fits [%]'] = info_dict[method_k].get(f'{b}-fits-n')/info_dict[method_k].pop(f'{b}-n')*100
+			info_dict[f'{b}-fits-n'][method] = sum(info_dict[f'{b}-fits-n'][method])
+			info_dict[f'{b}-n'][method] = sum(info_dict[f'{b}-n'][method])
+			info_dict[f'{b}-fits [%]'][method] = info_dict[f'{b}-fits-n'][method]/info_dict[f'{b}-n'][method]*100
 
-	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(list(info_dict.keys()))
+	info_dict = {f'metric={i}':info_dict[i] for i in info_dict.keys() if not '-n' in i}
+	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(info_dict.keys())
 	for c in info_df.columns:
 		info_df[c].values[:] = [XError(v) if isinstance(v, list) else v for v in info_df[c].values[:]] # make xerror from list
-	#info_df = info_df.sort_values(by=['trace-time [segs]'])
 
 	return info_df

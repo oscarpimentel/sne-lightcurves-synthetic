@@ -8,7 +8,7 @@ ERROR_SCALE = 1e2
 MAX_FIT_ERROR = 1e4
 N_TUNE = 1500
 THIN_BY = 10 # 7 10 # drastically affects computation time
-SYNTH_SAMPLES_PER_CURVE = 32 # 16 32 64
+SYNTH_SAMPLES_PER_CURVE = 64 # 16 32 64
 
 ### EXPORT
 N_JOBS = 6 # The number of jobs to use for the computation. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used.

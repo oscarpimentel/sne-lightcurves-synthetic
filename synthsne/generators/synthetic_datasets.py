@@ -48,7 +48,7 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 		'segs':segs,
 		'ignored':ignored,
 	}
-	save_filedir = f'{save_rootdir}/{method}/{lcobj_name}.synsne'
+	save_filedir = f'{save_rootdir}/{method}/{lcobj_name}.synsne{synthetic_samples_per_curve}'
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images

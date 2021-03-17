@@ -75,7 +75,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	remove_lock_dir=True,
 	):
 	lcset = lcdataset[lcset_name]
-	lcobj_names = [n for n in lcset.get_lcobj_names() if not check_filedir_exists(f'{save_rootdir}/{method}/{n}.synsne')]
+	lcobj_names = [n for n in lcset.get_lcobj_names() if not check_filedir_exists(f'{save_rootdir}/{method}/{n}.synsne{synthetic_samples_per_curve}')]
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	

@@ -2,7 +2,7 @@ import numpy as np
 import lchandler.C_ as C_lchandler
 
 ###################################################################################################################################################
-EPS = 1e-10
+EPS = 1e-5
 N_TRACE_SAMPLES = 480
 ERROR_SCALE = 1e2
 MAX_FIT_ERROR = 1e4

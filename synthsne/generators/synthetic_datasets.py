@@ -20,7 +20,7 @@ def is_in_column(lcobj_name, sne_specials_df, column):
 	return lcobj_name in list(sne_specials_df[column].values)
 
 def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
-	method='linear',
+	method=None,
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
 	sne_specials_df=None,
@@ -56,21 +56,24 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images
-	save_filedirs = [f'{save_rootdir}/__figs__/{c}/{method}/{lcobj_name}.png']
-	if is_in_column(lcobj_name, sne_specials_df, 'vis'):
-		save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
+	need_to_save_images = True
+	#need_to_save_images = not 'spm-mle' in method
+	if need_to_save_images:
+		save_filedirs = [f'{save_rootdir}/__figs__/{c}/{method}/{lcobj_name}.png']
+		if is_in_column(lcobj_name, sne_specials_df, 'vis'):
+			save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
 
-	plot_kwargs = {
-		'trace_bdict':trace_bdict,
-		'save_filedir':save_filedirs,
-	}
-	plot_synthetic_samples(lcset, lcset_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
-	#profiler.disable()
-	#profiler.dump_stats('../temp/profiling.prof')
+		plot_kwargs = {
+			'trace_bdict':trace_bdict,
+			'save_filedir':save_filedirs,
+		}
+		plot_synthetic_samples(lcset, lcset_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
+		#profiler.disable()
+		#profiler.dump_stats('../temp/profiling.prof')
 	return
 
 def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
-	method='linear',
+	method=None,
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
 	sne_specials_df=None,

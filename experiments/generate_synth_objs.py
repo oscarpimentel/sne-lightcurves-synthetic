@@ -43,6 +43,8 @@ if __name__== '__main__':
 	import flamingchoripan.files as ff
 	from flamingchoripan.progress_bars import ProgressBar
 	from flamingchoripan.files import load_pickle, save_pickle
+	from synthsne.distr_fittings import ObsErrorConditionalSampler
+	from synthsne.plots.samplers import plot_obse_samplers
 
 	kfs = [str(kf) for kf in range(0,3)] if main_args.kf=='.' else main_args.kf
 	kfs = [kfs] if isinstance(kfs, str) else kfs
@@ -56,12 +58,28 @@ if __name__== '__main__':
 			for method in methods:
 				lcset_name = f'{kf}@{setn}'
 				save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
+
+				### export generators
+				band_names = lcdataset[lcset_name].band_names
+				obse_sampler_bdict = {b:ObsErrorConditionalSampler(lcdataset, lcset_name, b) for b in band_names}
+				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, save_filedir=f'{save_rootdir}/obse_sampler_1.png')
+				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=0, save_filedir=f'{save_rootdir}/obse_sampler_0.png')
+				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/obse_sampler_11.png')
+
+				samplers = {
+					'obse_sampler_bdict':obse_sampler_bdict,
+					#'length_sampler_bdict':length_sampler_bdict,
+					'length_sampler_bdict':None,
+				}
+				sampler_filedir = f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}'
+				save_pickle(sampler_filedir, samplers)
+
+				### generate synth curves
 				sd_kwargs = {
 					'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
 					'method':method,
 					'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 				}
-				samplers = load_pickle(f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}')
 				obse_sampler_bdict = samplers['obse_sampler_bdict']
 				length_sampler_bdict = samplers['length_sampler_bdict']
 				uses_estw = method.split('-')[-1]=='estw'

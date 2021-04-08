@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 import flamingchoripan.cuteplots.plots as cplots
+from flamingchoripan.cuteplots.utils import save_fig
 
 ###################################################################################################################################################
 
@@ -14,6 +15,7 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 	pdf_scale:float=0.01,
 	figsize:tuple=(12,8),
 	add_samples=0,
+	save_filedir=None,
 	):
 	fig, axs = plt.subplots(1, 2, figsize=figsize)
 	band_names = obse_sampler_bdict.keys()
@@ -81,10 +83,11 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
 
 	fig.tight_layout()
-	plt.show()
+	save_fig(save_filedir, fig)
 
 def plot_length_samplers(length_sampler_bdict, lcdataset, set_name:str,
 	figsize:tuple=(12,5),
+	save_filedir=None,
 	):
 	lcset = lcdataset[set_name]
 	fig, axs = plt.subplots(1, len(lcset.band_names), figsize=figsize)
@@ -117,4 +120,4 @@ def plot_length_samplers(length_sampler_bdict, lcdataset, set_name:str,
 		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
 
 	fig.tight_layout()
-	plt.show()
+	save_fig(save_filedir, fig)

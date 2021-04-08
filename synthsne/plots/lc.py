@@ -11,6 +11,7 @@ import random
 ###################################################################################################################################################
 
 def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, new_smooth_lcojbs,
+	synth_curves_plot_max=None,
 	trace_bdict=None,
 	figsize:tuple=(8,12),
 	lw=1.5,
@@ -19,14 +20,15 @@ def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, 
 	fig, axs = plt.subplots(2, 1, figsize=figsize)
 	band_names = lcset.band_names
 	lcobj = lcset[lcobj_name]
+	synth_curves_plot_max = len(new_smooth_lcojbs) if synth_curves_plot_max is None else synth_curves_plot_max
 
-	###
 	ax = axs[0]
 	for b in band_names:
-	    plot_lightcurve(ax, lcobj, b, label=f'{b} observation')
-	    for k,new_smooth_lcojb in enumerate(new_smooth_lcojbs):
-	        label = f'{b} posterior pm-sample' if k==0 else None
-	        ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.12, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
+		plot_lightcurve(ax, lcobj, b, label=f'{b} observation')
+		for k in range(0, synth_curves_plot_max):
+			new_smooth_lcojb = new_smooth_lcojbs[k]
+			label = f'{b} posterior pm-sample' if k==0 else None
+			ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.12, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
 	title = ''
 	title += f'multiband light curve & parametric model samples\n'
@@ -42,10 +44,10 @@ def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, 
 	ax = axs[1]
 	idx = random.randint(0, len(new_smooth_lcojbs)-1)
 	for b in band_names:
-	    plot_lightcurve(ax, lcobj, b, label=f'{b} observation', alpha=0.25)
-	    for k,new_lcobj in enumerate([new_lcobjs[idx]]):
-	        plot_lightcurve(ax, new_lcobj, b, label=f'{b} observation' if k==0 else None)
-	        
+		plot_lightcurve(ax, lcobj, b, label=f'{b} observation', alpha=0.25)
+		for k,new_lcobj in enumerate([new_lcobjs[idx]]):
+			plot_lightcurve(ax, new_lcobj, b, label=f'{b} observation' if k==0 else None)
+			
 	ax.grid(alpha=0.5)
 	title = ''
 	#title += f'multiband light curve & synthetic curve example\n'

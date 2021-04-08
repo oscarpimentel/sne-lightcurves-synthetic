@@ -1,6 +1,7 @@
 from __future__ import print_function
 from __future__ import division
 from . import C_
+import cProfile
 
 import numpy as np
 from flamingchoripan.progress_bars import ProgressBar
@@ -9,6 +10,7 @@ from .synthetic_curves import get_syn_sne_generator
 from ..plots.lc import plot_synthetic_samples
 from flamingchoripan.lists import get_list_chunks
 from joblib import Parallel, delayed
+import matplotlib.pyplot as plt
 
 ###################################################################################################################################################
 
@@ -23,6 +25,8 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 	add_original=True,
 	sne_specials_df=None,
 	):
+	#profiler = cProfile.Profile()
+	#profiler.enable()
 	band_names = lcset.band_names
 	class_names = lcset.class_names
 	lcobj = lcset[lcobj_name]
@@ -61,6 +65,8 @@ def generate_synthetic_samples(lcobj_name, lcset, lcset_name, obse_sampler_bdict
 		'save_filedir':save_filedirs,
 	}
 	plot_synthetic_samples(lcset, lcset_name, method, lcobj_name, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
+	#profiler.disable()
+	#profiler.dump_stats('../temp/profiling.prof')
 	return
 
 def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir,
@@ -68,17 +74,14 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length
 	synthetic_samples_per_curve:float=4,
 	add_original=True,
 	sne_specials_df=None,
+	backend=C_.JOBLIB_BACKEND,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
-	backend=None,
-	#backend='threading', # explodes with pymc3
-	remove_lock_dir=True,
 	):
 	lcset = lcdataset[lcset_name]
 	lcobj_names = [n for n in lcset.get_lcobj_names() if not check_filedir_exists(f'{save_rootdir}/{method}/{n}.synsne{synthetic_samples_per_curve}')]
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
-	
 	for kc,chunk in enumerate(chunks):
 		bar(f'lcset_name: {lcset_name} - chunck: {kc} - chunk_size: {chunk_size} - method: {method} - chunk:{chunk}')
 		jobs = []

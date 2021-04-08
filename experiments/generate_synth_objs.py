@@ -13,7 +13,7 @@ if __name__== '__main__':
 	parser = argparse.ArgumentParser('usage description')
 	parser.add_argument('-method',  type=str, default='.', help='method')
 	parser.add_argument('-kf',  type=str, default='.', help='kf')
-	parser.add_argument('-setn',  type=str, default='.', help='kf')
+	parser.add_argument('-setn',  type=str, default='train', help='kf')
 	main_args = parser.parse_args()
 	print_big_bar()
 

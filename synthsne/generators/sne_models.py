@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import division
 from . import C_
 
+from numba import jit
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.interpolate import splev, splrep
@@ -10,38 +11,23 @@ from . import exceptions as ex
 
 ###################################################################################################################################################
 
+@jit(nopython=True)
 def sgm(x, x0, s):
-	return 1/(1 + np.exp(-s*(x-x0)))
+	return 1./(1. + np.exp(-s*(x-x0)))
 
-'''
-def syn_sne_func(t, A, t0, gamma, f, trise, tfall):
-	s = 1/3
-	#s = 1
-	#s = 10
-
-	g = sgm(t, gamma+t0, s)
-	early = 1.0*(A*(1 - (f*(t-t0)/gamma))   /   (1 + np.exp(-(t-t0)/trise)))
-	late = 1.0*(A*(1-f)*np.exp(-(t-(gamma+t0))/tfall)   /   (1 + np.exp(-(t-t0)/trise)))
-	flux = (1-g)*early + g*late
-	return flux
-
-def inverse_syn_sne_func(t, A, t0, gamma, f, trise, tfall):
-	return -syn_sne_func(t, A, t0, gamma, f, trise, tfall)
-
-'''
-
-
+@jit(nopython=True)
 def syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall,
 	#s=1/3,
 	):
 	#s = 1/3,
-	s = 1/5
+	s = 1./5.
 	g = sgm(t, gamma+t0, s)
-	early = 1.0*(A*(1 - (f*(t-t0)/gamma))   /   (1 + np.exp(-(t-t0)/trise)))
-	late = 1.0*(A*(1-f)*np.exp(-(t-(gamma+t0))/tfall)   /   (1 + np.exp(-(t-t0)/trise)))
-	flux = (1-g)*early + g*late
+	early = 1.0*(A*(1 - (f*(t-t0)/gamma))   /   (1. + np.exp(-(t-t0)/trise)))
+	late = 1.0*(A*(1-f)*np.exp(-(t-(gamma+t0))/tfall)   /   (1. + np.exp(-(t-t0)/trise)))
+	flux = (1.-g)*early + g*late
 	return flux
 
+@jit(nopython=True)
 def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall,
 	#s=1/3,
 	):

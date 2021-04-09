@@ -42,7 +42,7 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
 			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
-			title = f'survey: {lcset.survey} - band: {b}'
+			title = f'survey={lcset.survey} - band={b}'
 			ax.set_xlabel('obs-error')
 			ax.set_ylabel('obs' if kb==0 else None)
 			ax.set_xlim([0.0, 0.05])
@@ -68,7 +68,7 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
 					min_pdfy = pdfy.min() if pdfy.min()<min_pdfy else min_pdfy
 			
-			title = f'survey:{lcset.survey} - band: {b}'
+			title = f'survey={lcset.survey} - band={b}'
 			ax.set_xlabel('rotated-flipped obs-error')
 			ax.set_ylabel('rotated obs' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])

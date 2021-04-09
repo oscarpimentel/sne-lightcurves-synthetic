@@ -2,6 +2,7 @@ from __future__ import print_function
 from __future__ import division
 from . import C_
 
+from numba import jit
 import numpy as np
 import random
 import emcee
@@ -47,6 +48,42 @@ def get_augmented_time_mesh(times, ti, tf, min_dt, extra_times,
 	possible_times = possible_times[valid_indexs]
 	augmented_time_mesh = np.sort(np.concatenate([times, possible_times])) # sort
 	return augmented_time_mesh
+
+###################################################################################################################################################
+
+@jit(nopython=True)
+def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
+	eps=C_.EPS,
+	):
+	lp_A = np.log(A_pdf+eps)
+	lp_t0 = np.log(t0_pdf+eps)
+	lp_gamma = np.log(gamma_pdf+eps)
+	lp_f = np.log(f_pdf+eps)
+	#lp_f = 0 if f>0 and f<1 else -1/eps
+	lp_trise = np.log(trise_pdf+eps)
+	lp_tfall = np.log(tfall_pdf+eps)
+	return lp_A + lp_t0 + lp_gamma + lp_f + lp_trise + lp_tfall
+
+@jit(nopython=True)
+def log_likelihood(spm_obs, days, obs, obse,
+	eps=C_.EPS,
+	):
+	sigma2 = (obse*1)**2+eps
+	#print(stats.t.pdf(obs, 5, spm_obs, sigma2))
+	#return np.sum(np.log(stats.t.pdf(obs, 5, spm_obs, obse+eps)+eps))
+	return -0.5 * np.sum((obs - spm_obs)**2/sigma2 + np.log(sigma2))
+
+#@jit(nopython=True)
+def log_probability(theta, d_theta, func, days, obs, obse,
+	eps=C_.EPS,
+	):
+	A, t0, gamma, f, trise, tfall = theta
+	A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf = [p.pdf(x) for x,p in zip(theta,d_theta)]
+	lp = log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf)
+	if not np.isfinite(lp):
+		return -1/eps
+	spm_obs = func(days, *theta)
+	return lp + log_likelihood(spm_obs, days, obs, obse)
 
 ###################################################################################################################################################
 
@@ -457,38 +494,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		return spm_args
 
 	def get_mcmc_trace(self, lcobjb, spm_bounds, n, func, b):
-
-		def log_prior(theta,
-			eps=C_.EPS,
-			):
-			A, t0, gamma, f, trise, tfall = theta
-			d_A, d_t0, d_gamma, d_f, d_trise, d_tfall = priors.get_mcmc_priors(self.c, b)
-			
-			lp_A = np.log(d_A.pdf(A)+eps)
-			lp_t0 = np.log(d_t0.pdf(t0)+eps)
-			lp_gamma = np.log(d_gamma.pdf(gamma)+eps)
-			lp_f = 0 if f>0 and f<1 else -np.infty
-			lp_trise = np.log(d_trise.pdf(trise)+eps)
-			lp_tfall = np.log(d_tfall.pdf(tfall)+eps)
-			return lp_A + lp_t0 + lp_gamma + lp_f + lp_trise + lp_tfall
-
-		def log_likelihood(theta, days, obs, obse,
-			eps=C_.EPS,
-			):
-			spm_obs = func(days, *theta)
-			sigma2 = (obse*1)**2+eps
-			#print(stats.t.pdf(obs, 5, spm_obs, sigma2))
-			#return np.sum(np.log(stats.t.pdf(obs, 5, spm_obs, obse+eps)+eps))
-			return -0.5 * np.sum((obs - spm_obs)**2/sigma2 + np.log(sigma2))
-
-		def log_probability(theta, days, obs, obse):
-			lp = log_prior(theta)
-			if not np.isfinite(lp):
-				return -np.inf
-			return lp + log_likelihood(theta, days, obs, obse)
-
 		days, obs, obse = lu.extract_arrays(lcobjb)
-		
 		mcmc_kwargs = {
 			'thin_by':self.thin_by,
 			'progress':False,
@@ -498,7 +504,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		spm_args = self.get_curvefit_spm_args(lcobjb, spm_bounds, func)
 		spm_args = [[priors.get_spm_random_sphere(spm_args, spm_bounds)[p] for p in spm_args.keys()] for _ in range(self.n_chains)]
 		theta0 = np.array(spm_args)
-		sampler = emcee.EnsembleSampler(self.n_chains, theta0.shape[-1], log_probability, args=(days, obs, obse))
+		d_theta = priors.get_mcmc_priors(self.c, b)
+		sampler = emcee.EnsembleSampler(self.n_chains, theta0.shape[-1], log_probability, args=(d_theta, func, days, obs, obse))
 		try:
 			sampler.run_mcmc(theta0, (self.n_trace_samples+self.n_tune)//self.n_chains, **mcmc_kwargs)
 		except ValueError:

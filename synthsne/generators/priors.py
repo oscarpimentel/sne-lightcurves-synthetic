@@ -151,5 +151,5 @@ def get_mcmc_priors(c, b):
 			trise = stats.gamma(3.1933551565192566, 1, 3.913740791705764) # &$\gammadist{3.19, 0.26, 1.00}$
 			tfall = stats.gamma(1.376621540026383, 1, 47.43268548365236) # &$\gammadist{1.38, 0.02, 1.00}$
 
-	f = None
+	f = gamma = stats.uniform(0, 1)
 	return A, t0, gamma, f, trise, tfall

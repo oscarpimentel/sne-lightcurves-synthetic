@@ -3,9 +3,10 @@ from __future__ import division
 from . import C_
 
 import numpy as np
+import flamingchoripan.cuteplots.plots as cpplots
+import flamingchoripan.cuteplots.colors as cpc
+from flamingchoripan.cuteplots.utils import save_fig
 import matplotlib.pyplot as plt
-import arviz as az
-import pymc3 as pm
 
 ###################################################################################################################################################
 
@@ -14,3 +15,18 @@ def plot_mcmc_trace(mcmc_trace_bdict, b):
 	az.plot_trace(mcmc_trace)
 	#pm.traceplot(mcmc_trace)
 	#pm.autocorrplot(mcmc_trace)
+
+def plot_mcmc_prior(mcmc_prior, b,
+	save_filedir=None,
+	n=100,
+	):
+	prior_exp = mcmc_prior.__repr__()
+	data_dict = {
+		'e':mcmc_prior.samples,
+	}
+	fig, ax, legend_handles = cpplots.plot_hist_bins(data_dict, uses_density=1, title='e', cmap=cpc.get_cmap([b]), return_legend_patches=True)
+	x = np.linspace(np.min(mcmc_prior.samples), np.max(mcmc_prior.samples), n)
+	line = ax.plot(x, mcmc_prior.pdf(x), c=b, label=f'{prior_exp}')
+	ax.legend(handles=legend_handles+[line[0]])
+	fig.tight_layout()
+	save_fig(save_filedir, fig)

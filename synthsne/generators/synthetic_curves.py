@@ -282,7 +282,7 @@ class SynSNeGenerator():
 
 	def __sample_curve__(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold,
 		uses_smooth_obs:bool=False,
-		timeout_counter=1000,
+		timeout_counter=10000,
 		spm_obs_n=100,
 		):
 		new_lcobjb = lcobjb.synthetic_copy() # copy
@@ -314,24 +314,25 @@ class SynSNeGenerator():
 
 			### generate parametric observations
 			spm_obs = sne_model.evaluate(new_days)
-			if spm_obs.min()<min_obs_threshold: # can't have observation above the threshold
-				#continue
-				spm_obs = np.clip(spm_obs, min_obs_threshold, None)
-			if np.any(np.isnan(spm_obs)):
-				print(spm_obs)
-				continue
+			spm_obs = np.clip(spm_obs, min_obs_threshold, None) # can't have observation above the threshold
+			#if spm_obs.min()<min_obs_threshold: # can't have observation above the threshold
+				#continue	
 			
 			### resampling obs using obs error
 			if uses_smooth_obs:
-				new_obse = spm_obs*0+C_.EPS
+				new_obse = np.full(spm_obs.shape, C_.EPS)
 				new_obs = spm_obs
 			else:
 				new_obse, new_obs = obse_sampler.conditional_sample(spm_obs)
+
 				#new_obse = new_obse*0+new_obse[0]# dummy
 				#syn_std_scale = 1/10
 				syn_std_scale = self.std_scale
 				#syn_std_scale = self.std_scale*0.5
 				new_obs = get_obs_noise_gaussian(spm_obs, new_obse, min_obs_threshold, syn_std_scale)
+
+			if np.any(np.isnan(new_days)) or np.any(np.isnan(new_obs)) or np.any(np.isnan(new_obse)):
+				continue
 
 			new_lcobjb.set_values(new_days, new_obs, new_obse)
 			return new_lcobjb

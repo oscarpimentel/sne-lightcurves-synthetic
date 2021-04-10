@@ -39,17 +39,24 @@ if __name__== '__main__':
 	###################################################################################################################################################
 	from synthsne.generators.synthetic_datasets import generate_synthetic_dataset
 	import pandas as pd
+	import numpy as np
 	from synthsne import C_
 	import flamingchoripan.files as ff
 	from flamingchoripan.progress_bars import ProgressBar
 	from flamingchoripan.files import load_pickle, save_pickle
 	from synthsne.distr_fittings import ObsErrorConditionalSampler
 	from synthsne.plots.samplers import plot_obse_samplers
+	from flamingchoripan.dicts import along_dict_obj_method
+	from nested_dict import nested_dict
+	import synthsne.generators.mcmc_priors as mp
+	from synthsne import synth_method_statistics as sms
+
 
 	kfs = [str(kf) for kf in range(0,3)] if main_args.kf=='.' else main_args.kf
 	kfs = [kfs] if isinstance(kfs, str) else kfs
 	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
+	methods = ['spm-mle-fstw', 'spm-mcmc-fstw']
 	setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
 	setns = [setns] if isinstance(setns, str) else setns
 
@@ -58,29 +65,53 @@ if __name__== '__main__':
 			for method in methods:
 				lcset_name = f'{kf}@{setn}'
 				save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
+				band_names = lcdataset[lcset_name].band_names
+				class_names = lcdataset[lcset_name].class_names
 
 				### export generators
-				band_names = lcdataset[lcset_name].band_names
-				obse_sampler_bdict = {b:ObsErrorConditionalSampler(lcdataset, lcset_name, b) for b in band_names}
-				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, save_filedir=f'{save_rootdir}/obse_sampler_1.png')
-				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=0, save_filedir=f'{save_rootdir}/obse_sampler_0.png')
-				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/obse_sampler_11.png')
+				obse_sampler_bdict_full = {b:ObsErrorConditionalSampler(lcdataset, lcset_name, b) for b in band_names}
+				#plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, save_filedir=f'{save_rootdir}/obse_sampler_1.png')
+				#plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=0, save_filedir=f'{save_rootdir}/obse_sampler_0.png')
+				#plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/obse_sampler_11.png')
 
-				samplers = {
-					'obse_sampler_bdict':obse_sampler_bdict,
-					#'length_sampler_bdict':length_sampler_bdict,
-					'length_sampler_bdict':None,
-				}
-				sampler_filedir = f'{save_rootdir}/samplers.{C_.EXT_SAMPLER}'
-				save_pickle(sampler_filedir, samplers)
+				save_pickle(f'{save_rootdir}/obse_sampler_bdict_full.d', obse_sampler_bdict_full, verbose=0)
+				obse_sampler_bdict = along_dict_obj_method(obse_sampler_bdict_full, 'clean')
+				save_pickle(f'{save_rootdir}/obse_sampler_bdict.d', obse_sampler_bdict, verbose=0)
 
 				### generate synth curves
 				sd_kwargs = {
 					'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
 					'method':method,
 					'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
+					'mcmc_priors':load_pickle(f'{save_rootdir}/mcmc_priors.d', return_none_if_missing=True),
 				}
-				obse_sampler_bdict = samplers['obse_sampler_bdict']
-				length_sampler_bdict = samplers['length_sampler_bdict']
 				uses_estw = method.split('-')[-1]=='estw'
-				generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, length_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
+				generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
+
+				### generate mcmc priors
+				if method in ['spm-mle-fstw']:
+					spm_classes = {
+						'A':'GammaP',
+						't0':'NormalP',
+						'gamma':'GammaP',
+						'f':'UniformP',
+						'trise':'GammaP',
+						'tfall':'GammaP',
+					}
+					mcmc_priors_full = nested_dict()
+					for c in class_names:
+						for b in band_names:
+							for spm_p in spm_classes.keys():
+								spm_p_samples = sms.get_spm_args(save_rootdir, method, spm_p, b, c)
+								#print(spm_p_samples)
+								mp_kwargs = {}
+								if spm_p=='A':
+									mp_kwargs = {'floc':0}
+								mcmc_prior = getattr(mp, spm_classes[spm_p])(spm_p_samples, **mp_kwargs)
+								mcmc_priors_full[b][c][spm_p] = mcmc_prior
+					
+					mcmc_priors_full = mcmc_priors_full.to_dict()
+
+					save_pickle(f'{save_rootdir}/mcmc_priors_full.d', mcmc_priors_full, verbose=0)
+					mcmc_priors = along_dict_obj_method(mcmc_priors_full, 'clean')
+					save_pickle(f'{save_rootdir}/mcmc_priors.d', mcmc_priors, verbose=0)

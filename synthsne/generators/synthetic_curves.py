@@ -59,7 +59,6 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 	lp_t0 = np.log(t0_pdf+eps)
 	lp_gamma = np.log(gamma_pdf+eps)
 	lp_f = np.log(f_pdf+eps)
-	#lp_f = 0 if f>0 and f<1 else -1/eps
 	lp_trise = np.log(trise_pdf+eps)
 	lp_tfall = np.log(tfall_pdf+eps)
 	return lp_A + lp_t0 + lp_gamma + lp_f + lp_trise + lp_tfall
@@ -93,7 +92,7 @@ def get_syn_sne_generator(method_name):
 	if method_name=='bspline':
 		return SynSNeGeneratorBSpline
 	if method_name=='spm-mle':
-		return SynSNeGeneratorCF
+		return SynSNeGeneratorMLE
 	if method_name=='spm-mcmc':
 		return SynSNeGeneratorMCMC
 	raise Exception(f'no method_name {method_name}')
@@ -174,7 +173,7 @@ class Trace():
 
 def override(func): return func
 class SynSNeGenerator():
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -190,7 +189,6 @@ class SynSNeGenerator():
 		self.c = self.class_names[lcobj.y]
 		self.band_names = band_names.copy()
 		self.obse_sampler_bdict = obse_sampler_bdict
-		self.length_sampler_bdict = length_sampler_bdict
 		self.uses_estw = uses_estw
 		
 		self.n_trace_samples = n_trace_samples
@@ -202,7 +200,7 @@ class SynSNeGenerator():
 		self.min_required_points_to_fit = min_required_points_to_fit
 		self.hours_noise_amp = hours_noise_amp
 		self.ignored = ignored
-		self.min_obs_bdict = {b:self.obse_sampler_bdict[b].min_obs for b in self.band_names}
+		self.min_obs_bdict = {b:self.obse_sampler_bdict[b].min_raw_obs for b in self.band_names}
 
 	def reset(self):
 		pass
@@ -339,8 +337,8 @@ class SynSNeGenerator():
 
 ###################################################################################################################################################
 
-class SynSNeGeneratorCF(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+class SynSNeGeneratorMLE(SynSNeGenerator):
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -352,8 +350,8 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 		ignored=False,
 
 		cpds_p:float=C_.CPDS_P,
-		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+		**kwargs):
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -427,7 +425,7 @@ class SynSNeGeneratorCF(SynSNeGenerator):
 ###################################################################################################################################################
 
 class SynSNeGeneratorMCMC(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -438,11 +436,12 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
 		ignored=False,
 
+		mcmc_priors=None,
 		n_tune=C_.N_TUNE, # 500, 1000
 		n_chains=24,
 		thin_by=C_.THIN_BY,
-		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+		**kwargs):
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -453,6 +452,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			hours_noise_amp,
 			ignored,
 			)
+		self.mcmc_priors = mcmc_priors
 		self.n_tune = n_tune
 		self.n_chains = n_chains
 		self.thin_by = thin_by
@@ -503,9 +503,10 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		assert self.n_trace_samples%self.n_chains==0
 
 		spm_args = self.get_curvefit_spm_args(lcobjb, spm_bounds, func)
-		spm_args = [[priors.get_spm_random_sphere(spm_args, spm_bounds)[p] for p in spm_args.keys()] for _ in range(self.n_chains)]
+		spm_params = spm_args.keys()
+		spm_args = [[priors.get_spm_random_sphere(spm_args, spm_bounds)[spm_p] for spm_p in spm_params] for _ in range(self.n_chains)]
 		theta0 = np.array(spm_args)
-		d_theta = priors.get_mcmc_priors(self.c, b)
+		d_theta = [self.mcmc_priors[b][self.c][spm_p] for spm_p in spm_params]
 		sampler = emcee.EnsembleSampler(self.n_chains, theta0.shape[-1], log_probability, args=(d_theta, func, days, obs, obse))
 		try:
 			sampler.run_mcmc(theta0, (self.n_trace_samples+self.n_tune)//self.n_chains, **mcmc_kwargs)
@@ -548,7 +549,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 ###################################################################################################################################################
 
 class SynSNeGeneratorLinear(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -560,8 +561,8 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		ignored=False,
 
 		cpds_p:float=C_.CPDS_P,
-		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+		**kwargs):
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,
@@ -592,7 +593,7 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		return trace
 
 class SynSNeGeneratorBSpline(SynSNeGenerator):
-	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,
 		uses_new_bounds=True,
 		max_fit_error:float=C_.MAX_FIT_ERROR,
@@ -604,8 +605,8 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 		ignored=False,
 
 		cpds_p:float=C_.CPDS_P,
-		):
-		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, length_sampler_bdict, uses_estw,
+		**kwargs):
+		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 			n_trace_samples,
 			uses_new_bounds,
 			max_fit_error,

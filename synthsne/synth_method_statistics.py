@@ -10,9 +10,11 @@ import math
 
 ###################################################################################################################################################
 
-def get_filedirs(rootdir, method):
+def get_filedirs(rootdir, method,
+	fext=None, # synsne
+	):
 	load_rootdir = f'{rootdir}/{method}'
-	filedirs = ff.get_filedirs(load_rootdir, fext='synsne')
+	filedirs = ff.get_filedirs(load_rootdir, fext=fext)
 	return filedirs
 
 def get_band_names(rootdir, method):
@@ -63,25 +65,29 @@ def get_spm_parameters(rootdir, method, b):
 	filedirs = get_filedirs(rootdir, method)
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)
-		if fdict['has_corrects_samples']:
-			sne_models = fdict['trace_bdict'][b].sne_model_l
-			for sne_model in sne_models:
-				if not sne_model is None:
-					return sne_model.parameters
+		#if fdict['has_corrects_samples']:
+		sne_models = fdict['trace_bdict'][b].sne_model_l
+		for sne_model in sne_models:
+			if not sne_model is None:
+				return sne_model.parameters
 
-def get_spm_args(rootdir, method, b):
+def get_spm_args(rootdir, method, spm_p, b, c):
 	filedirs = get_filedirs(rootdir, method)
-	spm_args = {p:[] for p in get_spm_parameters(rootdir, method, b)}
+	spm_args = []
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)
 		#if fdict['has_corrects_samples']:
 		#print(fdict.keys())
-		c = fdict['c']
+		if not c==fdict['c']:
+			continue
+
 		sne_models = fdict['trace_bdict'][b].sne_model_l
 		for sne_model in sne_models:
-			if not sne_model is None:
-				for p in sne_model.parameters:
-					spm_args[p].append({'p':sne_model.spm_args[p], 'c':c})
+			if not sne_model is None: # filter incorrect fits
+				#for p in sne_model.parameters:
+				# {'p':sne_model.spm_args[p], 'c':c})
+				#print(p)
+				spm_args += [sne_model.spm_args[spm_p]]
 
 	return spm_args
 

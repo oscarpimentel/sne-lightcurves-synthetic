@@ -21,6 +21,11 @@ class MCMCPrior():
 		self.samples = self.filter(self.raw_samples)
 		self.fit()
 
+	def clean(self):
+		self.raw_samples = None
+		self.samples = None
+		return self
+
 	def filter(self, raw_samples):
 		return raw_samples.copy()
 
@@ -39,12 +44,12 @@ class MCMCPrior():
 
 class GammaP(MCMCPrior):
 	def __init__(self, _raw_samples_,
-		floc=1,
+		floc=1.,
 		eps=C_.EPS,
-		):
+		**kwargs):
 		#raw_samples = np.clip(_raw_samples_, floc+eps, None)
 		raw_samples = np.array(_raw_samples_)
-		raw_samples = raw_samples[raw_samples>=floc*1.1]
+		raw_samples = raw_samples[raw_samples>=floc*1.05]
 		raw_samples = raw_samples.tolist()
 		#p = p[(p>floc*1.05) & p>floc*1.05)]s
 		
@@ -58,11 +63,12 @@ class GammaP(MCMCPrior):
 		mu = self.dist_params[1]
 		scale = self.dist_params[2]
 		beta = 1/scale
-		txt = '$\\gammadist{'+f'{alpha:.2f}, {beta:.2f}, {mu:.2f}'+'}$'
+		txt = '$\\gammadist{'+f'{alpha:.3f}, {beta:.3f}, {mu:.3f}'+'}$'
 		return txt
 
 class NormalP(MCMCPrior):
-	def __init__(self, raw_samples):
+	def __init__(self, raw_samples,
+		**kwargs):
 		scipy_dist_name = 'norm'
 		floc = None
 		fscale = None
@@ -71,15 +77,20 @@ class NormalP(MCMCPrior):
 	def __repr__(self):
 		mu = self.dist_params[0]
 		scale = self.dist_params[1]
-		txt = '$\\normdist{'+f'{mu:.2f}'+'}{'+f'{scale:.2f}'+'}$'
+		txt = '$\\normdist{'+f'{mu:.3f}'+'}{'+f'{scale:.3f}'+'}$'
 		return txt
 
 class UniformP(MCMCPrior):
-	def __init__(self):
-		self.sne_model_l = []
-		self.spm_bounds_l = []
-		self.fit_errors = []
-		self.correct_fit_tags = []
-
-	def add(self, sne_model, spm_bounds, correct_fit_tag):
-		self.sne_model_l.append(sne_model)
+	def __init__(self, raw_samples,
+		**kwargs):
+		floc = None
+		fscale = None
+		scipy_dist_name = 'uniform'
+		super().__init__(raw_samples, scipy_dist_name, floc, fscale)
+		
+	def __repr__(self):
+		loc = self.dist_params[0]
+		scale = self.dist_params[1]
+		b = loc+scale
+		txt = '$\\uniformdist{'+f'{loc:.3f}, {b:.3f}'+'}$'
+		return txt

@@ -7,7 +7,7 @@ N_TRACE_SAMPLES = 480
 ERROR_SCALE = 1e2
 MAX_FIT_ERROR = 1e4
 N_TUNE = 1500
-THIN_BY = 10 # 7 10 # drastically affects computation time
+THIN_BY = 12 # 7 10 12 # drastically affects computation time, higher, the best
 SYNTH_SAMPLES_PER_CURVE = 32 # 16 32 64
 
 ### JOBLIB
@@ -28,12 +28,11 @@ EXT_RAW_LIGHTCURVE = C_lchandler.EXT_RAW_LIGHTCURVE # no split, as RAW ZTF/FSNes
 EXT_SPLIT_LIGHTCURVE = C_lchandler.EXT_SPLIT_LIGHTCURVE # with proper train/vali split, vali is balanced in classes
 EXT_PARAMETRIC_LIGHTCURVE = 'plcd' # with sigma clipping and fitted parametric model
 EXT_FATS_LIGHTCURVE = 'flcd' # with sigma clipping and FATS
-EXT_SAMPLER = 'smplr'
 
 ### SYNTHETIC
-OBSE_STD_SCALE = C_lchandler.OBSE_STD_SCALE
+OBSE_STD_SCALE = 1/2
 CPDS_P = 0.0 # curve points down sampling probability
-HOURS_NOISE_AMP = 2.
+HOURS_NOISE_AMP = 8
 MIN_CADENCE_DAYS = 1.
 
 ### DICTS

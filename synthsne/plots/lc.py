@@ -10,16 +10,18 @@ import random
 
 ###################################################################################################################################################
 
-def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, new_smooth_lcojbs,
+def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs,
 	synth_curves_plot_max=None,
 	trace_bdict=None,
 	figsize:tuple=(8,12),
 	lw=1.5,
 	save_filedir=None,
 	):
+	band_names = lcset_info['band_names']
+	class_names = lcset_info['class_names']
+	survey = lcset_info['survey']
+
 	fig, axs = plt.subplots(2, 1, figsize=figsize)
-	band_names = lcset.band_names
-	lcobj = lcset[lcobj_name]
 	synth_curves_plot_max = len(new_smooth_lcojbs) if synth_curves_plot_max is None else synth_curves_plot_max
 
 	ax = axs[0]
@@ -32,7 +34,7 @@ def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, 
 	ax.grid(alpha=0.5)
 	title = ''
 	title += f'multiband light curve & parametric model samples\n'
-	title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name} - class: {lcset.class_names[lcobj.y]}'+'\n'
+	title += f'survey={survey}/{lcset_name}, obj={lcobj_name}, class={class_names[lcobj.y]}'+'\n'
 	title += ' - '.join([f'{b}-snr: {lcobj.get_b(b).get_snr():.2f}' for b in band_names])+'\n'
 	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])
 	ax.set_title(title)
@@ -51,8 +53,7 @@ def plot_synthetic_samples(lcset, set_name:str, method, lcobj_name, new_lcobjs, 
 	ax.grid(alpha=0.5)
 	title = ''
 	#title += f'multiband light curve & synthetic curve example\n'
-	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror_k(idx)}' for b in band_names])
-	#title += f'survey: {lcset.survey}/{set_name} - obj: {lcobj_name}- class: {lcset.class_names[lcobj.y]}'
+	title += f'method={method} - '+', '.join([f'{b}-error={trace_bdict[b].get_xerror_k(idx)}' for b in band_names])
 	ax.set_title(title)
 	ax.legend(loc='upper right')
 	ax.set_ylabel('obs [flux]')

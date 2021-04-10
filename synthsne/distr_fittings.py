@@ -40,28 +40,57 @@ class CustomRotor():
 ###################################################################################################################################################
 
 class ObsErrorConditionalSampler():
-	def __init__(self, lcdataset:dict, set_name:str, b:str,
+	def __init__(self, lcdataset:dict, lcset_name:str, b:str,
 		samples_per_range:int=50,
 		rank_threshold=0.04,
 		dist_threshold=5e-4,
 		neighborhood_n=10,
 		):
-		self.lcdataset = lcdataset
-		self.lcset = lcdataset[set_name]
 		self.b = b
 		self.samples_per_range = samples_per_range
 		self.rank_threshold = rank_threshold
 		self.dist_threshold = dist_threshold
 		self.neighborhood_n = neighborhood_n
-		self.raw_obse = np.concatenate([lcobj.get_b(b).obse for lcobj in self.lcset.get_lcobjs()])
-		self.raw_obs = np.concatenate([lcobj.get_b(b).obs for lcobj in self.lcset.get_lcobjs()])
-		self.min_obs = self.raw_obs.min()
-		self.min_obse = self.raw_obse.min()
-		self.max_obse = self.raw_obse.max()
-		assert self.min_obs>0
-		assert self.min_obse>0
+		self.raw_obs = np.concatenate([lcobj.get_b(b).obs for lcobj in lcdataset[lcset_name].get_lcobjs()])
+		self.raw_obse = np.concatenate([lcobj.get_b(b).obse for lcobj in lcdataset[lcset_name].get_lcobjs()])
+		self.min_raw_obs = self.raw_obs.min()
+		self.max_raw_obs = self.raw_obs.max()
+		self.min_raw_obse = self.raw_obse.min()
+		self.max_raw_obse = self.raw_obse.max()
+		assert self.min_raw_obs>0
+		assert self.min_raw_obse>0
 		self.reset()
-		
+	
+	def reset(self):
+		### fit diagonal line
+		self.get_m_n()
+
+		### rotate space & clip
+		p = 1
+		self.obse, self.obs = self.rotor.transform(self.raw_obse, self.raw_obs)
+		valid_indexs = np.where(
+			#(self.obse>=0) &
+			#(self.obs>np.percentile(self.obs, p)) &
+			(self.obs<np.percentile(self.obs, 100-p))
+		)
+		self.obs = self.obs[valid_indexs]
+		self.obse = self.obse[valid_indexs]
+		self.min_obs = self.obs.min()
+		self.max_obs = self.obs.max()
+		self.min_obse = self.obse.min()
+		self.max_obse = self.obse.max()
+
+		### generate obs grid
+		self.rank_ranges, self.obs_indexs_per_range, self.ranks = get_linspace_ranks(self.obs, self.samples_per_range)
+		self.distrs = [self.get_fitted_distr(obs_indexs, k) for k,obs_indexs in enumerate(self.obs_indexs_per_range)]
+
+	def clean(self):
+		self.raw_obse = None
+		self.raw_obs = None
+		self.obse = None
+		self.obs = None
+		return self
+	
 	def get_m_n(self):
 		if 0:
 			obse = []
@@ -130,25 +159,6 @@ class ObsErrorConditionalSampler():
 		self.m = slope
 		self.n = intercept
 		self.rotor = CustomRotor(self.m, self.n)
-
-	def reset(self):
-		### fit diagonal line
-		self.get_m_n()
-
-		### rotate space & clip
-		p = 1
-		self.obse, self.obs = self.rotor.transform(self.raw_obse, self.raw_obs)
-		valid_indexs = np.where(
-			#(self.obse>=0) &
-			#(self.obs>np.percentile(self.obs, p)) &
-			(self.obs<np.percentile(self.obs, 100-p))
-		)
-		self.obse = self.obse[valid_indexs]
-		self.obs = self.obs[valid_indexs]
-
-		### generate obs grid
-		self.rank_ranges, self.obs_indexs_per_range, self.ranks = get_linspace_ranks(self.obs, self.samples_per_range)
-		self.distrs = [self.get_fitted_distr(obs_indexs, k) for k,obs_indexs in enumerate(self.obs_indexs_per_range)]
 		
 	def get_fitted_distr(self, obs_indexs, k):
 		### clean by percentile
@@ -162,7 +172,7 @@ class ObsErrorConditionalSampler():
 		return {'distr':distr, 'params':params}
 	
 	def get_percentile_range(self, obs):
-		return np.where(np.clip(obs, None, self.obs.max())<=self.rank_ranges[:,1])[0][0]
+		return np.where(np.clip(obs, None, self.max_obs)<=self.rank_ranges[:,1])[0][0]
 		
 	def conditional_sample_i(self, obs):
 		new_obse = np.array([0])
@@ -171,7 +181,7 @@ class ObsErrorConditionalSampler():
 		d = self.distrs[self.get_percentile_range(new_obs)]
 		new_obse = d['distr'].rvs(*d['params'], size=1)
 		new_obse,_ = self.rotor.inverse_transform(new_obse, new_obs)
-		new_obse = np.clip(new_obse, self.min_obse, self.max_obse)[0]
+		new_obse = np.clip(new_obse, self.min_raw_obse, self.max_raw_obse)[0]
 		if not np.all(new_obse>0):
 			raise Exception(f'wrong new_obse: {new_obse}')
 		return new_obse, obs
@@ -179,31 +189,3 @@ class ObsErrorConditionalSampler():
 	def conditional_sample(self, obs):
 		x = np.concatenate([np.array(self.conditional_sample_i(obs_))[None] for obs_ in obs], axis=0)
 		return x[:,0], x[:,1]
-
-###################################################################################################################################################
-
-class CurveLengthSampler():
-	def __init__(self, lcdataset:dict, set_name:str, b:str,
-		offset:int=0,
-		):
-		self.lcdataset = lcdataset
-		self.lcset = lcdataset[set_name]
-		self.b = b
-		self.offset = offset
-		self.reset()
-
-	def reset(self):
-		self.lengths = np.array([len(lcobj.get_b(self.b)) for lcobj in self.lcset.get_lcobjs()])
-		uniques, count = np.unique(self.lengths+self.offset, return_counts=True)
-		d = {u:count[ku] for ku,u in enumerate(uniques)}
-		x_pdf = np.arange(self.lengths.min(), self.lengths.max())
-		self.pdf = np.array([d.get(x,0) for x in x_pdf])
-		self.pdf = self.pdf/self.pdf.sum()
-		self.cdf = np.cumsum(self.pdf)
-
-	def sample(self,
-		size:int=1,
-		):
-		pdf_indexs = [np.where(self.cdf>r)[0][0] for r in np.random.uniform(size=int(size))]
-		samples = pdf_indexs
-		return samples

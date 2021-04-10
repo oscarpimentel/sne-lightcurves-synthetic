@@ -40,7 +40,7 @@ class CustomRotor():
 ###################################################################################################################################################
 
 class ObsErrorConditionalSampler():
-	def __init__(self, lcdataset:dict, lcset_name:str, b:str,
+	def __init__(self, lcset, b:str,
 		samples_per_range:int=50,
 		rank_threshold=0.04,
 		dist_threshold=5e-4,
@@ -51,8 +51,8 @@ class ObsErrorConditionalSampler():
 		self.rank_threshold = rank_threshold
 		self.dist_threshold = dist_threshold
 		self.neighborhood_n = neighborhood_n
-		self.raw_obs = np.concatenate([lcobj.get_b(b).obs for lcobj in lcdataset[lcset_name].get_lcobjs()])
-		self.raw_obse = np.concatenate([lcobj.get_b(b).obse for lcobj in lcdataset[lcset_name].get_lcobjs()])
+		self.raw_obs = np.concatenate([lcobj.get_b(b).obs for lcobj in lcset.get_lcobjs()])
+		self.raw_obse = np.concatenate([lcobj.get_b(b).obse for lcobj in lcset.get_lcobjs()])
 		self.min_raw_obs = self.raw_obs.min()
 		self.max_raw_obs = self.raw_obs.max()
 		self.min_raw_obse = self.raw_obse.min()

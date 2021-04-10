@@ -185,9 +185,9 @@ class SynSNeGenerator():
 		ignored=False,
 		):
 		self.lcobj = lcobj.copy()
-		self.class_names = class_names.copy()
+		self.class_names = class_names
 		self.c = self.class_names[lcobj.y]
-		self.band_names = band_names.copy()
+		self.band_names = band_names
 		self.obse_sampler_bdict = obse_sampler_bdict
 		self.uses_estw = uses_estw
 		

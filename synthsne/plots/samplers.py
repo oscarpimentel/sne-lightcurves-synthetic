@@ -10,21 +10,22 @@ from flamingchoripan.cuteplots.utils import save_fig
 
 ###################################################################################################################################################
 
-def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
+def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 	original_space:bool=1,
 	pdf_scale:float=0.01,
 	figsize:tuple=(12,8),
 	add_samples=0,
 	save_filedir=None,
 	):
+	survey = lcset_info['survey']
+	band_names = lcset_info['band_names']
+
 	fig, axs = plt.subplots(1, 2, figsize=figsize)
-	band_names = obse_sampler_bdict.keys()
-	lcset = lcdataset[set_name]
 	for kb,b in enumerate(band_names):
 		ax = axs[kb]
 		obse_sampler = obse_sampler_bdict[b]
 		if original_space:
-			label = '$p(x_{ij},\sigma_{xij})$'+f' {set_name} samples'
+			label = '$p(x_{ij},\sigma_{xij})$'+f' {lcset_name} samples'
 			ax.plot(obse_sampler.raw_obse, obse_sampler.raw_obs, 'k.', markersize=2, alpha=0.2); ax.plot(np.nan, np.nan, 'k.', label=label)
 
 			### add samples
@@ -42,14 +43,14 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
 			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
-			title = f'survey={lcset.survey} - band={b}'
+			title = f'survey={survey} - band={b}'
 			ax.set_xlabel('obs-error')
 			ax.set_ylabel('obs' if kb==0 else None)
 			ax.set_xlim([0.0, 0.05])
 			ax.set_ylim([0.0, 0.3])
 
 		else:
-			label='$p(x_{ij}'+"'"+',\sigma_{xij}'+"'"+')$'+f' {set_name} samples'
+			label='$p(x_{ij}'+"'"+',\sigma_{xij}'+"'"+')$'+f' {lcset_name} samples'
 			ax.plot(obse_sampler.obse, obse_sampler.obs, 'k.', markersize=2, alpha=0.2); ax.plot(np.nan, np.nan, 'k.', label=label)
 			min_obse = obse_sampler.obse.min()
 			max_obse = obse_sampler.obse.max()
@@ -68,7 +69,7 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
 					min_pdfy = pdfy.min() if pdfy.min()<min_pdfy else min_pdfy
 			
-			title = f'survey={lcset.survey} - band={b}'
+			title = f'survey={survey} - band={b}'
 			ax.set_xlabel('rotated-flipped obs-error')
 			ax.set_ylabel('rotated obs' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
@@ -79,43 +80,6 @@ def plot_obse_samplers(lcdataset, set_name, obse_sampler_bdict,
 
 		### multiband colors
 		#ax.grid(color=C_.COLOR_DICT[b])
-		[ax.spines[border].set_color(C_.COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
-		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
-
-	fig.tight_layout()
-	save_fig(save_filedir, fig)
-
-def plot_length_samplers(length_sampler_bdict, lcdataset, set_name:str,
-	figsize:tuple=(12,5),
-	save_filedir=None,
-	):
-	lcset = lcdataset[set_name]
-	fig, axs = plt.subplots(1, len(lcset.band_names), figsize=figsize)
-	for kb,b in enumerate(lcdataset[set_name].band_names):
-		ax = axs[kb]
-		length_sampler = length_sampler_bdict[b]
-		lengths = length_sampler.lengths
-		to_plot = {
-			'original':lengths,
-			'sampler':length_sampler.sample(len(lengths)),
-				  }
-		plot_kwargs = {
-			'fig':fig,
-			'ax':ax,
-			'title':'$\{L_i\}_i^N$',
-			'xlabel':'$L_i$ values',
-			'bins':int(len(length_sampler.pdf)/2),
-			'uses_density':1,
-			'return_legend_patches':1,
-			'label_samples':0,
-			#'histtype':'stepfilled',
-			'alpha':0.75,
-			'xlim':(0,110),
-		}
-		cplots.plot_hist_bins(to_plot, **plot_kwargs)
-
-		### multiband colors
-		ax.grid(color=C_.COLOR_DICT[b])
 		[ax.spines[border].set_color(C_.COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
 		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
 

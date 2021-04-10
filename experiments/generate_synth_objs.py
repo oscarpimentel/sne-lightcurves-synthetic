@@ -30,8 +30,8 @@ if __name__== '__main__':
 
 	filedir = f'../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
-	root_folder = filedict['*rootdir*']
-	cfilename = filedict['*cfilename*']
+	root_folder = filedict['__rootdir']
+	cfilename = filedict['__cfilename']
 	survey = filedict['survey']
 	lcdataset = load_pickle(filedir)
 	print(lcdataset)
@@ -64,15 +64,17 @@ if __name__== '__main__':
 		for kf in kfs:
 			for method in methods:
 				lcset_name = f'{kf}@{setn}'
+				lcset = lcdataset[lcset_name]
 				save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
-				band_names = lcdataset[lcset_name].band_names
-				class_names = lcdataset[lcset_name].class_names
+				lcset_info = lcset.get_info()
+				band_names = lcset_info['band_names']
+				class_names = lcset_info['class_names']
 
 				### export generators
-				obse_sampler_bdict_full = {b:ObsErrorConditionalSampler(lcdataset, lcset_name, b) for b in band_names}
-				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/10.png')
-				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=0, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/00.png')
-				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/__obse-sampler/11.png')
+				obse_sampler_bdict_full = {b:ObsErrorConditionalSampler(lcset, b) for b in band_names}
+				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/10.png')
+				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/00.png')
+				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/__obse-sampler/11.png')
 
 				save_pickle(f'{save_rootdir}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
 				obse_sampler_bdict = along_dict_obj_method(obse_sampler_bdict_full, 'clean')
@@ -86,7 +88,7 @@ if __name__== '__main__':
 					'mcmc_priors':load_pickle(f'{save_rootdir}/mcmc_priors.d', return_none_if_missing=True),
 				}
 				uses_estw = method.split('-')[-1]=='estw'
-				generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
+				generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
 
 				### generate mcmc priors
 				if method in ['spm-mle-fstw']:

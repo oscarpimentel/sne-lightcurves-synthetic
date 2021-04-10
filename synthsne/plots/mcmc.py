@@ -22,7 +22,7 @@ def plot_mcmc_prior(mcmc_prior, spm_p, b, c,
 	):
 	prior_exp = mcmc_prior.__repr__()
 	data_dict = {
-		'e':mcmc_prior.samples,
+		'posterior spm-mle':mcmc_prior.samples,
 	}
 	title = f'{spm_p} {c}'
 	fig, ax, legend_handles = cpplots.plot_hist_bins(data_dict, uses_density=1, title='e', cmap=cpc.get_cmap([b]), return_legend_patches=True)

@@ -70,7 +70,7 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 		plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
 	return
 
-def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, uses_estw, save_rootdir,
+def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, save_rootdir,
 	method=None,
 	synthetic_samples_per_curve:float=4,
 	sne_specials_df=None,
@@ -79,7 +79,6 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, uses_e
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
 	):
-	lcset = lcdataset[lcset_name]
 	lcobj_names = [n for n in lcset.get_lcobj_names() if not filedir_exists(f'{save_rootdir}/{method}/{n}.ssne')]
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
@@ -88,7 +87,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, uses_e
 		jobs = []
 
 		for lcobj_name in chunk:
-			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset.get_copy(lcobj_name), lcset_name, lcset.get_info(), obse_sampler_bdict, uses_estw, save_rootdir,
+			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset[lcobj_name], lcset_name, lcset.get_info(), obse_sampler_bdict, uses_estw, save_rootdir,
 				method,
 				synthetic_samples_per_curve,
 				sne_specials_df,

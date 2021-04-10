@@ -46,6 +46,7 @@ if __name__== '__main__':
 	from flamingchoripan.files import load_pickle, save_pickle
 	from synthsne.distr_fittings import ObsErrorConditionalSampler
 	from synthsne.plots.samplers import plot_obse_samplers
+	from synthsne.plots.mcmc import plot_mcmc_prior
 	from flamingchoripan.dicts import along_dict_obj_method
 	from nested_dict import nested_dict
 	import synthsne.generators.mcmc_priors as mp
@@ -56,7 +57,6 @@ if __name__== '__main__':
 	kfs = [kfs] if isinstance(kfs, str) else kfs
 	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
-	methods = ['spm-mle-fstw', 'spm-mcmc-fstw']
 	setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
 	setns = [setns] if isinstance(setns, str) else setns
 
@@ -70,13 +70,13 @@ if __name__== '__main__':
 
 				### export generators
 				obse_sampler_bdict_full = {b:ObsErrorConditionalSampler(lcdataset, lcset_name, b) for b in band_names}
-				#plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, save_filedir=f'{save_rootdir}/obse_sampler_1.png')
-				#plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=0, save_filedir=f'{save_rootdir}/obse_sampler_0.png')
-				#plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/obse_sampler_11.png')
+				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/10.png')
+				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=0, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/00.png')
+				plot_obse_samplers(lcdataset, lcset_name, obse_sampler_bdict, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/__obse-sampler/11.png')
 
-				save_pickle(f'{save_rootdir}/obse_sampler_bdict_full.d', obse_sampler_bdict_full, verbose=0)
+				save_pickle(f'{save_rootdir}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
 				obse_sampler_bdict = along_dict_obj_method(obse_sampler_bdict_full, 'clean')
-				save_pickle(f'{save_rootdir}/obse_sampler_bdict.d', obse_sampler_bdict, verbose=0)
+				save_pickle(f'{save_rootdir}/obse_sampler_bdict.d', obse_sampler_bdict)
 
 				### generate synth curves
 				sd_kwargs = {
@@ -109,9 +109,10 @@ if __name__== '__main__':
 									mp_kwargs = {'floc':0}
 								mcmc_prior = getattr(mp, spm_classes[spm_p])(spm_p_samples, **mp_kwargs)
 								mcmc_priors_full[b][c][spm_p] = mcmc_prior
+								plot_mcmc_prior(mcmc_prior, spm_p, b, c, save_filedir=f'{save_rootdir}/__mcmc-priors/{c}_{b}_{spm_p}.png')
 					
 					mcmc_priors_full = mcmc_priors_full.to_dict()
 
-					save_pickle(f'{save_rootdir}/mcmc_priors_full.d', mcmc_priors_full, verbose=0)
+					save_pickle(f'{save_rootdir}/mcmc_priors_full.d', mcmc_priors_full)
 					mcmc_priors = along_dict_obj_method(mcmc_priors_full, 'clean')
-					save_pickle(f'{save_rootdir}/mcmc_priors.d', mcmc_priors, verbose=0)
+					save_pickle(f'{save_rootdir}/mcmc_priors.d', mcmc_priors)

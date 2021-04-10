@@ -63,7 +63,7 @@ class GammaP(MCMCPrior):
 		mu = self.dist_params[1]
 		scale = self.dist_params[2]
 		beta = 1/scale
-		txt = '$\\gammadist{'+f'{alpha:.3f}, {beta:.3f}, {mu:.3f}'+'}$'
+		txt = '$\\text{Gamma}\\left('+f'{alpha:.3f}, {beta:.3f}, {mu:.3f}'+'\\right)$'
 		return txt
 
 class NormalP(MCMCPrior):
@@ -77,7 +77,7 @@ class NormalP(MCMCPrior):
 	def __repr__(self):
 		mu = self.dist_params[0]
 		scale = self.dist_params[1]
-		txt = '$\\normdist{'+f'{mu:.3f}'+'}{'+f'{scale:.3f}'+'}$'
+		txt = '$\\text{Normal}\\left('+f'{mu:.3f}, {scale:.3f}'+'\\right)$'
 		return txt
 
 class UniformP(MCMCPrior):
@@ -92,5 +92,5 @@ class UniformP(MCMCPrior):
 		loc = self.dist_params[0]
 		scale = self.dist_params[1]
 		b = loc+scale
-		txt = '$\\uniformdist{'+f'{loc:.3f}, {b:.3f}'+'}$'
+		txt = '$\\text{Unif}\\left('+f'{loc:.3f}, {b:.3f}'+'\\right)$'
 		return txt

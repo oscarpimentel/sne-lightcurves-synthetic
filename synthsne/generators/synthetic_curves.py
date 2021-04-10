@@ -68,8 +68,6 @@ def log_likelihood(spm_obs, days, obs, obse,
 	eps=C_.EPS,
 	):
 	sigma2 = (obse*1)**2+eps
-	#print(stats.t.pdf(obs, 5, spm_obs, sigma2))
-	#return np.sum(np.log(stats.t.pdf(obs, 5, spm_obs, obse+eps)+eps))
 	return -0.5 * np.sum((obs - spm_obs)**2/sigma2 + np.log(sigma2))
 
 #@jit(nopython=True)
@@ -82,7 +80,9 @@ def log_probability(theta, d_theta, func, days, obs, obse,
 	if not np.isfinite(lp):
 		return -1/eps
 	spm_obs = func(days, *theta)
-	return lp + log_likelihood(spm_obs, days, obs, obse)
+	log_probability = lp + log_likelihood(spm_obs, days, obs, obse)
+	#print(log_probability)
+	return log_probability
 
 ###################################################################################################################################################
 

@@ -29,14 +29,14 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 		plot_lightcurve(ax, lcobj, b, label=f'{b} observation')
 		for k in range(0, synth_curves_plot_max):
 			new_smooth_lcojb = new_smooth_lcojbs[k]
-			label = f'{b} posterior pm-sample' if k==0 else None
+			label = f'{b} posterior-spm-sample' if k==0 else None
 			ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.12, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
 	title = ''
 	title += f'multiband light curve & parametric model samples\n'
-	title += f'survey={survey}/{lcset_name}, obj={lcobj_name}, class={class_names[lcobj.y]}'+'\n'
-	title += ' - '.join([f'{b}-snr: {lcobj.get_b(b).get_snr():.2f}' for b in band_names])+'\n'
-	title += f'method: {method} - '+' - '.join([f'{b}-error: {trace_bdict[b].get_xerror()}' for b in band_names])
+	title += f'survey={survey}/{lcset_name} - obj={lcobj_name} - class={class_names[lcobj.y]}'+'\n'
+	title += ' - '.join([f'{b}-snr={lcobj.get_b(b).get_snr():.2f}' for b in band_names])+'\n'
+	title += ' - '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])
 	ax.set_title(title)
 	ax.legend(loc='upper right')
 	ax.set_ylabel('obs[flux]')
@@ -53,10 +53,10 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 	ax.grid(alpha=0.5)
 	title = ''
 	#title += f'multiband light curve & synthetic curve example\n'
-	title += f'method={method} - '+', '.join([f'{b}-error={trace_bdict[b].get_xerror_k(idx)}' for b in band_names])
+	title += ' - '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror_k(idx)}' for b in band_names])
 	ax.set_title(title)
 	ax.legend(loc='upper right')
-	ax.set_ylabel('obs [flux]')
+	ax.set_ylabel('obs[flux]')
 	ax.set_xlabel('days')
 
 	fig.tight_layout()

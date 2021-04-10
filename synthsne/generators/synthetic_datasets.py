@@ -58,7 +58,7 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 	need_to_save_images = True
 	#need_to_save_images = not 'spm-mle' in method
 	if need_to_save_images:
-		save_filedirs = [f'{save_rootdir}/ssne_figs/{c}/{method}/{lcobj_name}.png']
+		save_filedirs = [f'{save_rootdir}/__sne-figs/{c}/{method}/{lcobj_name}.png']
 		if is_in_column(lcobj_name, sne_specials_df, 'vis'):
 			#save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
 			pass
@@ -84,7 +84,7 @@ def generate_synthetic_dataset(lcdataset, lcset_name, obse_sampler_bdict, uses_e
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
-		bar(f'lcset_name={lcset_name}, chunck={kc}, chunk_size={chunk_size}, method={method}, chunk={chunk}')
+		bar(f'lcset_name={lcset_name} - chunck={kc} - chunk_size={chunk_size} - method={method} - chunk={chunk}')
 		jobs = []
 
 		for lcobj_name in chunk:

@@ -20,7 +20,7 @@ def plot_mcmc_prior(mcmc_prior, spm_p, b, c,
 	save_filedir=None,
 	n=100,
 	):
-	prior_exp = '??'#mcmc_prior.__repr__()
+	prior_exp = mcmc_prior.__repr__()
 	data_dict = {
 		'e':mcmc_prior.samples,
 	}

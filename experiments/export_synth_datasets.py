@@ -30,8 +30,8 @@ if __name__== '__main__':
 
 	filedir = '../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
-	root_folder = filedict['*rootdir*']
-	cfilename = filedict['*cfilename*']
+	root_folder = filedict['__rootdir']
+	cfilename = filedict['__cfilename']
 	survey = filedict['survey']
 	lcdataset = load_pickle(filedir)
 	print(lcdataset)
@@ -57,7 +57,7 @@ if __name__== '__main__':
 				lcset_name = f'{kf}@{setn}'
 				lcset = new_lcdataset[lcset_name]
 				synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
-				print('synth_rootdir:', synth_rootdir)
+				print('synth_rootdir=', synth_rootdir)
 				synth_lcset = lcset.copy({}) # copy
 				filedirs = ff.get_filedirs(synth_rootdir, fext='synsne')
 				bar = ProgressBar(len(filedirs))
@@ -65,7 +65,7 @@ if __name__== '__main__':
 				for filedir in filedirs:
 					d = ff.load_pickle(filedir, verbose=0)
 					lcobj_name = d['lcobj_name']
-					bar(f'lcset_name: {lcset_name} - lcobj_name: {lcobj_name}')
+					bar(f'lcset_name={lcset_name} - lcobj_name={lcobj_name}')
 
 					for k,new_lcobj in enumerate(d['new_lcobjs']):
 						synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)

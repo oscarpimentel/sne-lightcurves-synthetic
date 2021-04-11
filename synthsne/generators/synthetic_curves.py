@@ -255,8 +255,8 @@ class SynSNeGenerator():
 					raise ex.TraceError()
 				sne_model.get_spm_times(self.min_obs_bdict[b], self.uses_estw)
 				min_obs_threshold = self.min_obs_bdict[b]
-				new_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, False)
-				new_smooth_lcobjb = self.__sample_curve__(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, True)
+				new_lcobjb = self._sample_curve(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, False)
+				new_smooth_lcobjb = self._sample_curve(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, True)
 
 			except ex.SyntheticCurveTimeoutError:
 				trace.correct_fit_tags[k] = False # update
@@ -278,7 +278,7 @@ class SynSNeGenerator():
 
 		return new_lcobjbs, new_smooth_lcobjbs, trace
 
-	def __sample_curve__(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold,
+	def _sample_curve(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold,
 		uses_smooth_obs:bool=False,
 		timeout_counter=10000,
 		spm_obs_n=100,

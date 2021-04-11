@@ -30,9 +30,9 @@ EXT_PARAMETRIC_LIGHTCURVE = 'plcd' # with sigma clipping and fitted parametric m
 EXT_FATS_LIGHTCURVE = 'flcd' # with sigma clipping and FATS
 
 ### SYNTHETIC
-OBSE_STD_SCALE = 1/2
+OBSE_STD_SCALE = 1/3
 CPDS_P = 0.0 # curve points down sampling probability
-HOURS_NOISE_AMP = 8
+HOURS_NOISE_AMP = 5
 MIN_CADENCE_DAYS = 1.
 
 ### DICTS

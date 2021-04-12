@@ -59,11 +59,11 @@ if __name__== '__main__':
 				synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
 				print('synth_rootdir=', synth_rootdir)
 				synth_lcset = lcset.copy({}) # copy
-				filedirs = ff.get_filedirs(synth_rootdir, fext='synsne')
+				filedirs = ff.get_filedirs(synth_rootdir, fext='ssne')
 				bar = ProgressBar(len(filedirs))
 
 				for filedir in filedirs:
-					d = ff.load_pickle(filedir, verbose=0)
+					d = ff.load_pickle(filedir)
 					lcobj_name = d['lcobj_name']
 					bar(f'lcset_name={lcset_name} - lcobj_name={lcobj_name}')
 

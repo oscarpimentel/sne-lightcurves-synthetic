@@ -375,9 +375,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 
 		### bounds
 		fit_kwargs = {
-			#'method':'lm',
-			#'method':'trf',
-			#'method':'dogbox',
+			#'method':'dogbox', # lm trf dogbox
 			#'absolute_sigma':True,
 			#'maxfev':1e6,
 			'check_finite':True,

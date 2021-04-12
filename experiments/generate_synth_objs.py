@@ -51,7 +51,8 @@ if __name__== '__main__':
 	from nested_dict import nested_dict
 	import synthsne.generators.mcmc_priors as mp
 	from synthsne import synth_method_statistics as sms
-
+	import warnings
+	warnings.filterwarnings('ignore')
 
 	kfs = [str(kf) for kf in range(0,3)] if main_args.kf=='.' else main_args.kf
 	kfs = [kfs] if isinstance(kfs, str) else kfs

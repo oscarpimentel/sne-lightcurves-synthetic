@@ -47,11 +47,11 @@ if __name__== '__main__':
 	kfs = [kfs] if isinstance(kfs, str) else kfs
 	methods = ['bspline-fstw', 'linear-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
-	setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
+	setns = [str(setn) for setn in ['train']] if main_args.setn=='.' else main_args.setn
 	setns = [setns] if isinstance(setns, str) else setns
 
 	for method in methods:
-		new_lcdataset = lcdataset.copy() # copy
+		new_lcdataset = lcdataset.copy() # copy with all original lcsets
 		for setn in setns:
 			for kf in kfs:
 				lcset_name = f'{kf}@{setn}'

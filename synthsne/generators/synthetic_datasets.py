@@ -83,16 +83,21 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
-		bar(f'lcset_name={lcset_name} - chunck={kc} - chunk_size={chunk_size} - method={method} - chunk={chunk}')
+		bar(f'method={method}  - lcset_name={lcset_name} - chunk_size={chunk_size} - chunk={chunk}')
 		jobs = []
-
 		for lcobj_name in chunk:
-			jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset[lcobj_name], lcset_name, lcset.get_info(), obse_sampler_bdict, uses_estw, save_rootdir,
+			jobs.append(delayed(generate_synthetic_samples)(
+				lcobj_name,
+				lcset[lcobj_name],
+				lcset_name,
+				lcset.get_info(),
+				obse_sampler_bdict,
+				uses_estw,
+				save_rootdir,
 				method,
 				synthetic_samples_per_curve,
 				sne_specials_df,
 				mcmc_priors,
-				))
-
+			))
 		results = Parallel(n_jobs=n_jobs, backend=backend)(jobs)
 	bar.done()

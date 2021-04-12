@@ -64,7 +64,7 @@ if __name__== '__main__':
 			for method in methods:
 				lcset_name = f'{kf}@{setn}'
 				lcset = lcdataset[lcset_name]
-				save_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}'
+				save_rootdir = f'../save/{cfilename}/{lcset_name}'
 				lcset_info = lcset.get_info()
 				band_names = lcset_info['band_names']
 				class_names = lcset_info['class_names']

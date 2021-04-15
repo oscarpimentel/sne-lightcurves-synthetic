@@ -17,28 +17,21 @@ if __name__== '__main__':
 	print_big_bar()
 
 	###################################################################################################################################################
-	from flamingchoripan.files import search_for_filedirs
-	from synthsne import C_
-
-	root_folder = '../../surveys-save'
-	filedirs = search_for_filedirs(root_folder, fext=C_.EXT_SPLIT_LIGHTCURVE)
-
-	###################################################################################################################################################
 	import numpy as np
 	from flamingchoripan.files import load_pickle, save_pickle
 	from flamingchoripan.files import get_dict_from_filedir
 
-	filedir = '../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
+	filedir = '../../alerceZTFv7.1/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
-	root_folder = filedict['__rootdir']
-	cfilename = filedict['__cfilename']
+	root_folder = filedict['_rootdir']
+	cfilename = filedict['_cfilename']
 	survey = filedict['survey']
 	lcdataset = load_pickle(filedir)
 	print(lcdataset)
 
 	###################################################################################################################################################
 	import numpy as np
-	import flamingchoripan.files as ff
+	import flamingchoripan.files as fcfiles
 	from flamingchoripan.progress_bars import ProgressBar
 	from flamingchoripan.files import load_pickle, save_pickle
 	from synthsne import C_
@@ -59,11 +52,11 @@ if __name__== '__main__':
 				synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
 				print('synth_rootdir=', synth_rootdir)
 				synth_lcset = lcset.copy({}) # copy
-				filedirs = ff.get_filedirs(synth_rootdir, fext='ssne')
+				filedirs = fcfiles.get_filedirs(synth_rootdir, fext='ssne')
 				bar = ProgressBar(len(filedirs))
 
 				for filedir in filedirs:
-					d = ff.load_pickle(filedir)
+					d = fcfiles.load_pickle(filedir)
 					lcobj_name = d['lcobj_name']
 					bar(f'lcset_name={lcset_name} - lcobj_name={lcobj_name}')
 
@@ -75,5 +68,5 @@ if __name__== '__main__':
 				new_lcdataset.set_lcset(new_lcset_name, synth_lcset)
 
 		save_rootdir = f'{root_folder}'
-		save_filedir = f'{save_rootdir}/{cfilename}°method={method}.{C_.EXT_SPLIT_LIGHTCURVE}'
+		save_filedir = f'{save_rootdir}/{cfilename}~method={method}.{C_.EXT_SPLIT_LIGHTCURVE}'
 		save_pickle(save_filedir, new_lcdataset)

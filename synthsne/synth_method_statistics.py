@@ -2,11 +2,13 @@ from __future__ import print_function
 from __future__ import division
 from . import C_
 
-import flamingchoripan.files as ff
+import flamingchoripan.files as fcfiles
 from flamingchoripan.datascience.statistics import XError, TopRank
+from flamingchoripan.dataframes import DFBuilder
+from flamingchoripan.lists import flat_list
 import numpy as np
 import pandas as pd
-import math
+from nested_dict import nested_dict
 
 ###################################################################################################################################################
 
@@ -19,51 +21,26 @@ def get_filedirs(rootdir, method,
 	return filedirs
 '''
 
-def get_band_names(rootdir, method):
-	filedirs = get_filedirs(rootdir, method)
-	return ff.load_pickle(filedirs[0], verbose=0)['band_names']
+def empty_roodir(rootdir):
+	return len(fcfiles.get_filedirs(rootdir))==0
 
-def get_classes(rootdir, method):
+def get_band_names(rootdir):
+	filedirs = fcfiles.get_filedirs(rootdir)
+	filedir = filedirs[0]
+	return fcfiles.load_pickle(filedir)['band_names']
+
+def get_classes(rootdir):
 	classes = []
-	filedirs = get_filedirs(rootdir, method)
+	filedirs = fcfiles.get_filedirs(rootdir)
 	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
+		fdict = fcfiles.load_pickle(filedir)
 		c = fdict['c']
 		if not c in classes:
 			classes.append(c)
 	return classes
 
-def get_any_incorrects_fittings(rootdir, method):
-	filedirs = get_filedirs(rootdir, method)
-	obj_names = []
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
-		if any([new_lcobj.any_real() for new_lcobj in fdict['new_lcobjs']]):
-			obj_names.append(fdict['lcobj_name'])
-
-	return obj_names
-
-def get_all_incorrects_fittings(rootdir, method):
-	filedirs = get_filedirs(rootdir, method)
-	obj_names = []
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
-		if all([new_lcobj.all_real() for new_lcobj in fdict['new_lcobjs']]):
-			obj_names.append(fdict['lcobj_name'])
-
-	return obj_names
-
-def get_perf_times(rootdir, method):
-	filedirs = get_filedirs(rootdir, method)
-	times = []
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
-		if all([new_lcobj.all_synthetic() for new_lcobj in fdict['new_lcobjs']]):
-			times.append(fdict['segs'])
-
-	return XError(times)
-
-def get_spm_parameters(rootdir, method, b):
+'''
+def get_spm_parameters(rootdir, b):
 	filedirs = get_filedirs(rootdir, method)
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)
@@ -72,18 +49,18 @@ def get_spm_parameters(rootdir, method, b):
 		for sne_model in sne_models:
 			if not sne_model is None:
 				return sne_model.parameters
+'''
 
 def get_spm_args(rootdir, spm_p, b, c):
-	filedirs = ff.get_filedirs(rootdir, fext=None)
+	files = fcfiles.gather_files(rootdir, fext=None)
 	spm_args = []
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
+	for f in files:
 		#if fdict['has_corrects_samples']:
 		#print(fdict.keys())
-		if not c==fdict['c']:
+		if not c==f()['c']:
 			continue
 
-		sne_models = fdict['trace_bdict'][b].sne_model_l
+		sne_models = f()['trace_bdict'][b].sne_model_l
 		for sne_model in sne_models:
 			if not sne_model is None: # filter incorrect fits
 				#for p in sne_model.parameters:
@@ -93,17 +70,77 @@ def get_spm_args(rootdir, spm_p, b, c):
 
 	return spm_args
 
-def get_ranks(rootdir, method):
-	band_names = get_band_names(rootdir, method)
-	rank = TopRank('mb-rank')
-	rank_bdict = {b:TopRank(f'{b}-rank') for b in band_names}
-	filedirs = get_filedirs(rootdir, method)
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
-		lcobj_name = fdict['lcobj_name']
+###################################################################################################################################################
+
+def get_any_incorrects_fittings(rootdir):
+	files = fcfiles.gather_files(rootdir, fext=None)
+	lcobj_names = []
+	for f in files:
+		if any([new_lcobj.any_real() for new_lcobj in f()['new_lcobjs']]):
+			lcobj_names.append(f()['lcobj_name'])
+	return lcobj_names
+
+def get_all_incorrects_fittings(rootdir):
+	files = fcfiles.gather_files(rootdir, fext=None)
+	lcobj_names = []
+	for f in files:
+		if all([new_lcobj.all_real() for new_lcobj in f()['new_lcobjs']]):
+			lcobj_names.append(f()['lcobj_name'])
+	return lcobj_names
+
+def get_perf_times(rootdir):
+	files = fcfiles.gather_files(rootdir, fext=None)
+	times = []
+	for f in files:
+		if all([new_lcobj.all_synthetic() for new_lcobj in f()['new_lcobjs']]):
+			times.append(f()['segs'])
+
+	return XError(times)
+
+def get_info_dict(rootdir, methods, cfilename, kf, lcset_name,
+	band_names=['g', 'r'],
+	):
+	info_df = DFBuilder()
+
+	### all info
+	d = {}
+	for method in methods:
+		_rootdir = f'{rootdir}/{method}/{cfilename}'
+		files, files_ids = fcfiles.gather_files_by_kfold(_rootdir, kf, lcset_name)
+		trace_time = [f()['segs'] for f in files]
+		d[method] = XError(trace_time)
+
+	info_df.append(f'metric=trace-time [segs]~band=.', d)
+
+	### per band info
+	for kb,b in enumerate(band_names):
+		d = nested_dict()
+		for method in methods:
+			_rootdir = f'{rootdir}/{method}/{cfilename}'
+			files, files_ids = fcfiles.gather_files_by_kfold(_rootdir, kf, lcset_name)
+			traces = [f()['trace_bdict'][b] for f in files]
+			trace_errors = flat_list([t.get_valid_errors() for t in traces])
+			trace_errors_xe = XError(np.log(np.array(trace_errors)+C_.EPS))
+			d['error'][method] = trace_errors_xe
+			d['success'][method] = len(trace_errors)/sum([len(t) for t in traces])*100
+
+		d = d.to_dict()
+		info_df.append(f'metric=fit-log-error~band={b}', d['error'])
+		info_df.append(f'metric=fits-success [%]~band={b}', d['success'])
+	
+	return info_df.get_df()
+
+def get_ranks(rootdir,
+	band_names=['g', 'r'],
+	):
+	rank = TopRank('band=.')
+	rank_bdict = {b:TopRank(f'band={b}') for b in band_names}
+	files = fcfiles.gather_files(rootdir, fext=None)
+	for f in files:
+		lcobj_name = f()['lcobj_name']
 		xes = []
 		for b in band_names:
-			errors = fdict['trace_bdict'][b].get_valid_errors()
+			errors = f()['trace_bdict'][b].get_valid_errors()
 			if len(errors)>0:
 				xe = XError(errors, 0)
 				rank_bdict[b].add(lcobj_name, xe.mean)
@@ -112,85 +149,4 @@ def get_ranks(rootdir, method):
 		if len(xes)>0:
 			rank.add(lcobj_name, np.mean([xe.mean for xe in xes]))
 			
-	return rank, rank_bdict, band_names
-
-def get_info_dict(rootdir, methods):
-	band_names = get_band_names(rootdir, methods[0])
-	info_dict = {}
-	info_dict.update({
-		'trace-time [segs]':{},
-		'mb-fit-log-error':{},
-		'mb-fits-n':{},
-		'mb-n':{},
-		'mb-fits [%]':{},
-	})
-	for b in band_names:
-		info_dict.update({
-			f'{b}-fit-log-error':{},
-			f'{b}-fits-n':{},
-			f'{b}-n':{},
-			f'{b}-fits [%]':{},
-		})
-	for method in methods:
-		filedirs = get_filedirs(rootdir, method)
-		for filedir in filedirs:
-			fdict = ff.load_pickle(filedir, verbose=0)
-			lcobj_name = fdict['lcobj_name']
-			segs = fdict['segs']
-
-			for b in band_names:
-				trace = fdict['trace_bdict'][b]
-				errors = trace.get_valid_errors()
-
-				### b
-				try:
-					info_dict[f'{b}-fit-log-error'][method] += [math.log(e+1e-10) for e in errors]
-				except KeyError:
-					info_dict[f'{b}-fit-log-error'][method] = []
-
-				try:
-					info_dict[f'{b}-fits-n'][method].append(len(errors))
-				except KeyError:
-					info_dict[f'{b}-fits-n'][method] = []
-
-				try:
-					info_dict[f'{b}-n'][method].append(len(trace))
-				except KeyError:
-					info_dict[f'{b}-n'][method] = []
-
-				### mb
-				try:
-					info_dict['trace-time [segs]'][method].append(segs)
-				except KeyError:
-					info_dict['trace-time [segs]'][method] = []
-
-				try:
-					info_dict['mb-fit-log-error'][method] += [math.log(e+1e-10) for e in errors]
-				except KeyError:
-					info_dict['mb-fit-log-error'][method] = []
-
-				try:
-					info_dict['mb-fits-n'][method].append(len(errors))
-				except KeyError:
-					info_dict['mb-fits-n'][method] = []
-
-				try:
-					info_dict['mb-n'][method].append(len(trace))
-				except KeyError:
-					info_dict['mb-n'][method] = []
-
-	for method in methods:
-		info_dict['mb-fits-n'][method] = sum(info_dict['mb-fits-n'][method])
-		info_dict['mb-n'][method] = sum(info_dict['mb-n'][method])
-		info_dict['mb-fits [%]'][method] = info_dict['mb-fits-n'][method]/info_dict['mb-n'][method]*100
-		for b in band_names:
-			info_dict[f'{b}-fits-n'][method] = sum(info_dict[f'{b}-fits-n'][method])
-			info_dict[f'{b}-n'][method] = sum(info_dict[f'{b}-n'][method])
-			info_dict[f'{b}-fits [%]'][method] = info_dict[f'{b}-fits-n'][method]/info_dict[f'{b}-n'][method]*100
-
-	info_dict = {f'metric={i}':info_dict[i] for i in info_dict.keys() if not '-n' in i}
-	info_df = pd.DataFrame.from_dict(info_dict, orient='index').reindex(info_dict.keys())
-	for c in info_df.columns:
-		info_df[c].values[:] = [XError(v) if isinstance(v, list) else v for v in info_df[c].values[:]] # make xerror from list
-
-	return info_df
+	return rank, rank_bdict

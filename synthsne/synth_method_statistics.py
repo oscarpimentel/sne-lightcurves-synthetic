@@ -3,7 +3,8 @@ from __future__ import division
 from . import C_
 
 import flamingchoripan.files as fcfiles
-from flamingchoripan.datascience.statistics import XError, TopRank
+from flamingchoripan.datascience.xerror import XError
+from flamingchoripan.datascience.ranks import TopRank
 from flamingchoripan.dataframes import DFBuilder
 from flamingchoripan.lists import flat_list
 import numpy as np
@@ -11,15 +12,6 @@ import pandas as pd
 from nested_dict import nested_dict
 
 ###################################################################################################################################################
-
-'''
-def get_filedirs(rootdir, method,
-	fext=None, # synsne
-	):
-	load_rootdir = f'{rootdir}/{method}'
-	filedirs = ff.get_filedirs(load_rootdir, fext=fext)
-	return filedirs
-'''
 
 def empty_roodir(rootdir):
 	return len(fcfiles.get_filedirs(rootdir))==0
@@ -72,24 +64,24 @@ def get_spm_args(rootdir, spm_p, b, c):
 
 ###################################################################################################################################################
 
-def get_any_incorrects_fittings(rootdir):
-	files = fcfiles.gather_files(rootdir, fext=None)
+def get_any_incorrects_fittings(rootdir, kf, lcset_name):
+	files, files_ids = fcfiles.gather_files_by_kfold(rootdir, kf, lcset_name)
 	lcobj_names = []
 	for f in files:
 		if any([new_lcobj.any_real() for new_lcobj in f()['new_lcobjs']]):
 			lcobj_names.append(f()['lcobj_name'])
 	return lcobj_names
 
-def get_all_incorrects_fittings(rootdir):
-	files = fcfiles.gather_files(rootdir, fext=None)
+def get_all_incorrects_fittings(rootdir, kf, lcset_name):
+	files, files_ids = fcfiles.gather_files_by_kfold(rootdir, kf, lcset_name)
 	lcobj_names = []
 	for f in files:
 		if all([new_lcobj.all_real() for new_lcobj in f()['new_lcobjs']]):
 			lcobj_names.append(f()['lcobj_name'])
 	return lcobj_names
 
-def get_perf_times(rootdir):
-	files = fcfiles.gather_files(rootdir, fext=None)
+def get_perf_times(rootdir, kf, lcset_name):
+	files, files_ids = fcfiles.gather_files_by_kfold(rootdir, kf, lcset_name)
 	times = []
 	for f in files:
 		if all([new_lcobj.all_synthetic() for new_lcobj in f()['new_lcobjs']]):
@@ -130,23 +122,21 @@ def get_info_dict(rootdir, methods, cfilename, kf, lcset_name,
 	
 	return info_df.get_df()
 
-def get_ranks(rootdir,
+def get_ranks(rootdir, kf, lcset_name,
 	band_names=['g', 'r'],
 	):
-	rank = TopRank('band=.')
+	files, files_ids = fcfiles.gather_files_by_kfold(rootdir, kf, lcset_name)
 	rank_bdict = {b:TopRank(f'band={b}') for b in band_names}
-	files = fcfiles.gather_files(rootdir, fext=None)
-	for f in files:
+	for f,fid in zip(files, files_ids):
 		lcobj_name = f()['lcobj_name']
-		xes = []
 		for b in band_names:
 			errors = f()['trace_bdict'][b].get_valid_errors()
-			if len(errors)>0:
-				xe = XError(errors, 0)
-				rank_bdict[b].add(lcobj_name, xe.mean)
-				xes.append(xe)
-				
-		if len(xes)>0:
-			rank.add(lcobj_name, np.mean([xe.mean for xe in xes]))
-			
-	return rank, rank_bdict
+			if len(errors)==0:
+				continue
+
+			xe = XError(errors)
+			rank_bdict[b].append(fid, xe.mean)
+	
+	for b in band_names:
+		rank_bdict[b].calcule()
+	return rank_bdict

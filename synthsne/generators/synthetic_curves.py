@@ -13,7 +13,7 @@ from lchandler.lc_classes import diff_vector, get_obs_noise_gaussian
 from . import lc_utils as lu
 from .sne_models import SNeModel
 from . import priors as priors
-from flamingchoripan.datascience.statistics import XError
+from flamingchoripan.datascience.xerror import XError
 from flamingchoripan.times import Cronometer
 
 ###################################################################################################################################################

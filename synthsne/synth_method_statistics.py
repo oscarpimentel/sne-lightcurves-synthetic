@@ -10,12 +10,14 @@ import math
 
 ###################################################################################################################################################
 
+'''
 def get_filedirs(rootdir, method,
 	fext=None, # synsne
 	):
 	load_rootdir = f'{rootdir}/{method}'
 	filedirs = ff.get_filedirs(load_rootdir, fext=fext)
 	return filedirs
+'''
 
 def get_band_names(rootdir, method):
 	filedirs = get_filedirs(rootdir, method)
@@ -71,8 +73,8 @@ def get_spm_parameters(rootdir, method, b):
 			if not sne_model is None:
 				return sne_model.parameters
 
-def get_spm_args(rootdir, method, spm_p, b, c):
-	filedirs = get_filedirs(rootdir, method)
+def get_spm_args(rootdir, spm_p, b, c):
+	filedirs = ff.get_filedirs(rootdir, fext=None)
 	spm_args = []
 	for filedir in filedirs:
 		fdict = ff.load_pickle(filedir, verbose=0)

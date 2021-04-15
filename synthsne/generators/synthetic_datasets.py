@@ -19,7 +19,7 @@ def is_in_column(lcobj_name, sne_specials_df, column):
 		return False
 	return lcobj_name in list(sne_specials_df[column].values)
 
-def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_sampler_bdict, uses_estw, save_rootdir,
+def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
 	method=None,
 	synthetic_samples_per_curve:float=4,
 	sne_specials_df=None,
@@ -39,7 +39,7 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 	sne_generator = get_syn_sne_generator(cmethod)(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw, **gc_kwargs)
 	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs = sne_generator.sample_curves(synthetic_samples_per_curve)
 
-	### save file
+	### ssne save file
 	to_save = {
 		'lcobj_name':lcobj_name,
 		'lcobj':lcobj,
@@ -51,17 +51,17 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 		'ignored':ignored,
 		'synthetic_samples_per_curve':synthetic_samples_per_curve,
 	}
-	save_filedir = f'{save_rootdir}/{method}/{lcobj_name}.ssne'
+	save_filedir = f'{ssne_save_rootdir}/{lcobj_name}.ssne'
 	save_pickle(save_filedir, to_save, verbose=0) # save error file
 
 	### save images
 	need_to_save_images = True
 	#need_to_save_images = not 'spm-mle' in method
 	if need_to_save_images:
-		save_filedirs = [f'{save_rootdir}/__sne-figs/{c}/{method}/{lcobj_name}.png']
-		if is_in_column(lcobj_name, sne_specials_df, 'vis'):
+		save_filedirs = [f'{figs_save_rootdir}/{c}/{lcobj_name}.png']
+		#if is_in_column(lcobj_name, sne_specials_df, 'vis'):
 			#save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
-			pass
+		#	pass
 
 		plot_kwargs = {
 			'trace_bdict':trace_bdict,
@@ -70,7 +70,7 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 		plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
 	return
 
-def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, save_rootdir,
+def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
 	method=None,
 	synthetic_samples_per_curve:float=4,
 	sne_specials_df=None,
@@ -79,7 +79,7 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
 	):
-	lcobj_names = [n for n in lcset.get_lcobj_names() if not filedir_exists(f'{save_rootdir}/{method}/{n}.ssne')]
+	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
@@ -93,7 +93,8 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 				lcset.get_info(),
 				obse_sampler_bdict,
 				uses_estw,
-				save_rootdir,
+				ssne_save_rootdir,
+				figs_save_rootdir,
 				method,
 				synthetic_samples_per_curve,
 				sne_specials_df,

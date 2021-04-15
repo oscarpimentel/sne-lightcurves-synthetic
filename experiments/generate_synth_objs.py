@@ -28,10 +28,10 @@ if __name__== '__main__':
 	import numpy as np
 	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
 
-	filedir = f'../../surveys-save/alerceZTFv7.1/survey=alerceZTFv7.1°bands=gr°mode=onlySNe.splcds'
+	filedir = f'../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
-	root_folder = filedict['__rootdir']
-	cfilename = filedict['__cfilename']
+	root_folder = filedict['_rootdir']
+	cfilename = filedict['_cfilename']
 	survey = filedict['survey']
 	lcdataset = load_pickle(filedir)
 	print(lcdataset)
@@ -64,30 +64,31 @@ if __name__== '__main__':
 			for method in methods:
 				lcset_name = f'{kf}@{setn}'
 				lcset = lcdataset[lcset_name]
-				save_rootdir = f'../save/{cfilename}/{lcset_name}'
 				lcset_info = lcset.get_info()
 				band_names = lcset_info['band_names']
 				class_names = lcset_info['class_names']
 
 				### export generators
 				obse_sampler_bdict_full = {b:ObsErrorConditionalSampler(lcset, b) for b in band_names}
-				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/10.png')
-				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'{save_rootdir}/__obse-sampler/00.png')
-				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'{save_rootdir}/__obse-sampler/11.png')
+				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/10.png')
+				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/00.png')
+				plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/11.png')
 
-				save_pickle(f'{save_rootdir}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
+				save_pickle(f'../save/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
 				obse_sampler_bdict = along_dict_obj_method(obse_sampler_bdict_full, 'clean')
-				save_pickle(f'{save_rootdir}/obse_sampler_bdict.d', obse_sampler_bdict)
+				save_pickle(f'../save/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict.d', obse_sampler_bdict)
 
 				### generate synth curves
 				sd_kwargs = {
 					'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
 					'method':method,
 					'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
-					'mcmc_priors':load_pickle(f'{save_rootdir}/mcmc_priors.d', return_none_if_missing=True),
+					'mcmc_priors':load_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
 				}
 				uses_estw = method.split('-')[-1]=='estw'
-				generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, save_rootdir, **sd_kwargs)
+				ssne_save_rootdir = f'../save/ssne/{method}/{cfilename}/{lcset_name}'
+				figs_save_rootdir = f'../save/ssne_figs/{method}/{cfilename}/{lcset_name}'
+				generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir, **sd_kwargs)
 
 				### generate mcmc priors
 				if method in ['spm-mle-fstw']:
@@ -103,17 +104,17 @@ if __name__== '__main__':
 					for c in class_names:
 						for b in band_names:
 							for spm_p in spm_classes.keys():
-								spm_p_samples = sms.get_spm_args(save_rootdir, method, spm_p, b, c)
+								spm_p_samples = sms.get_spm_args(ssne_save_rootdir, spm_p, b, c)
 								#print(spm_p_samples)
 								mp_kwargs = {}
 								if spm_p=='A':
 									mp_kwargs = {'floc':0}
 								mcmc_prior = getattr(mp, spm_classes[spm_p])(spm_p_samples, **mp_kwargs)
 								mcmc_priors_full[b][c][spm_p] = mcmc_prior
-								plot_mcmc_prior(mcmc_prior, spm_p, b, c, save_filedir=f'{save_rootdir}/__mcmc-priors/{c}_{b}_{spm_p}.png')
+								plot_mcmc_prior(mcmc_prior, spm_p, b, c, save_filedir=f'../save/mcmc_priors/{cfilename}/{lcset_name}/{c}_{b}_{spm_p}.png')
 					
 					mcmc_priors_full = mcmc_priors_full.to_dict()
 
-					save_pickle(f'{save_rootdir}/mcmc_priors_full.d', mcmc_priors_full)
+					save_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors_full.d', mcmc_priors_full)
 					mcmc_priors = along_dict_obj_method(mcmc_priors_full, 'clean')
-					save_pickle(f'{save_rootdir}/mcmc_priors.d', mcmc_priors)
+					save_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', mcmc_priors)

@@ -171,7 +171,7 @@ class Trace():
 
 ###################################################################################################################################################
 
-def override(func): return func
+def override(func): return func # tricky
 class SynSNeGenerator():
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 		n_trace_samples=C_.N_TRACE_SAMPLES,

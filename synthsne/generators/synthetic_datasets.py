@@ -5,7 +5,8 @@ import cProfile
 
 import numpy as np
 from flamingchoripan.progress_bars import ProgressBar
-from flamingchoripan.files import save_pickle, filedir_exists
+from flamingchoripan.files import filedir_exists, PFile
+from flamingchoripan.cuteplots.utils import IFile
 from .synthetic_curves import get_syn_sne_generator
 from ..plots.lc import plot_synthetic_samples
 from flamingchoripan.lists import get_list_chunks
@@ -51,24 +52,23 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 		'ignored':ignored,
 		'synthetic_samples_per_curve':synthetic_samples_per_curve,
 	}
-	save_filedir = f'{ssne_save_rootdir}/{lcobj_name}.ssne'
-	save_pickle(save_filedir, to_save, verbose=0) # save error file
+	pfile = PFile(f'{ssne_save_rootdir}/{lcobj_name}.ssne', to_save)
 
 	### save images
 	need_to_save_images = True
 	#need_to_save_images = not 'spm-mle' in method
 	if need_to_save_images:
-		save_filedirs = [f'{figs_save_rootdir}/{c}/{lcobj_name}.png']
+		#save_filedirs = [f'{figs_save_rootdir}/{c}/{lcobj_name}.png']
 		#if is_in_column(lcobj_name, sne_specials_df, 'vis'):
 			#save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
 		#	pass
 
 		plot_kwargs = {
 			'trace_bdict':trace_bdict,
-			'save_filedir':save_filedirs,
 		}
-		plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
-	return
+		fig, axs = plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
+		ifile = IFile(f'{figs_save_rootdir}/{c}/{lcobj_name}.png', fig)
+	return pfile, ifile
 
 def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
 	method=None,
@@ -101,4 +101,7 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 				mcmc_priors,
 			))
 		results = Parallel(n_jobs=n_jobs, backend=backend)(jobs)
+		for pfile, ifile in results:
+			pfile.save()
+			ifile.save()
 	bar.done()

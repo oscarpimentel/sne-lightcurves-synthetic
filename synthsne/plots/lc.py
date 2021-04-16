@@ -4,7 +4,6 @@ from . import C_
 
 import numpy as np
 import matplotlib.pyplot as plt
-from flamingchoripan.cuteplots.utils import save_fig
 from lchandler.plots.lc import plot_lightcurve
 import random
 
@@ -15,7 +14,6 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 	trace_bdict=None,
 	figsize:tuple=(8,12),
 	lw=1.5,
-	save_filedir=None,
 	):
 	band_names = lcset_info['band_names']
 	class_names = lcset_info['class_names']
@@ -58,4 +56,4 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 	ax.set_xlabel('time [days]')
 
 	fig.tight_layout()
-	save_fig(save_filedir, fig)
+	return fig, axs

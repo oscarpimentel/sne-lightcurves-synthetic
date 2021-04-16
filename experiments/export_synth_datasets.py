@@ -21,7 +21,7 @@ if __name__== '__main__':
 	from flamingchoripan.files import load_pickle, save_pickle
 	from flamingchoripan.files import get_dict_from_filedir
 
-	filedir = '../../alerceZTFv7.1/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
+	filedir = '../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
 	root_folder = filedict['_rootdir']
 	cfilename = filedict['_cfilename']
@@ -49,7 +49,7 @@ if __name__== '__main__':
 			for kf in kfs:
 				lcset_name = f'{kf}@{setn}'
 				lcset = new_lcdataset[lcset_name]
-				synth_rootdir = f'../save/{survey}/{cfilename}/{lcset_name}/{method}'
+				synth_rootdir = f'../save/ssne/{method}/{cfilename}/{lcset_name}'
 				print('synth_rootdir=', synth_rootdir)
 				synth_lcset = lcset.copy({}) # copy
 				filedirs = fcfiles.get_filedirs(synth_rootdir, fext='ssne')

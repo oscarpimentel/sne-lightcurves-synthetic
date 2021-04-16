@@ -86,7 +86,6 @@ def get_perf_times(rootdir, kf, lcset_name):
 	for f in files:
 		if all([new_lcobj.all_synthetic() for new_lcobj in f()['new_lcobjs']]):
 			times.append(f()['segs'])
-
 	return XError(times)
 
 def get_info_dict(rootdir, methods, cfilename, kf, lcset_name,

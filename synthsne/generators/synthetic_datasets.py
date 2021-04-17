@@ -55,19 +55,16 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 	pfile = PFile(f'{ssne_save_rootdir}/{lcobj_name}.ssne', to_save)
 
 	### save images
-	need_to_save_images = True
-	#need_to_save_images = not 'spm-mle' in method
-	if need_to_save_images:
-		#save_filedirs = [f'{figs_save_rootdir}/{c}/{lcobj_name}.png']
-		#if is_in_column(lcobj_name, sne_specials_df, 'vis'):
-			#save_filedirs += [f'{save_rootdir}/__figs__/__vis__/{method}/{lcobj_name}.png']
-		#	pass
-
+	fig = None
+	img_filedir = None
+	bypass_img_saving = 'spm-mle' in method
+	if not bypass_img_saving:
 		plot_kwargs = {
 			'trace_bdict':trace_bdict,
 		}
 		fig, axs = plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
-		ifile = IFile(f'{figs_save_rootdir}/{c}/{lcobj_name}.png', fig)
+		img_filedir = f'{figs_save_rootdir}/{c}/{lcobj_name}.png'
+	ifile = IFile(img_filedir, fig)
 	return pfile, ifile
 
 def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,

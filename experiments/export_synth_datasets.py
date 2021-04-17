@@ -18,12 +18,11 @@ if __name__== '__main__':
 
 	###################################################################################################################################################
 	import numpy as np
-	from flamingchoripan.files import load_pickle, save_pickle
-	from flamingchoripan.files import get_dict_from_filedir
+	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
 
 	filedir = '../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
-	root_folder = filedict['_rootdir']
+	rootdir = filedict['_rootdir']
 	cfilename = filedict['_cfilename']
 	survey = filedict['survey']
 	lcdataset = load_pickle(filedir)
@@ -36,7 +35,7 @@ if __name__== '__main__':
 	from flamingchoripan.files import load_pickle, save_pickle
 	from synthsne import C_
 
-	kfs = [str(kf) for kf in range(0,3)] if main_args.kf=='.' else main_args.kf
+	kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
 	kfs = [kfs] if isinstance(kfs, str) else kfs
 	methods = ['bspline-fstw', 'linear-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
@@ -67,6 +66,6 @@ if __name__== '__main__':
 				new_lcset_name = f'{lcset_name}.{method}'
 				new_lcdataset.set_lcset(new_lcset_name, synth_lcset)
 
-		save_rootdir = f'{root_folder}'
+		save_rootdir = f'{rootdir}'
 		save_filedir = f'{save_rootdir}/{cfilename}~method={method}.{C_.EXT_SPLIT_LIGHTCURVE}'
 		save_pickle(save_filedir, new_lcdataset)

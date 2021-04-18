@@ -55,15 +55,16 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 	pfile = PFile(f'{ssne_save_rootdir}/{lcobj_name}.ssne', to_save)
 
 	### save images
-	fig = None
-	img_filedir = None
 	bypass_img_saving = 'spm-mle' in method
-	if not bypass_img_saving:
+	if bypass_img_saving:
+		img_filedir = None
+		fig = None
+	else:
+		img_filedir = f'{figs_save_rootdir}/{c}/{lcobj_name}.png'
 		plot_kwargs = {
 			'trace_bdict':trace_bdict,
 		}
 		fig, axs = plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs, **plot_kwargs)
-		img_filedir = f'{figs_save_rootdir}/{c}/{lcobj_name}.png'
 	ifile = IFile(img_filedir, fig)
 	return pfile, ifile
 

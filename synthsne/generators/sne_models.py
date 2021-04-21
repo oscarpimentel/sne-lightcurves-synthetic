@@ -92,7 +92,7 @@ class SNeModel():
 		return error.mean()*scale
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,
-		pre_tmax_offset=20, # 0 1 5 10 20
+		pre_tmax_offset=15, # 0 1 5 10 20
 		):
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]
@@ -102,11 +102,11 @@ class SNeModel():
 			assert not self.uses_interp
 			func_args = tuple([self.spm_args[p] for p in self.parameters])
 			t0 = self.spm_args['t0']
-			tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
+			spm_tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
 
 			### ti
-			if first_day>tmax-pre_tmax_offset:
-				ti_search_range = (tmax-pre_tmax_offset, tmax)
+			if first_day>spm_tmax-pre_tmax_offset:
+				ti_search_range = (spm_tmax-pre_tmax_offset, spm_tmax)
 				ti = get_min_tfunc(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			else:
 				ti = first_day
@@ -120,13 +120,15 @@ class SNeModel():
 
 			spm_times = {
 				'ti':ti,
-				'tmax':tmax,
+				'spm_tmax':spm_tmax,
+				'tmax_day':tmax_day,
 				'tf':tf,
 			}
 		else:
 			spm_times = {
 				'ti':first_day,
-				'tmax':tmax_day,
+				'spm_tmax':None,
+				'tmax_day':tmax_day,
 				'tf':last_day,
 			}
 		#assert tmax>=ti

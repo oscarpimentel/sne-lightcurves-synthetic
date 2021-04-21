@@ -492,7 +492,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		spm_guess = {p:p0[p] for kpmf,p in enumerate(spm_bounds.keys())}
 		return spm_args
 
-	def get_mcmc_trace(self, lcobjb, spm_bounds, n, func, b):
+	def get_mcmc_trace(self, lcobjb, spm_bounds, n, func, b, mle_spm_args):
 		days, obs, obse = lu.extract_arrays(lcobjb)
 		mcmc_kwargs = {
 			'thin_by':self.thin_by,
@@ -500,11 +500,10 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		}
 		assert self.n_trace_samples%self.n_chains==0
 
-		spm_args = self.get_curvefit_spm_args(lcobjb, spm_bounds, func)
-		spm_params = spm_args.keys()
-		spm_args = [[priors.get_spm_random_sphere(spm_args, spm_bounds)[spm_p] for spm_p in spm_params] for _ in range(self.n_chains)]
-		theta0 = np.array(spm_args)
-		d_theta = [self.mcmc_priors[b][self.c][spm_p] for spm_p in spm_params]
+		theta0 = np.array([[priors.get_spm_random_sphere(mle_spm_args, spm_bounds)[spm_p] for spm_p in spm_bounds.keys()] for _ in range(self.n_chains)])
+		#theta0 = np.array([[mle_spm_args[spm_p] for spm_p in spm_bounds.keys()] for _ in range(self.n_chains)])
+		#print(theta0.shape)
+		d_theta = [self.mcmc_priors[b][self.c][spm_p] for spm_p in spm_bounds.keys()]
 		sampler = emcee.EnsembleSampler(self.n_chains, theta0.shape[-1], log_probability, args=(d_theta, func, days, obs, obse))
 		try:
 			sampler.run_mcmc(theta0, (self.n_trace_samples+self.n_tune)//self.n_chains, **mcmc_kwargs)
@@ -527,9 +526,26 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		try:
 			lcobjb = self.lcobj.get_b(b).copy()
 			sne_model = SNeModel(lcobjb, None) # auxiliar
+
+			mle_spm_args = {p:[] for p in sne_model.parameters}
+			for _b in self.band_names: # fixme?
+				_lcobjb = self.lcobj.get_b(_b).copy()
+				_spm_bounds = priors.get_spm_bounds(_lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
+				_spm_args = self.get_curvefit_spm_args(_lcobjb, _spm_bounds, sne_model.func)
+				for p in sne_model.parameters:
+					mle_spm_args[p] += [_spm_args[p]]
+
+			#print(mle_spm_args)
+			for p in sne_model.parameters:
+				if p in ['t0']:
+					mle_spm_args[p] = np.max(mle_spm_args[p])
+				elif p in ['trise', 'A']:
+					mle_spm_args[p] = np.min(mle_spm_args[p])
+				else:
+					mle_spm_args[p] = np.mean(mle_spm_args[p])
+
 			spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
-			#print('get_mcmc_trace')
-			mcmc_trace, len_mcmc_trace = self.get_mcmc_trace(lcobjb, spm_bounds, n, sne_model.func, b)
+			mcmc_trace, len_mcmc_trace = self.get_mcmc_trace(lcobjb, spm_bounds, n, sne_model.func, b, mle_spm_args)
 			for k in range(len_mcmc_trace):
 				spm_args = {p:mcmc_trace[p][-k] for p in sne_model.parameters}
 				trace.add_ok(SNeModel(lcobjb, spm_args), spm_bounds)

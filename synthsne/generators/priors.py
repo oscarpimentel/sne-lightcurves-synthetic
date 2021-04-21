@@ -43,12 +43,14 @@ def get_spm_bounds(lcobjb, class_names,
 	}
 	return spm_bounds
 
-def get_spm_random_sphere(spm_args, spm_bounds):
+def get_spm_random_sphere(spm_args, spm_bounds,
+	k=0.01,
+	):
 	new_spm_args = {}
 	for p in spm_args.keys():
 		spm_arg = spm_args[p]
 		spm_bound = spm_bounds[p]
-		r = abs(spm_bound[0]-spm_bound[1])*0.01 * np.random.randn()
+		r = abs(spm_bound[0]-spm_bound[1])*k*np.random.randn()
 		new_spm_arg = spm_arg + r
 		new_spm_args[p] = np.clip(new_spm_arg, *spm_bound)
 	return new_spm_args

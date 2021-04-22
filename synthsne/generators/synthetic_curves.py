@@ -473,7 +473,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			#'maxfev':1e6,
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
-			'ftol':p0['A']/20., # A_guess
+			#'ftol':p0['A']/20., # A_guess
+			'ftol':0.01,
 			'sigma':obse+C_.EPS,
 		}
 
@@ -539,10 +540,11 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			for p in sne_model.parameters:
 				if p in ['t0']:
 					mle_spm_args[p] = np.max(mle_spm_args[p])
-				elif p in ['trise', 'A']:
-					mle_spm_args[p] = np.min(mle_spm_args[p])
+				#elif p in ['trise', 'A']:
+				#	mle_spm_args[p] = np.min(mle_spm_args[p])
 				else:
 					mle_spm_args[p] = np.mean(mle_spm_args[p])
+					#mle_spm_args[p] = np.mean(mle_spm_args[p])
 
 			spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 			mcmc_trace, len_mcmc_trace = self.get_mcmc_trace(lcobjb, spm_bounds, n, sne_model.func, b, mle_spm_args)
@@ -550,11 +552,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				spm_args = {p:mcmc_trace[p][-k] for p in sne_model.parameters}
 				trace.add_ok(SNeModel(lcobjb, spm_args), spm_bounds)
 
-		except ex.MCMCError:
-			for _ in range(max(n, self.n_trace_samples)):
-				trace.add_null()
-		
-		except ex.TooShortCurveError:
+		except (ex.MCMCError, ex.TooShortCurveError):
 			for _ in range(max(n, self.n_trace_samples)):
 				trace.add_null()
 

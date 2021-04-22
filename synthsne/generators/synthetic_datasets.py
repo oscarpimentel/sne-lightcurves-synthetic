@@ -78,7 +78,7 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	chunk_size=C_.CHUNK_SIZE,
 	):
 	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
-	#lcobj_names = ['ZTF18acqyvag', 'ZTF20aazhyrs', 'ZTF18adalgmc']
+	#lcobj_names = ['ZTF19aauspho', 'ZTF19abgurml', 'ZTF19aawgxdn']
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):

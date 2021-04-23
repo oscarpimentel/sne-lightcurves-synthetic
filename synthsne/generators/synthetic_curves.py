@@ -15,6 +15,7 @@ from .sne_models import SNeModel
 from . import priors as priors
 from flamingchoripan.datascience.xerror import XError
 from flamingchoripan.times import Cronometer
+from nested_dict import nested_dict
 
 ###################################################################################################################################################
 
@@ -280,7 +281,7 @@ class SynSNeGenerator():
 
 	def _sample_curve(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold,
 		uses_smooth_obs:bool=False,
-		timeout_counter=10000,
+		timeout_counter=1000,
 		spm_obs_n=100,
 		):
 		new_lcobjb = lcobjb.synthetic_copy() # copy
@@ -381,6 +382,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
+			#'ftol':C_.CURVE_FIT_FTOL,
 			'sigma':obse+C_.EPS,
 		}
 
@@ -473,8 +475,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			#'maxfev':1e6,
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
-			#'ftol':p0['A']/20., # A_guess
-			'ftol':0.01,
+			'ftol':p0['A']/20., # A_guess
+			#'ftol':C_.CURVE_FIT_FTOL,
 			'sigma':obse+C_.EPS,
 		}
 
@@ -508,11 +510,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		sampler = emcee.EnsembleSampler(self.n_chains, theta0.shape[-1], log_probability, args=(d_theta, func, days, obs, obse))
 		try:
 			sampler.run_mcmc(theta0, (self.n_trace_samples+self.n_tune)//self.n_chains, **mcmc_kwargs)
-		except ValueError:
-			raise ex.MCMCError()
-		except AssertionError:
-			raise ex.MCMCError()
-		except RuntimeError: # Chain failed.
+		except (ValueError, AssertionError, RuntimeError):
 			raise ex.MCMCError()
 
 		mcmc_trace = sampler.get_chain(discard=self.n_tune//self.n_chains, flat=True)
@@ -528,23 +526,24 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			lcobjb = self.lcobj.get_b(b).copy()
 			sne_model = SNeModel(lcobjb, None) # auxiliar
 
-			mle_spm_args = {p:[] for p in sne_model.parameters}
+			mle_spm_args = nested_dict()
 			for _b in self.band_names: # fixme?
 				_lcobjb = self.lcobj.get_b(_b).copy()
 				_spm_bounds = priors.get_spm_bounds(_lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 				_spm_args = self.get_curvefit_spm_args(_lcobjb, _spm_bounds, sne_model.func)
 				for p in sne_model.parameters:
-					mle_spm_args[p] += [_spm_args[p]]
+					mle_spm_args[p][_b] = _spm_args[p]
 
+			mle_spm_args = mle_spm_args.to_dict()
 			#print(mle_spm_args)
 			for p in sne_model.parameters:
-				if p in ['t0']:
-					mle_spm_args[p] = np.max(mle_spm_args[p])
+				if p in ['trise']:
+					mle_spm_args[p] = np.min([mle_spm_args[p][_b] for _b in self.band_names])
 				#elif p in ['trise', 'A']:
 				#	mle_spm_args[p] = np.min(mle_spm_args[p])
 				else:
-					mle_spm_args[p] = np.mean(mle_spm_args[p])
-					#mle_spm_args[p] = np.mean(mle_spm_args[p])
+					mle_spm_args[p] = mle_spm_args[p][b]
+					#mle_spm_args[p] = np.mean([mle_spm_args[p][_b] for _b in self.band_names])
 
 			spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names, self.uses_new_bounds, self.min_required_points_to_fit)
 			mcmc_trace, len_mcmc_trace = self.get_mcmc_trace(lcobjb, spm_bounds, n, sne_model.func, b, mle_spm_args)

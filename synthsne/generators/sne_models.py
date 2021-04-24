@@ -7,7 +7,7 @@ from scipy.interpolate import interp1d
 from scipy.interpolate import splev, splrep
 from scipy.optimize import fmin
 from . import exceptions as ex
-from .functions import syn_sne_sfunc, inverse_syn_sne_sfunc
+from .functions import syn_sne_sfunc, inverse_syn_sne_sfunc, get_min_in_time_window
 
 ###################################################################################################################################################
 
@@ -34,7 +34,7 @@ class SNeModel():
 						parametric_obs = splev(times, spl)
 					except TypeError:
 						self.spm_type = 'linear'
-						
+
 				if self.spm_type=='linear':
 					interp = interp1d(self.lcobjb.days, self.lcobjb.obs, kind='linear', fill_value='extrapolate')
 					parametric_obs = interp(times)
@@ -64,8 +64,7 @@ class SNeModel():
 		last_day = self.lcobjb.days[-1]
 		tmax_day = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
 
-		if uses_estw:
-			assert not self.uses_interp
+		if uses_estw and not self.uses_interp:
 			func_args = tuple([self.spm_args[p] for p in self.parameters])
 			t0 = self.spm_args['t0']
 			spm_tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
@@ -73,14 +72,14 @@ class SNeModel():
 			### ti
 			if first_day>spm_tmax-pre_tmax_offset:
 				ti_search_range = (spm_tmax-pre_tmax_offset, spm_tmax)
-				ti = get_min_tfunc(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
+				ti = get_min_in_time_window(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			else:
 				ti = first_day
 
 			### tf
 			#tf_offset = 5 # 0 1 5
 			#tf_search_range = tmax, max(tmax, last_day)+self.spm_args['tfall']*0.2
-			#tf = get_min_tfunc(tf_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
+			#tf = get_min_in_time_window(tf_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
 			#tf = max(tmax, last_day)
 			tf = last_day
 

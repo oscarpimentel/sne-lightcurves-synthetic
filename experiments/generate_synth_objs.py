@@ -47,7 +47,7 @@ if __name__== '__main__':
 
 	kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
 	kfs = [kfs] if isinstance(kfs, str) else kfs
-	methods = ['linear~fstw', 'bspline~fstw', 'spm-mle~fstw', 'spm-mle~estw', 'spm-mcmc~fstw', 'spm-mcmc~estw'] if main_args.method=='.' else main_args.method
+	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
 	setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
 	setns = [setns] if isinstance(setns, str) else setns
@@ -78,13 +78,13 @@ if __name__== '__main__':
 					'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 					'mcmc_priors':load_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
 				}
-				uses_estw = method.split('~')[-1]=='estw'
+				uses_estw = method.split('-')[-1]=='estw'
 				ssne_save_rootdir = f'../save/ssne/{method}/{cfilename}/{lcset_name}'
 				figs_save_rootdir = f'../save/ssne_figs/{method}/{cfilename}/{lcset_name}'
 				generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir, **sd_kwargs)
 
 				### generate mcmc priors
-				if method in ['spm-mle~fstw']:
+				if method in ['spm-mle-fstw']:
 					spm_classes = {
 						'A':'GammaP',
 						't0':'NormalP',

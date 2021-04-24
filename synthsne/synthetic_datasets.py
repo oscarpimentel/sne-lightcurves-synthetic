@@ -48,7 +48,7 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 		'ignored':ignored,
 		'mcmc_priors':mcmc_priors,
 	}
-	cmethod = method.split('~')[0]
+	cmethod = '-'.join(method.split('-')[:-1])
 	sne_generator = get_syn_sne_generator(cmethod)(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw, **gc_kwargs)
 	new_lcobjs, new_smooth_lcojbs, trace_bdict, segs = sne_generator.sample_curves(synthetic_samples_per_curve)
 

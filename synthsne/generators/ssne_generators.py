@@ -282,13 +282,15 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 					pass
 
 			mle_spm_args = mle_spm_args.to_dict()
-			if not b in mle_spm_args[list(mle_spm_args.keys())[0]].keys():
+			if len(mle_spm_args.keys())==0 or not b in mle_spm_args[list(mle_spm_args.keys())[0]].keys():
 				raise ex.MCMCError()
 
 			#print(mle_spm_args)
 			for p in mle_spm_args.keys():
 				if p in ['trise']:
 					mle_spm_args[p] = np.min([mle_spm_args[p][_b] for _b in mle_spm_args[p].keys()])
+				#if p in ['t0']:
+				#	mle_spm_args[p] = np.max([mle_spm_args[p][_b] for _b in mle_spm_args[p].keys()])
 				else:
 					mle_spm_args[p] = mle_spm_args[p][b]
 

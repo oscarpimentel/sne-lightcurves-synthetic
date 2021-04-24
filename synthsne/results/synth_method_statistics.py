@@ -31,34 +31,18 @@ def get_classes(rootdir):
 			classes.append(c)
 	return classes
 
-'''
-def get_spm_parameters(rootdir, b):
-	filedirs = get_filedirs(rootdir, method)
-	for filedir in filedirs:
-		fdict = ff.load_pickle(filedir, verbose=0)
-		#if fdict['has_corrects_samples']:
-		sne_models = fdict['trace_bdict'][b].sne_model_l
-		for sne_model in sne_models:
-			if not sne_model is None:
-				return sne_model.parameters
-'''
-
 def get_spm_args(rootdir, spm_p, b, c):
 	files = fcfiles.gather_files(rootdir, fext=None)
 	spm_args = []
 	for f in files:
-		#if fdict['has_corrects_samples']:
-		#print(fdict.keys())
 		if not c==f()['c']:
 			continue
 
-		sne_models = f()['trace_bdict'][b].sne_model_l
+		sne_models = f()['trace_bdict'][b].sne_models
 		for sne_model in sne_models:
-			if not sne_model is None: # filter incorrect fits
-				#for p in sne_model.parameters:
-				# {'p':sne_model.spm_args[p], 'c':c})
-				#print(p)
-				spm_args += [sne_model.spm_args[spm_p]]
+			if not sne_model is None:
+				if not sne_model.spm_args is None:
+					spm_args += [sne_model.spm_args[spm_p]]
 
 	return spm_args
 

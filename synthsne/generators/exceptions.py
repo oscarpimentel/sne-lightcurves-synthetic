@@ -4,13 +4,13 @@ from . import C_
 
 ###################################################################################################################################################
 
-class TooShortCurveError(Exception):
+'''class TooShortCurveError(Exception):
 	def __init__(self):
 		pass
 
 class TooFaintCurveError(Exception):
 	def __init__(self):
-		pass
+		pass'''
 		
 class TraceError(Exception):
 	def __init__(self):
@@ -20,6 +20,8 @@ class SyntheticCurveTimeoutError(Exception):
 	def __init__(self):
 		pass
 
+###################################################################################################################################################
+
 class CurveFitError(Exception):
 	def __init__(self):
 		pass
@@ -28,6 +30,6 @@ class MCMCError(Exception):
 	def __init__(self):
 		pass
 
-class InterpError(Exception):
+class BSplineError(Exception):
 	def __init__(self):
 		pass

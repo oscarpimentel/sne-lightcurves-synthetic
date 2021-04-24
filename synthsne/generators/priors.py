@@ -9,19 +9,10 @@ import scipy.stats as stats
 
 ###################################################################################################################################################
 
-def get_spm_bounds(lcobjb, class_names,
-	uses_new_bounds=True,
-	min_required_points=C_.MIN_POINTS_LIGHTCURVE_TO_PMFIT, # min points to even try a curve fit
-	min_required_duration=C_.MIN_DUR_LIGHTCURVE_TO_PMFIT, # min duration to even try a curve fit
-	):
+def get_spm_bounds(lcobjb, class_names):
 	days, obs, obse = lu.extract_arrays(lcobjb)
-
-	### checks
-	if len(lcobjb)<min_required_points or lcobjb.get_days_duration()<min_required_duration:
-		raise ex.TooShortCurveError()
-	if lcobjb.get_snr()<=C_.MIN_SNR:
-		#raise ex.TooFaintCurveError()
-		pass
+	if len(days)<=1:
+		return None
 
 	### utils
 	min_flux = np.min(obs)

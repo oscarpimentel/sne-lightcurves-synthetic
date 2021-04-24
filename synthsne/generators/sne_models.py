@@ -2,81 +2,47 @@ from __future__ import print_function
 from __future__ import division
 from . import C_
 
-from numba import jit
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.interpolate import splev, splrep
 from scipy.optimize import fmin
 from . import exceptions as ex
-
-###################################################################################################################################################
-
-@jit(nopython=True)
-def sgm(x, x0, s):
-	return 1./(1. + np.exp(-s*(x-x0)))
-
-@jit(nopython=True)
-def syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall,
-	#s=1/3,
-	):
-	#s = 1/3,
-	s = 1./5.
-	g = sgm(t, gamma+t0, s)
-	early = 1.0*(A*(1 - (f*(t-t0)/gamma))   /   (1. + np.exp(-(t-t0)/trise)))
-	late = 1.0*(A*(1-f)*np.exp(-(t-(gamma+t0))/tfall)   /   (1. + np.exp(-(t-t0)/trise)))
-	flux = (1.-g)*early + g*late
-	return flux
-
-@jit(nopython=True)
-def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall,
-	#s=1/3,
-	):
-	return -syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall)
-
-def get_min_tfunc(search_range, func, func_args,
-	min_obs_threshold=0,
-	n=1e4,
-	):
-	lin_times = np.linspace(*search_range, int(n))
-	func_v = func(lin_times, *func_args)
-	valid_indexs = np.where(func_v>min_obs_threshold)[0]
-	lin_times = lin_times[valid_indexs]
-	func_v = func_v[valid_indexs]
-	return lin_times[np.argmin(func_v)]
+from .functions import syn_sne_sfunc, inverse_syn_sne_sfunc
 
 ###################################################################################################################################################
 
 class SNeModel():
-	def __init__(self, lcobjb, spm_args,
-		iterpolation_mode=None, # linear, bspline
-		):
-		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']
+	def __init__(self, lcobjb, spm_type, spm_bounds, spm_args):
 		self.lcobjb = lcobjb.copy()
-		self.spm_args = {} if spm_args is None else spm_args.copy()
-		self.iterpolation_mode = iterpolation_mode
+		self.spm_type = spm_type
+		self.spm_bounds = spm_bounds
+		self.spm_args = spm_args
+		self.reset()
 
-		self.uses_interp = not self.iterpolation_mode is None
+	def reset(self):
+		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']
+		self.uses_interp = self.spm_type in ['linear', 'bspline']
 		self.func = syn_sne_sfunc
 		self.inv_func = inverse_syn_sne_sfunc
 
 	def evaluate(self, times):
 		if self.uses_interp:
-			try:
-				if self.iterpolation_mode=='linear':
+			if len(self.lcobjb)>1:
+				if self.spm_type=='bspline':
+					try:
+						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2)
+						parametric_obs = splev(times, spl)
+					except TypeError:
+						self.spm_type = 'linear'
+						
+				if self.spm_type=='linear':
 					interp = interp1d(self.lcobjb.days, self.lcobjb.obs, kind='linear', fill_value='extrapolate')
-					obs = interp(times)
-
-				elif self.iterpolation_mode=='bspline':
-					spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2)
-					obs = splev(times, spl)
-			except:
-				raise ex.InterpError()
-
+					parametric_obs = interp(times)
+			else:
+				parametric_obs = np.array([self.lcobjb.obs[0]])
 		else:
-			obs = self.func(times, *[self.spm_args[p] for p in self.parameters])
-
-		#obs = np.clip(obs, , )
-		return obs
+			parametric_obs = self.func(times, *[self.spm_args[p] for p in self.parameters])
+		return parametric_obs
 
 	def evaluate_inv(self, times):
 		if self.uses_interp:
@@ -88,7 +54,7 @@ class SNeModel():
 		scale=C_.ERROR_SCALE,
 		):
 		syn_obs = self.evaluate(times)
-		error = (real_obs-syn_obs)**2/(real_obse**2)
+		error = (real_obs-syn_obs)**2/(real_obse**2+.01)
 		return error.mean()*scale
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,
@@ -133,6 +99,6 @@ class SNeModel():
 			}
 		#assert tmax>=ti
 		#assert tf>=tmax
-		assert spm_times['tf']>spm_times['ti']
+		assert spm_times['tf']>=spm_times['ti']
 		self.spm_times = spm_times
 		return self.spm_times

@@ -96,7 +96,7 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
-		bar(f'method={method}  - lcset_name={lcset_name} - chunk_size={chunk_size} - chunk={chunk}')
+		bar(f'method={method}  - lcset_name={lcset_name} - samples={synthetic_samples_per_curve} - chunk={chunk}')
 		jobs = []
 		for lcobj_name in chunk:
 			jobs.append(delayed(generate_synthetic_samples)(

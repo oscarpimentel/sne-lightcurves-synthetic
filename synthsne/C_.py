@@ -8,7 +8,7 @@ ERROR_SCALE = 1e2
 MAX_FIT_ERROR = 1e5
 N_TUNE = 1500
 THIN_BY = 12 # 7 10 12 # drastically affects computation time, higher, the best
-SYNTH_SAMPLES_PER_CURVE = 32 # 16 32 64
+SYNTH_SAMPLES_PER_CURVE = 16 # 16 32
 CURVE_FIT_FTOL = 0.1
 
 ### JOBLIB

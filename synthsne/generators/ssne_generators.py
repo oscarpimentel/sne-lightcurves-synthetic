@@ -87,7 +87,12 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 				lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
 
 				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
-				sne_model = SNeModel(lcobjb, 'bspline', spm_bounds, None)
+				try:
+					sne_model = SNeModel(lcobjb, 'bspline', spm_bounds, None)
+					sne_model.evaluate(lcobjb.days) # trigger exception
+				except ex.BSplineError:
+					sne_model = SNeModel(lcobjb, 'linear', spm_bounds, None)
+
 				trace.append(sne_model)
 			else:
 				trace.append_null()

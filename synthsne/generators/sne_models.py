@@ -33,9 +33,9 @@ class SNeModel():
 						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2)
 						parametric_obs = splev(times, spl)
 					except TypeError:
-						self.spm_type = 'linear'
+						raise ex.BSplineError()
 
-				if self.spm_type=='linear':
+				elif self.spm_type=='linear':
 					interp = interp1d(self.lcobjb.days, self.lcobjb.obs, kind='linear', fill_value='extrapolate')
 					parametric_obs = interp(times)
 			else:

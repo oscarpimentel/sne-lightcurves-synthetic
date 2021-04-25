@@ -30,7 +30,7 @@ class SNeModel():
 			if len(self.lcobjb)>1:
 				if self.spm_type=='bspline':
 					try:
-						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2)
+						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2+.1)
 						parametric_obs = splev(times, spl)
 					except TypeError:
 						raise ex.BSplineError()

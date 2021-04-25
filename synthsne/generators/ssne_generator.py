@@ -71,7 +71,10 @@ class SynSNeGenerator():
 			sne_model = trace[k]
 			fit_error = trace.fit_errors[k]
 			try:
-				if any([sne_model is None, self.ignored, fit_error>self.max_fit_error]):
+				if any([sne_model is None, self.ignored]):
+					raise ex.TraceError()
+				if fit_error>self.max_fit_error:
+					print(f'max_fit_error: {fit_error}')
 					raise ex.TraceError()
 				sne_model.get_spm_times(self.min_obs_bdict[b], self.uses_estw)
 				min_obs_threshold = self.min_obs_bdict[b]

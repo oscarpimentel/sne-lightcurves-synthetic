@@ -89,7 +89,7 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
 				try:
 					sne_model = SNeModel(lcobjb, 'bspline', spm_bounds, None)
-					sne_model.evaluate(lcobjb.days) # trigger exception
+					sne_model.evaluate(lcobjb.days[0]) # trigger exception
 				except ex.BSplineError:
 					sne_model = SNeModel(lcobjb, 'linear', spm_bounds, None)
 

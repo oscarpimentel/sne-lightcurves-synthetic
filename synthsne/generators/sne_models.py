@@ -54,7 +54,7 @@ class SNeModel():
 		scale=C_.ERROR_SCALE,
 		):
 		syn_obs = self.evaluate(times)
-		error = (real_obs-syn_obs)**2/(real_obse**2+.1)
+		error = (real_obs-syn_obs)**2/(real_obse**2+C_.REC_LOSS_EPS)
 		return error.mean()*scale
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,

@@ -90,8 +90,8 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
 	):
-	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
-	#lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names()]
+	#lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
+	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names()]
 	#lcobj_names = ['ZTF19abpypvc']
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))

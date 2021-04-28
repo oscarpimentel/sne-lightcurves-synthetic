@@ -58,7 +58,7 @@ class SNeModel():
 		return error.mean()*scale
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,
-		pre_tmax_offset=15, # 0 1 5 10 20
+		pre_tmax_offset=5, # 0 1 5 10 20
 		):
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]

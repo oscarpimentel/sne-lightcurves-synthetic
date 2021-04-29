@@ -10,6 +10,7 @@ N_TUNE = 1500
 THIN_BY = 12 # 7 10 12 # drastically affects computation time, higher, the best
 SYNTH_SAMPLES_PER_CURVE = 10 # 8 16 32
 CURVE_FIT_FTOL = .01
+PRE_TMAX_OFFSET = 5 # 0 1 5 10 20
 
 ### JOBLIB
 import os

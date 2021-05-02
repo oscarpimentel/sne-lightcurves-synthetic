@@ -6,7 +6,6 @@ import numpy as np
 import random
 import emcee
 from scipy.optimize import curve_fit
-import scipy.stats as stats
 from . import exceptions as ex
 from . import lc_utils as lu
 from .sne_models import SNeModel
@@ -15,6 +14,7 @@ from nested_dict import nested_dict
 from .ssne_generator import SynSNeGenerator
 from . import functions as fs
 from .traces import Trace
+import scipy.stats as stats
 
 ###################################################################################################################################################
 
@@ -240,8 +240,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		except (ValueError, RuntimeError):
 			raise ex.CurveFitError()
 
-		spm_args = {p:popt[kpmf] for kpmf,p in enumerate(spm_bounds.keys())}
-		spm_guess = {p:p0[p] for kpmf,p in enumerate(spm_bounds.keys())}
+		spm_args = {spm_p:popt[kpmf] for kpmf,spm_p in enumerate(spm_bounds.keys())}
+		spm_guess = {spm_p:p0[spm_p] for kpmf,spm_p in enumerate(spm_bounds.keys())}
 		return spm_args
 
 	def get_mcmc_trace(self, lcobjb, spm_bounds, n, _f, b, mle_spm_args):
@@ -252,10 +252,31 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		}
 		assert self.n_trace_samples%self.n_chains==0
 
-		theta0 = np.array([[priors.get_spm_random_sphere(mle_spm_args, spm_bounds)[spm_p] for spm_p in spm_bounds.keys()] for _ in range(self.n_chains)])
+		theta0 = np.array([[priors.get_spm_gaussian_sphere(mle_spm_args, spm_bounds, k_std=5e-3)[spm_p].rvs() for spm_p in spm_bounds.keys()] for _ in range(self.n_chains)])
+		#print(theta0)
+		#assert 0
+		#theta0 = np.array([[priors.get_spm_random_sphere(mle_spm_args, spm_bounds)[spm_p] for spm_p in spm_bounds.keys()] for _ in range(self.n_chains)])
 		#theta0 = np.array([[mle_spm_args[spm_p] for spm_p in spm_bounds.keys()] for _ in range(self.n_chains)])
 		#print(theta0.shape)
-		d_theta = [self.mcmc_priors[b][self.c][spm_p] for spm_p in spm_bounds.keys()]
+		
+		try:
+			another_lcobjs = [self.lcobj.get_b(_b) for _b in self.band_names if _b!=b]
+			aux_lcobjb = sum(another_lcobjs)
+			aux_spm_bounds = priors.get_spm_bounds(aux_lcobjb, self.class_names)
+			aux_spm_args = self.get_curvefit_spm_args(aux_lcobjb, aux_spm_bounds, fs.syn_sne_sfunc)
+			#print('aux_spm_args')
+			uniform_params = [
+				'A',
+				#'t0',
+				]
+			d_theta = [priors.get_spm_gaussian_sphere(aux_spm_args, spm_bounds, k_std=.5, uniform_params=uniform_params)[spm_p] for spm_p in spm_bounds.keys()]
+
+		except ex.CurveFitError:
+			#print('classic d_theta')
+			d_theta = [priors.get_spm_uniform_box(spm_bounds)[spm_p] for spm_p in spm_bounds.keys()]
+			#assert 0
+			#d_theta = [self.mcmc_priors[b][self.c][spm_p] for spm_p in spm_bounds.keys()]
+		
 		sampler = emcee.EnsembleSampler(self.n_chains, theta0.shape[-1], fs.log_probability, args=(d_theta, _f, days, obs, obse))
 		try:
 			sampler.run_mcmc(theta0, (self.n_trace_samples+self.n_tune)//self.n_chains, **mcmc_kwargs)
@@ -265,7 +286,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		mcmc_trace = sampler.get_chain(discard=self.n_tune//self.n_chains, flat=True)
 		len_mcmc_trace = len(mcmc_trace)
 		#print(mcmc_trace.shape)
-		mcmc_trace = {p:mcmc_trace[:,kp].tolist() for kp,p in enumerate(spm_bounds.keys())}
+		mcmc_trace = {spm_p:mcmc_trace[:,kp].tolist() for kp,spm_p in enumerate(spm_bounds.keys())}
 		return mcmc_trace, len_mcmc_trace
 
 	@override
@@ -273,34 +294,14 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		trace = Trace()
 		try:
 			lcobjb = self.lcobj.get_b(b).copy()
-
-			### fixme?
-			mle_spm_args = nested_dict()
-			for _b in self.band_names:
-				_lcobjb = self.lcobj.get_b(_b).copy()
-				try:
-					_spm_bounds = priors.get_spm_bounds(_lcobjb, self.class_names)
-					_spm_args = self.get_curvefit_spm_args(_lcobjb, _spm_bounds, fs.syn_sne_sfunc)
-					for p in _spm_args.keys():
-						mle_spm_args[p][_b] = _spm_args[p]
-				except ex.CurveFitError:
-					pass
-
-			mle_spm_args = mle_spm_args.to_dict()
-			if len(mle_spm_args.keys())==0 or not b in mle_spm_args[list(mle_spm_args.keys())[0]].keys():
+			if len(lcobjb)<=1:
+				raise ex.MCMCError()
+			spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
+			try:
+				mle_spm_args = self.get_curvefit_spm_args(lcobjb, spm_bounds, fs.syn_sne_sfunc)
+			except ex.CurveFitError:
 				raise ex.MCMCError()
 
-			#print(mle_spm_args)
-			for p in mle_spm_args.keys():
-				if p in ['trise']:
-					mle_spm_args[p] = np.min([mle_spm_args[p][_b] for _b in mle_spm_args[p].keys()])
-				#if p in ['t0']:
-				#	mle_spm_args[p] = np.max([mle_spm_args[p][_b] for _b in mle_spm_args[p].keys()])
-				else:
-					mle_spm_args[p] = mle_spm_args[p][b]
-
-			###
-			spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
 			mcmc_trace, len_mcmc_trace = self.get_mcmc_trace(lcobjb, spm_bounds, n, fs.syn_sne_sfunc, b, mle_spm_args)
 			for k in range(len_mcmc_trace):
 				spm_args = {p:mcmc_trace[p][-k] for p in mcmc_trace.keys()}

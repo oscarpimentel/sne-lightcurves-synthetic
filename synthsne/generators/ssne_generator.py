@@ -62,7 +62,7 @@ class SynSNeGenerator():
 		lcobjb = self.lcobj.get_b(b)
 		trace = self.get_spm_trace_b(b, n)
 		trace.get_fit_errors(lcobjb)
-		trace.sort()
+		#trace.sort() # sort is actually usefull in mcmc?
 		trace.clip(n)
 		new_lcobjbs = []
 		new_smooth_lcobjbs = []
@@ -78,8 +78,8 @@ class SynSNeGenerator():
 					raise ex.TraceError()
 				sne_model.get_spm_times(self.min_obs_bdict[b], self.uses_estw)
 				min_obs_threshold = self.min_obs_bdict[b]
-				new_lcobjb = self._sample_curve(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, False)
-				new_smooth_lcobjb = self._sample_curve(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, True)
+				new_lcobjb = self._sample_curve(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, sne_model.spm_type, False)
+				new_smooth_lcobjb = self._sample_curve(lcobjb, sne_model, curve_sizes[k], self.obse_sampler_bdict[b], min_obs_threshold, sne_model.spm_type, True)
 
 			except (ex.SyntheticCurveTimeoutError, ex.TraceError):
 				trace.sne_models[k] = None # update
@@ -105,12 +105,13 @@ class SynSNeGenerator():
 			
 		return trace
 
-	def _sample_curve(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold,
+	def _sample_curve(self, lcobjb, sne_model, curve_size, obse_sampler, min_obs_threshold, synthetic_mode,
 		uses_smooth_obs:bool=False,
 		timeout_counter=10000,
 		spm_obs_n=100,
 		):
-		new_lcobjb = lcobjb.synthetic_copy() # copy
+		new_lcobjb = lcobjb.copy() # copy
+		new_lcobjb.set_synthetic_mode(synthetic_mode)
 		spm_times = sne_model.spm_times
 		spm_args = sne_model.spm_args
 		i = 0
@@ -141,7 +142,9 @@ class SynSNeGenerator():
 
 			### generate parametric observations
 			spm_obs = sne_model.evaluate(new_days)
-			spm_obs = np.clip(spm_obs, min_obs_threshold, None) # can't have observation above the threshold
+			if any(spm_obs<=C_.EPS):
+				continue
+				#spm_obs = np.clip(spm_obs, min_obs_threshold, None) # can't have observation above the threshold
 			
 			### resampling obs using obs error
 			if uses_smooth_obs:

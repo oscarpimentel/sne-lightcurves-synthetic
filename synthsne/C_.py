@@ -6,11 +6,11 @@ EPS = 1e-5
 N_TRACE_SAMPLES = 480
 ERROR_SCALE = 1e2
 MAX_FIT_ERROR = 1e5
-N_TUNE = 1500
-THIN_BY = 12 # 7 10 12 # drastically affects computation time, higher, the best
-SYNTH_SAMPLES_PER_CURVE = 10 # 8 16 32
+N_TUNE = 2000
+THIN_BY = 20 # 10 12 # drastically affects computation time. higher, the best
+SYNTH_SAMPLES_PER_CURVE = 12 # 8 16 32
 CURVE_FIT_FTOL = .01
-PRE_TMAX_OFFSET = 5 # 0 1 5 10 20
+PRE_TMAX_OFFSET = 15 # 0 1 5 10 20
 
 ### JOBLIB
 import os
@@ -35,7 +35,7 @@ EXT_FATS_LIGHTCURVE = 'flcd' # with sigma clipping and FATS
 
 ### SYNTHETIC
 OBSE_STD_SCALE = 1/2 # 2 2.5 3
-HOURS_NOISE_AMP = 8.
+HOURS_NOISE_AMP = 0
 MIN_CADENCE_DAYS = 2.
 
 ### DICTS

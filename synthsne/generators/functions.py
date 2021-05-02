@@ -43,31 +43,51 @@ def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall):
 def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 	eps=C_.EPS,
 	):
-	lp_A = np.log(A_pdf+eps)
-	lp_t0 = np.log(t0_pdf+eps)
-	lp_gamma = np.log(gamma_pdf+eps)
-	lp_f = np.log(f_pdf+eps)
-	lp_trise = np.log(trise_pdf+eps)
-	lp_tfall = np.log(tfall_pdf+eps)
-	return lp_A + lp_t0 + lp_gamma + lp_f + lp_trise + lp_tfall
+	p = 0
+	if A_pdf>0:
+		p += np.log(A_pdf+eps) 
+	else:
+		return -np.inf
+
+	if t0_pdf>0:
+		p += np.log(t0_pdf+eps)
+	else:
+		return -np.inf
+	
+	if gamma_pdf>0:
+		p += np.log(gamma_pdf+eps)
+	else:
+		return -np.inf
+	
+	if f_pdf>0:
+		p += np.log(f_pdf+eps)
+	else:
+		return -np.inf
+
+	if trise_pdf>0:
+		p += np.log(trise_pdf+eps)
+	else:
+		return -np.inf
+	
+	if tfall_pdf>0:
+		p += np.log(tfall_pdf+eps)
+	else:
+		return -np.inf
+
+	return p
 
 @jit(nopython=True)
-def log_likelihood(spm_obs, days, obs, obse,
-	eps=C_.EPS,
-	):
-	sigma2 = (obse*1)**2+eps
-	return -0.5 * np.sum((obs - spm_obs)**2/sigma2 + np.log(sigma2))
+def log_likelihood(spm_obs, days, obs, obse):
+	sigma = obse**2+C_.EPS#+C_.REC_LOSS_EPS
+	return -0.5 * np.sum((obs - spm_obs)**2/sigma + np.log(sigma))
 
 #@jit(nopython=True)
-def log_probability(theta, d_theta, func, days, obs, obse,
-	eps=C_.EPS,
-	):
+def log_probability(theta, d_theta, func, days, obs, obse):
 	A, t0, gamma, f, trise, tfall = theta
-	A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf = [p.pdf(x) for x,p in zip(theta,d_theta)]
+	A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf = [distr.pdf(x) for x,distr in zip(theta, d_theta)]
 	lp = log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf)
-	if not np.isfinite(lp):
-		return -1/eps
+	if not np.isfinite(lp): # not finite
+		return -np.inf # big negative number
 	spm_obs = func(days, *theta)
 	log_probability = lp + log_likelihood(spm_obs, days, obs, obse)
-	#print(log_probability)
 	return log_probability

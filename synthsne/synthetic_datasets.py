@@ -90,29 +90,32 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	n_jobs=C_.N_JOBS,
 	chunk_size=C_.CHUNK_SIZE,
 	):
-	#lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
-	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names()]
-	#lcobj_names = ['ZTF19abpypvc']
+	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
+	#lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names()]
+	#lcobj_names = ['ZTF20aasfhia', 'ZTF19aassqix', 'ZTF19aauivtj','ZTF19aczeomw', 'ZTF19abfibel', 'ZTF19acjwdnu', 'ZTF19adbryab', 'ZTF18abeajml', 'ZTF18aaxkfos', 'ZTF19aarnqys', 'ZTF19aailcgs']
+	#lcobj_names = ['ZTF19aailcgs']
 	chunks = get_list_chunks(lcobj_names, chunk_size)
 	bar = ProgressBar(len(chunks))
 	for kc,chunk in enumerate(chunks):
 		bar(f'method={method}  - lcset_name={lcset_name} - samples={synthetic_samples_per_curve} - chunk={chunk}')
 		jobs = []
 		for lcobj_name in chunk:
-			jobs.append(delayed(generate_synthetic_samples)(
-				lcobj_name,
-				lcset[lcobj_name],
-				lcset_name,
-				lcset.get_info(),
-				obse_sampler_bdict,
-				uses_estw,
-				ssne_save_rootdir,
-				figs_save_rootdir,
-				method,
-				synthetic_samples_per_curve,
-				sne_specials_df,
-				mcmc_priors,
-				))
+			if lcobj_name in lcset.get_lcobj_names():
+			#if 1:
+				jobs.append(delayed(generate_synthetic_samples)(
+					lcobj_name,
+					lcset[lcobj_name],
+					lcset_name,
+					lcset.get_info(),
+					obse_sampler_bdict,
+					uses_estw,
+					ssne_save_rootdir,
+					figs_save_rootdir,
+					method,
+					synthetic_samples_per_curve,
+					sne_specials_df,
+					mcmc_priors,
+					))
 		results = Parallel(n_jobs=n_jobs, backend=backend)(jobs)
 		for pfile, ifile in results:
 			pfile.save()

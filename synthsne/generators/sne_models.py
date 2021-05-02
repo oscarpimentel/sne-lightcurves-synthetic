@@ -21,12 +21,14 @@ class SNeModel():
 
 	def reset(self):
 		self.parameters = ['A', 't0', 'gamma', 'f', 'trise', 'tfall']
-		self.uses_interp = self.spm_type in ['linear', 'bspline']
 		self.func = syn_sne_sfunc
 		self.inv_func = inverse_syn_sne_sfunc
 
+	def uses_interp(self):
+		return self.spm_type in ['linear', 'bspline']
+
 	def evaluate(self, times):
-		if self.uses_interp:
+		if self.uses_interp():
 			if len(self.lcobjb)>1:
 				if self.spm_type=='bspline':
 					try:
@@ -45,7 +47,7 @@ class SNeModel():
 		return parametric_obs
 
 	def evaluate_inv(self, times):
-		if self.uses_interp:
+		if self.uses_interp():
 			raise Exception('not implemented')
 		else:
 			return self.inv_func(times, *[self.spm_args for p in self.parameters])
@@ -64,30 +66,30 @@ class SNeModel():
 		last_day = self.lcobjb.days[-1]
 		tmax_day = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
 
-		if uses_estw and not self.uses_interp:
+		if uses_estw and not self.uses_interp():
 			func_args = tuple([self.spm_args[p] for p in self.parameters])
-			t0 = self.spm_args['t0']
-			spm_tmax = fmin(self.inv_func, t0, func_args, disp=False)[0]
+			spm_tmax = fmin(self.inv_func, self.spm_args['t0'], func_args, disp=False)[0]
+			first_day_prev = first_day-pre_tmax_offset
+			spm_tmax_prev = spm_tmax-pre_tmax_offset
 
-			### ti
-			if first_day>spm_tmax-pre_tmax_offset:
-				ti_search_range = (spm_tmax-pre_tmax_offset, spm_tmax)
-				ti = get_min_in_time_window(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
-			else:
+			### find peak and extend
+			'''			
+			if first_day<=spm_tmax_prev:
 				ti = first_day
+			else:
+				ti_search_range = (spm_tmax_prev, spm_tmax)
+				ti = get_min_in_time_window(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)	'''
 
-			### tf
-			#tf_offset = 5 # 0 1 5
-			#tf_search_range = tmax, max(tmax, last_day)+self.spm_args['tfall']*0.2
-			#tf = get_min_in_time_window(tf_search_range, syn_sne_sfunc, func_args, min_obs_threshold)
-			#tf = max(tmax, last_day)
-			tf = last_day
+			if first_day<spm_tmax: # pre-preak observation exists
+				ti = first_day
+			else:
+				ti = max(first_day_prev, spm_tmax)
 
 			spm_times = {
 				'ti':ti,
 				'spm_tmax':spm_tmax,
 				'tmax_day':tmax_day,
-				'tf':tf,
+				'tf':last_day,
 			}
 		else:
 			spm_times = {

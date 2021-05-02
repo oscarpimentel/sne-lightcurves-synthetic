@@ -6,6 +6,7 @@ import numpy as np
 from . import lc_utils as lu
 from . import exceptions as ex
 import scipy.stats as stats
+from scipy.optimize import curve_fit
 
 ###################################################################################################################################################
 
@@ -25,26 +26,31 @@ def get_spm_bounds(lcobjb, class_names):
 
 	spm_bounds = {
 		'A':(max_flux / 3, max_flux * 3), # curve-wise
-		't0':(first_day-50, day_max_flux+50), # curve-wise
+		't0':(first_day-20, day_max_flux+50), # curve-wise
 		#'gamma':(3, 100),
 		'gamma':(1, 120), # gamma is important
-		'f':(0, .99), # .5 .75 .99 1
+		'f':(0, 1), # .5 .75 .99 1
 		'trise':(1, 50),
 		'tfall':(1, 130),
 	}
 	return spm_bounds
 
-def get_spm_random_sphere(spm_args, spm_bounds,
-	k=0.01,
+def get_spm_gaussian_sphere(spm_args, spm_bounds,
+	k_std=1e-1,
+	uniform_params=[],
 	):
-	new_spm_args = {}
-	for p in spm_args.keys():
-		spm_arg = spm_args[p]
-		spm_bound = spm_bounds[p]
-		r = abs(spm_bound[0]-spm_bound[1])*k*np.random.randn()
-		new_spm_arg = spm_arg + r
-		new_spm_args[p] = np.clip(new_spm_arg, *spm_bound)
-	return new_spm_args
+	d = {}
+	for spm_p in spm_bounds.keys():
+		if spm_p in uniform_params:
+			d[spm_p] = stats.uniform(min(spm_bounds[spm_p]), max(spm_bounds[spm_p]))
+		else:
+			std = (max(spm_bounds[spm_p])-min(spm_bounds[spm_p]))*k_std
+			d[spm_p] = stats.truncnorm(min(spm_bounds[spm_p]), max(spm_bounds[spm_p]), spm_args[spm_p], std)
+
+	return d
+
+def get_spm_uniform_box(spm_bounds):
+	return {spm_p:stats.uniform(min(spm_bounds[spm_p]), max(spm_bounds[spm_p])) for spm_p in spm_bounds.keys()}
 
 def get_p0(lcobjb, spm_bounds):
 	days, obs, obse = lu.extract_arrays(lcobjb)

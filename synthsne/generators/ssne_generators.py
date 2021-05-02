@@ -140,7 +140,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
 			#'ftol':C_.CURVE_FIT_FTOL,
-			'sigma':obse+C_.EPS,
+			'sigma':obse**2+C_.REC_LOSS_EPS,
 		}
 
 		### fitting
@@ -229,7 +229,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
 			#'ftol':C_.CURVE_FIT_FTOL,
-			'sigma':obse+C_.EPS,
+			'sigma':obse**2+C_.REC_LOSS_EPS,
 		}
 
 		### fitting
@@ -266,14 +266,15 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			aux_spm_args = self.get_curvefit_spm_args(aux_lcobjb, aux_spm_bounds, fs.syn_sne_sfunc)
 			#print('aux_spm_args')
 			uniform_params = [
-				'A',
+				#'A',
 				#'t0',
 				]
-			d_theta = [priors.get_spm_gaussian_sphere(aux_spm_args, spm_bounds, k_std=.5, uniform_params=uniform_params)[spm_p] for spm_p in spm_bounds.keys()]
+			d_theta = [priors.get_spm_gaussian_sphere(aux_spm_args, spm_bounds, k_std=.1, uniform_params=uniform_params)[spm_p] for spm_p in spm_bounds.keys()]
 
 		except ex.CurveFitError:
+			raise ex.MCMCError()
 			#print('classic d_theta')
-			d_theta = [priors.get_spm_uniform_box(spm_bounds)[spm_p] for spm_p in spm_bounds.keys()]
+			#d_theta = [priors.get_spm_uniform_box(spm_bounds)[spm_p] for spm_p in spm_bounds.keys()]
 			#assert 0
 			#d_theta = [self.mcmc_priors[b][self.c][spm_p] for spm_p in spm_bounds.keys()]
 		
@@ -283,9 +284,9 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		except (ValueError, AssertionError, RuntimeError):
 			raise ex.MCMCError()
 
-		mcmc_trace = sampler.get_chain(discard=self.n_tune//self.n_chains, flat=True)
+		mcmc_trace = sampler.get_chain(discard=self.n_tune//self.n_chains, flat=True)[::-1] # (n,spms)
+		#print('mcmc_trace',mcmc_trace.shape)
 		len_mcmc_trace = len(mcmc_trace)
-		#print(mcmc_trace.shape)
 		mcmc_trace = {spm_p:mcmc_trace[:,kp].tolist() for kp,spm_p in enumerate(spm_bounds.keys())}
 		return mcmc_trace, len_mcmc_trace
 
@@ -303,8 +304,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 				raise ex.MCMCError()
 
 			mcmc_trace, len_mcmc_trace = self.get_mcmc_trace(lcobjb, spm_bounds, n, fs.syn_sne_sfunc, b, mle_spm_args)
-			for k in range(len_mcmc_trace):
-				spm_args = {p:mcmc_trace[p][-k] for p in mcmc_trace.keys()}
+			for k in range(0, len_mcmc_trace):
+				spm_args = {p:mcmc_trace[p][k] for p in mcmc_trace.keys()}
 				sne_model = SNeModel(lcobjb, 'spm-mcmc', spm_bounds, spm_args)
 				trace.append(sne_model)
 

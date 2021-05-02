@@ -45,32 +45,32 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 	):
 	p = 0
 	if A_pdf>0:
-		p += np.log(A_pdf+eps) 
+		p += np.log(A_pdf) 
 	else:
 		return -np.inf
 
 	if t0_pdf>0:
-		p += np.log(t0_pdf+eps)
+		p += np.log(t0_pdf)
 	else:
 		return -np.inf
 	
 	if gamma_pdf>0:
-		p += np.log(gamma_pdf+eps)
+		p += np.log(gamma_pdf)
 	else:
 		return -np.inf
 	
 	if f_pdf>0:
-		p += np.log(f_pdf+eps)
+		p += np.log(f_pdf)
 	else:
 		return -np.inf
 
 	if trise_pdf>0:
-		p += np.log(trise_pdf+eps)
+		p += np.log(trise_pdf)
 	else:
 		return -np.inf
 	
 	if tfall_pdf>0:
-		p += np.log(tfall_pdf+eps)
+		p += np.log(tfall_pdf)
 	else:
 		return -np.inf
 
@@ -78,7 +78,8 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 
 @jit(nopython=True)
 def log_likelihood(spm_obs, days, obs, obse):
-	sigma = obse**2+C_.EPS#+C_.REC_LOSS_EPS
+	#sigma = obse**2+C_.EPS#+C_.REC_LOSS_EPS
+	sigma = obse**2+C_.REC_LOSS_EPS
 	return -0.5 * np.sum((obs - spm_obs)**2/sigma + np.log(sigma))
 
 #@jit(nopython=True)

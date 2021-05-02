@@ -62,7 +62,7 @@ class SynSNeGenerator():
 		lcobjb = self.lcobj.get_b(b)
 		trace = self.get_spm_trace_b(b, n)
 		trace.get_fit_errors(lcobjb)
-		#trace.sort() # sort is actually usefull in mcmc?
+		#trace.sort()
 		trace.clip(n)
 		new_lcobjbs = []
 		new_smooth_lcobjbs = []

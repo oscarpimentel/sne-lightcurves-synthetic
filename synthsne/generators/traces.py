@@ -32,7 +32,7 @@ class Trace():
 
 	def sort(self):
 		assert len(self.fit_errors)==len(self)
-		idxs = np.argsort(self.fit_errors).tolist()
+		idxs = np.argsort(self.fit_errors).tolist() # lower to higher
 		self.sne_models = [self.sne_models[i] for i in idxs]
 		self.fit_errors = [self.fit_errors[i] for i in idxs]
 

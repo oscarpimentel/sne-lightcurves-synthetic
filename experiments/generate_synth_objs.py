@@ -83,6 +83,7 @@ if __name__== '__main__':
 				figs_save_rootdir = f'../save/ssne_figs/{method}/{cfilename}/{lcset_name}'
 				generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir, **sd_kwargs)
 
+				'''
 				### generate mcmc priors
 				if method in ['spm-mle-fstw']:
 					spm_classes = {
@@ -111,3 +112,4 @@ if __name__== '__main__':
 					save_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors_full.d', mcmc_priors_full)
 					mcmc_priors = along_dict_obj_method(mcmc_priors_full, 'clean')
 					save_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', mcmc_priors)
+				'''

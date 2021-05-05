@@ -18,7 +18,7 @@ JOBLIB_BACKEND = 'loky' # loky multiprocessing threading
 N_JOBS = -1 # The number of jobs to use for the computation. If -1 all CPUs are used. If 1 is given, no parallel computing code is used at all, which is useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2, all CPUs but one are used.
 CHUNK_SIZE = os.cpu_count() if N_JOBS<0 else N_JOBS
 
-REC_LOSS_EPS = .01
+REC_LOSS_EPS = .01 # ***
 
 ### THRESHOLDS
 MIN_POINTS_LIGHTCURVE_SURVEY_EXPORT = C_lchandler.MIN_POINTS_LIGHTCURVE_SURVEY_EXPORT

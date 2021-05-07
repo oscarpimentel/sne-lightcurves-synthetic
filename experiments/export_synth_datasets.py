@@ -20,7 +20,7 @@ if __name__== '__main__':
 	import numpy as np
 	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
 
-	filedir = '../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
+	filedir = f'../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
 	rootdir = filedict['_rootdir']
 	cfilename = filedict['_cfilename']
@@ -37,7 +37,7 @@ if __name__== '__main__':
 
 	kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
 	kfs = [kfs] if isinstance(kfs, str) else kfs
-	methods = ['bspline-fstw', 'linear-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
+	methods = ['linear-fstw', 'bspline-fstw', 'spm-mle-fstw', 'spm-mle-estw', 'spm-mcmc-fstw', 'spm-mcmc-estw'] if main_args.method=='.' else main_args.method
 	methods = [methods] if isinstance(methods, str) else methods
 	setns = [str(setn) for setn in ['train']] if main_args.setn=='.' else main_args.setn
 	setns = [setns] if isinstance(setns, str) else setns

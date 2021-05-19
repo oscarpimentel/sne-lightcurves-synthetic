@@ -2,11 +2,11 @@ from __future__ import print_function
 from __future__ import division
 from . import C_
 
-import flamingchoripan.files as fcfiles
-from flamingchoripan.datascience.xerror import XError
-from flamingchoripan.datascience.ranks import TopRank
-from flamingchoripan.dataframes import DFBuilder
-from flamingchoripan.lists import flat_list
+import fuzzytools.files as fcfiles
+from fuzzytools.datascience.xerror import XError
+from fuzzytools.datascience.ranks import TopRank
+from fuzzytools.dataframes import DFBuilder
+from fuzzytools.lists import flat_list
 import numpy as np
 import pandas as pd
 from nested_dict import nested_dict

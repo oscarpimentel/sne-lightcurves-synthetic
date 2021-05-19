@@ -3,7 +3,7 @@ from __future__ import division
 from . import C_
 
 import numpy as np
-from flamingchoripan.datascience.xerror import XError
+from fuzzytools.datascience.xerror import XError
 from . import lc_utils as lu
 from . import exceptions as ex
 

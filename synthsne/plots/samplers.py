@@ -5,8 +5,8 @@ from . import C_
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import flamingchoripan.cuteplots.plots as cplots
-from flamingchoripan.cuteplots.utils import save_fig
+import fuzzytools.cuteplots.plots as cplots
+from fuzzytools.cuteplots.utils import save_fig
 
 ###################################################################################################################################################
 

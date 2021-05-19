@@ -4,11 +4,11 @@ from . import C_
 import cProfile
 
 import numpy as np
-from flamingchoripan.progress_bars import ProgressBar
-from flamingchoripan.files import filedir_exists, PFile
-from flamingchoripan.cuteplots.utils import IFile
+from fuzzytools.progress_bars import ProgressBar
+from fuzzytools.files import filedir_exists, PFile
+from fuzzytools.cuteplots.utils import IFile
 from .plots.lc import plot_synthetic_samples
-from flamingchoripan.lists import get_list_chunks
+from fuzzytools.lists import get_list_chunks
 from joblib import Parallel, delayed
 from .generators import ssne_generators as ssneg
 

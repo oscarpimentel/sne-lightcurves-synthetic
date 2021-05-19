@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 import sys
 sys.path.append('../') # or just install the module
-sys.path.append('../../flaming-choripan') # or just install the module
+sys.path.append('../../fuzzy-tools') # or just install the module
 sys.path.append('../../astro-lightcurves-handler') # or just install the module
 
 if __name__== '__main__':
 	### parser arguments
 	import argparse
-	from flamingchoripan.prints import print_big_bar
+	from fuzzytools.prints import print_big_bar
 
 	parser = argparse.ArgumentParser('usage description')
 	parser.add_argument('-method',  type=str, default='.', help='method')
@@ -18,7 +18,7 @@ if __name__== '__main__':
 
 	###################################################################################################################################################
 	import numpy as np
-	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
+	from fuzzytools.files import load_pickle, save_pickle, get_dict_from_filedir
 
 	filedir = f'../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
@@ -30,9 +30,9 @@ if __name__== '__main__':
 
 	###################################################################################################################################################
 	import numpy as np
-	import flamingchoripan.files as fcfiles
-	from flamingchoripan.progress_bars import ProgressBar
-	from flamingchoripan.files import load_pickle, save_pickle
+	import fuzzytools.files as fcfiles
+	from fuzzytools.progress_bars import ProgressBar
+	from fuzzytools.files import load_pickle, save_pickle
 	from synthsne import C_
 
 	kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf

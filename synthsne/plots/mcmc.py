@@ -3,9 +3,9 @@ from __future__ import division
 from . import C_
 
 import numpy as np
-import flamingchoripan.cuteplots.plots as cpplots
-import flamingchoripan.cuteplots.colors as cpc
-from flamingchoripan.cuteplots.utils import save_fig
+import fuzzytools.cuteplots.plots as cpplots
+import fuzzytools.cuteplots.colors as cpc
+from fuzzytools.cuteplots.utils import save_fig
 import matplotlib.pyplot as plt
 
 ###################################################################################################################################################

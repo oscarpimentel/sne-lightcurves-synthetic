@@ -2,13 +2,13 @@
 # -*- coding: utf-8 -*
 import sys
 sys.path.append('../') # or just install the module
-sys.path.append('../../flaming-choripan') # or just install the module
+sys.path.append('../../fuzzy-tools') # or just install the module
 sys.path.append('../../astro-lightcurves-handler') # or just install the module
 
 if __name__== '__main__':
 	### parser arguments
 	import argparse
-	from flamingchoripan.prints import print_big_bar
+	from fuzzytools.prints import print_big_bar
 
 	parser = argparse.ArgumentParser('usage description')
 	parser.add_argument('-method',  type=str, default='.', help='method')
@@ -19,7 +19,7 @@ if __name__== '__main__':
 
 	###################################################################################################################################################
 	import numpy as np
-	from flamingchoripan.files import load_pickle, save_pickle, get_dict_from_filedir
+	from fuzzytools.files import load_pickle, save_pickle, get_dict_from_filedir
 
 	filedir = f'../../surveys-save/survey=alerceZTFv7.1~bands=gr~mode=onlySNe.splcds'
 	filedict = get_dict_from_filedir(filedir)
@@ -34,13 +34,13 @@ if __name__== '__main__':
 	import pandas as pd
 	import numpy as np
 	from synthsne import C_
-	import flamingchoripan.files as ff
-	from flamingchoripan.progress_bars import ProgressBar
-	from flamingchoripan.files import load_pickle, save_pickle
+	import fuzzytools.files as ff
+	from fuzzytools.progress_bars import ProgressBar
+	from fuzzytools.files import load_pickle, save_pickle
 	from synthsne.distr_fittings import ObsErrorConditionalSampler
 	from synthsne.plots.samplers import plot_obse_samplers
 	from synthsne.plots.mcmc import plot_mcmc_prior
-	from flamingchoripan.dicts import along_dict_obj_method
+	from fuzzytools.dicts import along_dict_obj_method
 	from nested_dict import nested_dict
 	import synthsne.generators.mcmc_priors as mp
 	from synthsne.results import synth_method_statistics as sms

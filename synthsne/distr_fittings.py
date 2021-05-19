@@ -7,7 +7,7 @@ import numpy as np
 import scipy
 import scipy.stats as stats
 from sklearn import preprocessing as prep
-from flamingchoripan.datascience.statistics import dropout_extreme_percentiles, get_linspace_ranks
+from fuzzytools.datascience.statistics import dropout_extreme_percentiles, get_linspace_ranks
 from sklearn.decomposition import PCA
 
 ###################################################################################################################################################

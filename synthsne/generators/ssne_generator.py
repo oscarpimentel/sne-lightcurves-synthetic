@@ -4,7 +4,7 @@ from . import C_
 
 import numpy as np
 from .traces import Trace
-from flamingchoripan.times import Cronometer
+from fuzzytools.times import Cronometer
 from . import exceptions as ex
 from . import time_meshs as tm
 from lchandler.lc_classes import diff_vector, get_obs_noise_gaussian

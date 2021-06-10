@@ -7,7 +7,7 @@ from .traces import Trace
 from fuzzytools.times import Cronometer
 from . import exceptions as ex
 from . import time_meshs as tm
-from lchandler.lc_classes import diff_vector, get_obs_noise_gaussian
+from lchandler.lc_classes import diff_vector, get_new_noisy_obs
 
 ###################################################################################################################################################
 
@@ -126,12 +126,7 @@ class SynSNeGenerator():
 				new_days = np.linspace(spm_times['ti'], spm_times['tf'], spm_obs_n if len(lcobjb)>1 else 1)
 			else:
 				### generate days grid according to cadence
-				original_days = lcobjb.days
-				#print(spm_times['ti'], spm_times['tf'], original_days)
-				#new_days = tm.get_augmented_time_mesh(original_days, spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*0.5))
-				#new_days = tm.get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, None, 0.3333)
-				new_days = tm.get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, int(len(original_days)*1.))
-				
+				new_days = tm.get_augmented_time_mesh([], spm_times['ti'], spm_times['tf'], self.min_cadence_days, len(lcobjb.days))
 				new_days = new_days+np.random.uniform(-self.hours_noise_amp/24., self.hours_noise_amp/24., len(new_days))
 				new_days = np.sort(new_days) # sort
 
@@ -157,7 +152,7 @@ class SynSNeGenerator():
 				#syn_std_scale = 1/10
 				syn_std_scale = self.std_scale
 				#syn_std_scale = self.std_scale*0.5
-				new_obs = get_obs_noise_gaussian(spm_obs, new_obse, min_obs_threshold, syn_std_scale)
+				new_obs = get_new_noisy_obs(spm_obs, new_obse, min_obs_threshold, std_scale=syn_std_scale)
 
 			if np.any(np.isnan(new_days)) or np.any(np.isnan(new_obs)) or np.any(np.isnan(new_obse)):
 				#print('continue2')

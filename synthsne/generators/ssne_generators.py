@@ -45,9 +45,6 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
 			if len(lcobjb)>0:
-				lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-				lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
-
 				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
 				sne_model = SNeModel(lcobjb, 'linear', spm_bounds, None)
 				trace.append(sne_model)
@@ -83,9 +80,6 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
 			if len(lcobjb)>0:
-				lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-				lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
-
 				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
 				try:
 					sne_model = SNeModel(lcobjb, 'bspline', spm_bounds, None)
@@ -140,7 +134,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
 			#'ftol':C_.CURVE_FIT_FTOL,
-			'sigma':obse**2+C_.REC_LOSS_EPS,
+			'sigma':C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2),
 		}
 
 		### fitting
@@ -161,9 +155,6 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 		for _ in range(max(n, self.n_trace_samples)):
 			lcobjb = self.lcobj.get_b(b).copy()
 			if len(lcobjb)>0:
-				lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-				lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
-
 				spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
 				try:
 					spm_args = self.get_curvefit_spm_args(lcobjb, spm_bounds, fs.syn_sne_sfunc)
@@ -229,7 +220,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
 			#'ftol':C_.CURVE_FIT_FTOL,
-			'sigma':obse**2+C_.REC_LOSS_EPS,
+			'sigma':C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2),
 		}
 
 		### fitting
@@ -313,9 +304,6 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			for _ in range(max(n, self.n_trace_samples)):
 				lcobjb = self.lcobj.get_b(b).copy()
 				if len(lcobjb)>0:
-					lcobjb.add_day_noise_uniform(self.hours_noise_amp) # add day noise
-					lcobjb.add_obs_noise_gaussian(self.min_obs_bdict[b], self.std_scale) # add obs noise
-
 					spm_bounds = priors.get_spm_bounds(lcobjb, self.class_names)
 					sne_model = SNeModel(lcobjb, 'linear', spm_bounds, None)
 					trace.append(sne_model)

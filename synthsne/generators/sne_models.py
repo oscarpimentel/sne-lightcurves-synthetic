@@ -32,11 +32,11 @@ class SNeModel():
 			if len(self.lcobjb)>1:
 				if self.spm_type=='bspline':
 					try:
-						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=self.lcobjb.obse**2+C_.REC_LOSS_EPS)
+						sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(self.lcobjb.obse**2)
+						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=sigma)
 						parametric_obs = splev(times, spl)
 					except TypeError:
 						raise ex.BSplineError()
-
 				elif self.spm_type=='linear':
 					interp = interp1d(self.lcobjb.days, self.lcobjb.obs, kind='linear', fill_value='extrapolate')
 					parametric_obs = interp(times)
@@ -52,12 +52,11 @@ class SNeModel():
 		else:
 			return self.inv_func(times, *[self.spm_args for p in self.parameters])
 
-	def get_error(self, times, real_obs, real_obse,
-		scale=C_.ERROR_SCALE,
-		):
+	def get_error(self, times, real_obs, real_obse):
 		syn_obs = self.evaluate(times)
-		error = (real_obs-syn_obs)**2/(real_obse**2+C_.REC_LOSS_EPS)
-		return error.mean()*scale
+		sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(real_obse**2)
+		error = (real_obs-syn_obs)**2/sigma
+		return error.mean()*C_.ERROR_SCALE
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,
 		pre_tmax_offset=C_.PRE_TMAX_OFFSET,
@@ -65,7 +64,6 @@ class SNeModel():
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]
 		tmax_day = self.lcobjb.days[np.argmax(self.lcobjb.obs)]
-
 		if uses_estw and not self.uses_interp():
 			func_args = tuple([self.spm_args[p] for p in self.parameters])
 			spm_tmax = fmin(self.inv_func, self.spm_args['t0'], func_args, disp=False)[0]
@@ -84,7 +82,6 @@ class SNeModel():
 				ti = first_day
 			else:
 				ti = max(first_day_prev, spm_tmax)
-
 			spm_times = {
 				'ti':ti,
 				'spm_tmax':spm_tmax,

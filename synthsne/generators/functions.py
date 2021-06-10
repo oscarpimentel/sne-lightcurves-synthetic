@@ -77,9 +77,9 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 	return p
 
 @jit(nopython=True)
-def log_likelihood(spm_obs, days, obs, obse):
-	#sigma = obse**2+C_.EPS#+C_.REC_LOSS_EPS
-	sigma = obse**2+C_.REC_LOSS_EPS
+def gaussian_log_likelihood(spm_obs, days, obs, obse):
+	sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2)
+	simga = 10*sigma
 	return -0.5 * np.sum((obs - spm_obs)**2/sigma + np.log(sigma))
 
 #@jit(nopython=True)
@@ -90,5 +90,5 @@ def log_probability(theta, d_theta, func, days, obs, obse):
 	if not np.isfinite(lp): # not finite
 		return -np.inf # big negative number
 	spm_obs = func(days, *theta)
-	log_probability = lp + log_likelihood(spm_obs, days, obs, obse)
+	log_probability = lp + gaussian_log_likelihood(spm_obs, days, obs, obse)
 	return log_probability

@@ -8,7 +8,7 @@ from fuzzytools.progress_bars import ProgressBar
 from fuzzytools.files import filedir_exists, PFile
 from fuzzytools.cuteplots.utils import IFile
 from .plots.lc import plot_synthetic_samples
-from fuzzytools.lists import get_list_chunks
+from fuzzytools.multiprocessing import get_joblib_config_batches
 from joblib import Parallel, delayed
 from .generators import ssne_generators as ssneg
 
@@ -86,22 +86,19 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	synthetic_samples_per_curve:float=4,
 	sne_specials_df=None,
 	mcmc_priors=None,
-	backend=C_.JOBLIB_BACKEND,
-	n_jobs=C_.N_JOBS,
-	chunk_size=C_.CHUNK_SIZE,
+	backend='multiprocessing',
 	):
 	lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
 	#lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names()]
 	#lcobj_names = ['ZTF20aasfhia', 'ZTF19aassqix', 'ZTF19aauivtj','ZTF19aczeomw', 'ZTF19abfibel', 'ZTF19acjwdnu', 'ZTF19adbryab', 'ZTF18abeajml', 'ZTF18aaxkfos', 'ZTF19aarnqys', 'ZTF19aailcgs']
 	#lcobj_names = ['ZTF20aavvaup']
-	chunks = get_list_chunks(lcobj_names, chunk_size)
-	bar = ProgressBar(len(chunks))
-	for kc,chunk in enumerate(chunks):
-		bar(f'method={method}  - lcset_name={lcset_name} - samples={synthetic_samples_per_curve} - chunk={chunk}')
+	batches, n_jobs = get_joblib_config_batches(lcobj_names, backend)
+	bar = ProgressBar(len(batches))
+	for kc,batch in enumerate(batches):
+		bar(f'method={method}  - lcset_name={lcset_name} - samples={synthetic_samples_per_curve} - batch={batch}({len(batch)}#)')
 		jobs = []
-		for lcobj_name in chunk:
+		for lcobj_name in batch:
 			if lcobj_name in lcset.get_lcobj_names():
-			#if 1:
 				jobs.append(delayed(generate_synthetic_samples)(
 					lcobj_name,
 					lcset[lcobj_name],

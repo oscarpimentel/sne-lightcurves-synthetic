@@ -32,7 +32,7 @@ EXT_PARAMETRIC_LIGHTCURVE = 'plcd' # with sigma clipping and fitted parametric m
 EXT_FATS_LIGHTCURVE = 'flcd' # with sigma clipping and FATS
 
 ### SYNTHETIC
-OBSE_STD_SCALE = 1/2 # ***
+OBSE_STD_SCALE = 1/2
 MIN_CADENCE_DAYS = 2
 HOURS_NOISE_AMP = 6 # to generate grid, 6 not 6/24
 

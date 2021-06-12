@@ -12,7 +12,7 @@ from fuzzytools.prints import print_big_bar
 parser = argparse.ArgumentParser(prefix_chars='--')
 parser.add_argument('--method',  type=str, default='.')
 parser.add_argument('--kf',  type=str, default='.')
-parser.add_argument('--setn',  type=str, default='.')
+parser.add_argument('--setn',  type=str, default='train')
 main_args = parser.parse_args()
 print_big_bar()
 
@@ -37,7 +37,7 @@ from synthsne import C_
 
 kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
 kfs = [kfs] if isinstance(kfs, str) else kfs
-setns = [str(setn) for setn in ['train']] if main_args.setn=='.' else main_args.setn
+setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
 setns = [setns] if isinstance(setns, str) else setns
 
 new_lcdataset = lcdataset.copy() # copy with all original lcsets
@@ -60,6 +60,7 @@ for setn in setns:
 				synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
 
 		bar.done()
+		synth_lcset.reset()
 		new_lcset_name = f'{lcset_name}.{main_args.method}'
 		new_lcdataset.set_lcset(new_lcset_name, synth_lcset)
 

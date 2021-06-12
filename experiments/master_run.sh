@@ -12,7 +12,7 @@ methods=(
 	)
 for method in "${methods[@]}"; do
 	script="python generate_synth_objs.py --method $method"
-	# script="python export_synth_datasets.py --method $method"
+	script="python export_synth_datasets.py --method $method"
 	echo "$script"; eval "$script"
 done
 

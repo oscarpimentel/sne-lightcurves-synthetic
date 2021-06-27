@@ -79,7 +79,6 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 @jit(nopython=True)
 def gaussian_log_likelihood(spm_obs, days, obs, obse):
 	sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2)
-	simga = 10*sigma
 	return -0.5 * np.sum((obs - spm_obs)**2/sigma + np.log(sigma))
 
 #@jit(nopython=True)

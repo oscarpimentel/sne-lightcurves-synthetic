@@ -79,7 +79,6 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 		ax.legend(loc='upper left')
 
 		### multiband colors
-		#ax.grid(color=C_.COLOR_DICT[b])
 		[ax.spines[border].set_color(C_.COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
 		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
 

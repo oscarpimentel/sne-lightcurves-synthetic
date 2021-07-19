@@ -33,7 +33,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 	title = ''
 	title += f'SNe multiband light curve & parametric model samples\n'
 	title += f'survey={survey}-{"".join(band_names)} [{lcset_name}] - obj={lcobj_name} [{class_names[lcobj.y]}]'+'\n'
-	title += ' - '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
+	title += '; '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
 	ax.set_title(title[:-1])
 	ax.legend(loc='upper right')
 	ax.set_ylabel('observation [flux]')
@@ -49,7 +49,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 			
 	ax.grid(alpha=0.5)
 	title = ''
-	title += ' - '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror_k(idx).set_repr_pm(False)}' for b in band_names])+'\n'
+	title += '; '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror_k(idx).set_repr_pm(False)}' for b in band_names])+'\n'
 	ax.set_title(title[:-1])
 	ax.legend(loc='upper right')
 	ax.set_ylabel('observation [flux]')

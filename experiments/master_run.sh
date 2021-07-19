@@ -5,8 +5,8 @@ clear
 methods=(
 	linear-fstw
 	bspline-fstw
-	spm-mle-fstw
-	spm-mle-estw
+	# spm-mle-fstw
+	# spm-mle-estw
 	spm-mcmc-fstw
 	spm-mcmc-estw
 	)

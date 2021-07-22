@@ -1,12 +1,12 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 import cProfile
 
 import numpy as np
 from fuzzytools.progress_bars import ProgressBar
 from fuzzytools.files import filedir_exists, PFile
-from fuzzytools.cuteplots.utils import IFile
+from fuzzytools.matplotlib.utils import IFile
 from .plots.lc import plot_synthetic_samples
 from fuzzytools.multiprocessing import get_joblib_config_batches
 from joblib import Parallel, delayed

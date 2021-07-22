@@ -32,7 +32,7 @@ print(lcdataset)
 from synthsne.synthetic_datasets import generate_synthetic_dataset
 import pandas as pd
 import numpy as np
-from synthsne import C_
+from synthsne import _C
 import fuzzytools.files as ff
 from fuzzytools.progress_bars import ProgressBar
 from fuzzytools.files import load_pickle, save_pickle
@@ -69,7 +69,7 @@ for setn in setns:
 
 		### generate synth curves
 		sd_kwargs = {
-			'synthetic_samples_per_curve':C_.SYNTH_SAMPLES_PER_CURVE,
+			'synthetic_samples_per_curve':_C.SYNTH_SAMPLES_PER_CURVE,
 			'method':main_args.method,
 			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
 			'mcmc_priors':load_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),

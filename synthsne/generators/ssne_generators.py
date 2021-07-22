@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
 import random
@@ -21,12 +21,12 @@ import scipy.stats as stats
 def override(func): return func # tricky
 class SynSNeGeneratorLinear(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=C_.N_TRACE_SAMPLES,
-		max_fit_error:float=C_.MAX_FIT_ERROR,
-		std_scale:float=C_.OBSE_STD_SCALE,
-		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		n_trace_samples=_C.N_TRACE_SAMPLES,
+		max_fit_error:float=_C.MAX_FIT_ERROR,
+		std_scale:float=_C.OBSE_STD_SCALE,
+		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
 		ignored=False,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
@@ -56,12 +56,12 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 
 class SynSNeGeneratorBSpline(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=C_.N_TRACE_SAMPLES,
-		max_fit_error:float=C_.MAX_FIT_ERROR,
-		std_scale:float=C_.OBSE_STD_SCALE,
-		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		n_trace_samples=_C.N_TRACE_SAMPLES,
+		max_fit_error:float=_C.MAX_FIT_ERROR,
+		std_scale:float=_C.OBSE_STD_SCALE,
+		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
 		ignored=False,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
@@ -96,12 +96,12 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 
 class SynSNeGeneratorMLE(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=C_.N_TRACE_SAMPLES,
-		max_fit_error:float=C_.MAX_FIT_ERROR,
-		std_scale:float=C_.OBSE_STD_SCALE,
-		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		n_trace_samples=_C.N_TRACE_SAMPLES,
+		max_fit_error:float=_C.MAX_FIT_ERROR,
+		std_scale:float=_C.OBSE_STD_SCALE,
+		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
 		ignored=False,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
@@ -115,7 +115,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 			)
 
 	def get_curvefit_spm_args(self, lcobjb, spm_bounds, _f):
-		if len(lcobjb)<C_.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<C_.MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
+		if len(lcobjb)<_C.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<_C.MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
 			raise ex.CurveFitError()
 		days, obs, obse = lu.extract_arrays(lcobjb)
 		p0 = priors.get_p0(lcobjb, spm_bounds)
@@ -123,7 +123,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 		### solve nans
 		invalid_indexs = (obs == np.infty) | (obs == -np.infty) | np.isnan(obs)
 		obs[invalid_indexs] = 0 # as a patch, use 0
-		obse[invalid_indexs] = 1/C_.EPS # as a patch, use a big obs error to null obs
+		obse[invalid_indexs] = 1/_C.EPS # as a patch, use a big obs error to null obs
 
 		### bounds
 		fit_kwargs = {
@@ -133,8 +133,8 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
-			#'ftol':C_.CURVE_FIT_FTOL,
-			'sigma':C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2),
+			#'ftol':_C.CURVE_FIT_FTOL,
+			'sigma':_C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(obse**2),
 		}
 
 		### fitting
@@ -171,18 +171,18 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 
 class SynSNeGeneratorMCMC(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=C_.N_TRACE_SAMPLES,
-		max_fit_error:float=C_.MAX_FIT_ERROR,
-		std_scale:float=C_.OBSE_STD_SCALE,
-		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		n_trace_samples=_C.N_TRACE_SAMPLES,
+		max_fit_error:float=_C.MAX_FIT_ERROR,
+		std_scale:float=_C.OBSE_STD_SCALE,
+		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
 		ignored=False,
 
 		mcmc_priors=None,
-		n_tune=C_.N_TUNE, # 500, 1000
+		n_tune=_C.N_TUNE, # 500, 1000
 		n_chains=24,
-		thin_by=C_.THIN_BY,
+		thin_by=_C.THIN_BY,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 			n_trace_samples,
@@ -199,7 +199,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		self.thin_by = thin_by
 		
 	def get_curvefit_spm_args(self, lcobjb, spm_bounds, _f):
-		if len(lcobjb)<C_.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<C_.MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
+		if len(lcobjb)<_C.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<_C.MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
 			raise ex.CurveFitError()
 		days, obs, obse = lu.extract_arrays(lcobjb)
 		p0 = priors.get_p0(lcobjb, spm_bounds)
@@ -207,7 +207,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		### solve nans
 		invalid_indexs = (obs == np.infty) | (obs == -np.infty) | np.isnan(obs)
 		obs[invalid_indexs] = 0 # as a patch, use 0
-		obse[invalid_indexs] = 1/C_.EPS # as a patch, use a big obs error to null obs
+		obse[invalid_indexs] = 1/_C.EPS # as a patch, use a big obs error to null obs
 
 		### bounds
 		fit_kwargs = {
@@ -219,8 +219,8 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
-			#'ftol':C_.CURVE_FIT_FTOL,
-			'sigma':C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2),
+			#'ftol':_C.CURVE_FIT_FTOL,
+			'sigma':_C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(obse**2),
 		}
 
 		### fitting

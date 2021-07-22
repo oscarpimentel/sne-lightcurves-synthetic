@@ -1,12 +1,12 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import fuzzytools.cuteplots.plots as cplots
-from fuzzytools.cuteplots.utils import save_fig
+import fuzzytools.matplotlib.plots as cplots
+from fuzzytools.matplotlib.utils import save_fig
 
 ###################################################################################################################################################
 
@@ -79,7 +79,7 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 		ax.legend(loc='upper left')
 
 		### multiband colors
-		[ax.spines[border].set_color(C_.COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
+		[ax.spines[border].set_color(_C.COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
 		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
 
 	fig.tight_layout()

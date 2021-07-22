@@ -33,7 +33,7 @@ import numpy as np
 import fuzzytools.files as fcfiles
 from fuzzytools.progress_bars import ProgressBar
 from fuzzytools.files import load_pickle, save_pickle
-from synthsne import C_
+from synthsne import _C
 
 kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
 kfs = [kfs] if isinstance(kfs, str) else kfs
@@ -65,5 +65,5 @@ for setn in setns:
 		new_lcdataset.set_lcset(new_lcset_name, synth_lcset)
 
 save_rootdir = f'{rootdir}'
-save_filedir = f'{save_rootdir}/{cfilename}~method={main_args.method}.{C_.EXT_SPLIT_LIGHTCURVE}'
+save_filedir = f'{save_rootdir}/{cfilename}~method={main_args.method}.{_C.EXT_SPLIT_LIGHTCURVE}'
 save_pickle(save_filedir, new_lcdataset)

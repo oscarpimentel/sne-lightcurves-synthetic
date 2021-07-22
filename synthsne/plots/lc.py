@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -28,7 +28,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 		for k in range(0, synth_curves_plot_max):
 			new_smooth_lcojb = new_smooth_lcojbs[k]
 			label = f'{b} SPM posterior samples' if k==0 else None
-			ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.25, lw=1, c=C_.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=C_.COLOR_DICT[b], label=label)
+			ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.25, lw=1, c=_C.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=_C.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
 	title = ''
 	title += f'SNe multiband light curve & parametric model samples\n'

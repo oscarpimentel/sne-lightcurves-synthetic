@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
 from . import lc_utils as lu
@@ -45,7 +45,7 @@ class MCMCPrior():
 class GammaP(MCMCPrior):
 	def __init__(self, _raw_samples_,
 		floc=1.,
-		eps=C_.EPS,
+		eps=_C.EPS,
 		**kwargs):
 		#raw_samples = np.clip(_raw_samples_, floc+eps, None)
 		raw_samples = np.array(_raw_samples_)

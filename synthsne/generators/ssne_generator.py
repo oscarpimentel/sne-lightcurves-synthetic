@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
 from .traces import Trace
@@ -14,12 +14,12 @@ from lchandler.lc_classes import diff_vector, get_new_noisy_obs
 def override(func): return func # tricky
 class SynSNeGenerator():
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=C_.N_TRACE_SAMPLES,
-		max_fit_error:float=C_.MAX_FIT_ERROR,
-		std_scale:float=C_.OBSE_STD_SCALE,
-		min_cadence_days:float=C_.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=C_.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=C_.HOURS_NOISE_AMP,
+		n_trace_samples=_C.N_TRACE_SAMPLES,
+		max_fit_error:float=_C.MAX_FIT_ERROR,
+		std_scale:float=_C.OBSE_STD_SCALE,
+		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
 		ignored=False,
 		):
 		self.lcobj = lcobj.copy()
@@ -137,13 +137,13 @@ class SynSNeGenerator():
 
 			### generate parametric observations
 			spm_obs = sne_model.evaluate(new_days)
-			if any(spm_obs<=C_.EPS):
+			if any(spm_obs<=_C.EPS):
 				continue
 				#spm_obs = np.clip(spm_obs, min_obs_threshold, None) # can't have observation above the threshold
 			
 			### resampling obs using obs error
 			if uses_smooth_obs:
-				new_obse = np.full(spm_obs.shape, C_.EPS)
+				new_obse = np.full(spm_obs.shape, _C.EPS)
 				new_obs = spm_obs
 			else:
 				new_obse, new_obs = obse_sampler.conditional_sample(spm_obs)

@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
 from scipy.interpolate import interp1d
@@ -32,7 +32,7 @@ class SNeModel():
 			if len(self.lcobjb)>1:
 				if self.spm_type=='bspline':
 					try:
-						sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(self.lcobjb.obse**2)
+						sigma = _C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(self.lcobjb.obse**2)
 						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=sigma)
 						parametric_obs = splev(times, spl)
 					except TypeError:
@@ -54,12 +54,12 @@ class SNeModel():
 
 	def get_error(self, times, real_obs, real_obse):
 		syn_obs = self.evaluate(times)
-		sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(real_obse**2)
+		sigma = _C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(real_obse**2)
 		error = (real_obs-syn_obs)**2/sigma
-		return error.mean()*C_.ERROR_SCALE
+		return error.mean()*_C.ERROR_SCALE
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,
-		pre_tmax_offset=C_.PRE_TMAX_OFFSET,
+		pre_tmax_offset=_C.PRE_TMAX_OFFSET,
 		):
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]

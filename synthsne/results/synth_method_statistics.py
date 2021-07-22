@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import fuzzytools.files as fcfiles
 from fuzzytools.datascience.xerror import XError
@@ -95,7 +95,7 @@ def get_info_dict(rootdir, methods, cfilename, kf, lcset_name,
 			files, files_ids = fcfiles.gather_files_by_kfold(_rootdir, kf, lcset_name)
 			traces = [f()['trace_bdict'][b] for f in files]
 			trace_errors = flat_list([t.get_valid_errors() for t in traces])
-			trace_errors_xe = XError(np.log(np.array(trace_errors)+C_.EPS))
+			trace_errors_xe = XError(np.log(np.array(trace_errors)+_C.EPS))
 			d['error'][method] = trace_errors_xe
 			d['success'][method] = len(trace_errors)/sum([len(t) for t in traces])*100
 

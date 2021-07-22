@@ -1,6 +1,6 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 from numba import jit
 import numpy as np
@@ -41,7 +41,7 @@ def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall):
 
 @jit(nopython=True)
 def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
-	eps=C_.EPS,
+	eps=_C.EPS,
 	):
 	p = 0
 	if A_pdf>0:
@@ -78,7 +78,7 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 
 @jit(nopython=True)
 def gaussian_log_likelihood(spm_obs, days, obs, obse):
-	sigma = C_.REC_LOSS_EPS+C_.REC_LOSS_K*(obse**2)
+	sigma = _C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(obse**2)
 	return -0.5 * np.sum((obs - spm_obs)**2/sigma + np.log(sigma))
 
 #@jit(nopython=True)

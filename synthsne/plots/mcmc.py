@@ -1,11 +1,11 @@
 from __future__ import print_function
 from __future__ import division
-from . import C_
+from . import _C
 
 import numpy as np
-import fuzzytools.cuteplots.plots as cpplots
-import fuzzytools.cuteplots.colors as cpc
-from fuzzytools.cuteplots.utils import save_fig
+import fuzzytools.matplotlib.plots as cpplots
+import fuzzytools.matplotlib.colors as cpc
+from fuzzytools.matplotlib.utils import save_fig
 import matplotlib.pyplot as plt
 
 ###################################################################################################################################################

@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lchandler.plots.lc import plot_lightcurve
 import random
+from fuzzytools.strings import bf_alphabet_count
 
 ###################################################################################################################################################
 
@@ -27,17 +28,16 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 		plot_lightcurve(ax, lcobj, b, label=f'{b} obs')
 		for k in range(0, synth_curves_plot_max):
 			new_smooth_lcojb = new_smooth_lcojbs[k]
-			label = f'{b} SPM posterior samples' if k==0 else None
+			label = f'{b} posterior samples' if k==0 else None
 			ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, alpha=0.25, lw=1, c=_C.COLOR_DICT[b]); ax.plot(np.nan, np.nan, lw=1, c=_C.COLOR_DICT[b], label=label)
 	ax.grid(alpha=0.5)
 	title = ''
-	title += f'SNe multiband light curve & parametric model samples\n'
-	title += f'survey={survey}-{"".join(band_names)} [{lcset_name}] - obj={lcobj_name} [{class_names[lcobj.y]}]'+'\n'
-	title += '; '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
+	title += f'SNe multi-band light curve generation for method {method}'+'\n'
+	title += f'set={survey} [{lcset_name}]; obj={lcobj_name} [{class_names[lcobj.y]}]'+'\n'
+	title += f'{bf_alphabet_count(0)} SPM posterior samples; $k_s$={synth_curves_plot_max}'+'; '.join([f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
 	ax.set_title(title[:-1])
 	ax.legend(loc='upper right')
 	ax.set_ylabel('observation [flux]')
-	#ax.set_xlabel('time[days]')
 
 	###
 	ax = axs[1]
@@ -49,7 +49,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 			
 	ax.grid(alpha=0.5)
 	title = ''
-	title += '; '.join([f'method={method}']+[f'{b}-error={trace_bdict[b].get_xerror_k(idx).set_repr_pm(False)}' for b in band_names])+'\n'
+	title += f'{bf_alphabet_count(1)} Synthetic light curve example'+'; '.join([f'{b}-error={trace_bdict[b].get_xerror_k(idx).set_repr_pm(False)}' for b in band_names])+'\n'
 	ax.set_title(title[:-1])
 	ax.legend(loc='upper right')
 	ax.set_ylabel('observation [flux]')

@@ -1,7 +1,11 @@
 #!/bin/bash
-SECONDS=0
 clear
+SECONDS=0
+run_script(){
+	echo "$1"; eval "$1";
+}
 
+###################################################################################################################################################
 methods=(
 	linear-fstw
 	bspline-fstw
@@ -11,10 +15,10 @@ methods=(
 	spm-mcmc-estw
 	)
 for method in "${methods[@]}"; do
-	script="python generate_synth_objs.py --method $method"
-	script="python export_synth_datasets.py --method $method"
-	echo "$script"; eval "$script"
+	run_script "python generate_synth_objs.py --method $method"
+	run_script "python export_synth_datasets.py --method $method"
 done
 
+###################################################################################################################################################
 mins=$((SECONDS/60))
 echo echo "Time Elapsed : ${mins} minutes"

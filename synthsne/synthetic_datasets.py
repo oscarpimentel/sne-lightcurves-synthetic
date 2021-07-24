@@ -8,9 +8,9 @@ from fuzzytools.progress_bars import ProgressBar
 from fuzzytools.files import filedir_exists, PFile
 from fuzzytools.matplotlib.utils import IFile
 from .plots.lc import plot_synthetic_samples
+from .generators import ssne_generators as ssneg
 from fuzzytools.multiprocessing import get_joblib_config_batches
 from joblib import Parallel, delayed
-from .generators import ssne_generators as ssneg
 
 ###################################################################################################################################################
 

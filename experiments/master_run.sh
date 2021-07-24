@@ -8,11 +8,11 @@ run_script(){
 ###################################################################################################################################################
 methods=(
 	linear-fstw
-	bspline-fstw
 	# spm-mle-fstw
 	# spm-mle-estw
 	spm-mcmc-fstw
 	spm-mcmc-estw
+	bspline-fstw
 	)
 for method in "${methods[@]}"; do
 	run_script "python generate_synth_objs.py --method $method"

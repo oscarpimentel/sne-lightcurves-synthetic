@@ -16,7 +16,7 @@ methods=(
 	)
 for method in "${methods[@]}"; do
 	run_script "python generate_synth_objs.py --method $method"
-	# run_script "python export_synth_datasets.py --method $method"
+	run_script "python export_synth_datasets.py --method $method"
 done
 
 ###################################################################################################################################################

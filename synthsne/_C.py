@@ -12,7 +12,7 @@ N_TUNE = 2000
 THIN_BY = 20 # 10 12 # drastically affects computation time. higher, the best
 SYNTH_SAMPLES_PER_CURVE = 32 # 8 16 32
 CURVE_FIT_FTOL = .01
-PRE_TMAX_OFFSET = 15 # 0 1 5 10 20
+PRE_TMAX_OFFSET = 10 # 0 1 5 10 20
 
 ### OPT
 RE_CLOSS_EPS = 1

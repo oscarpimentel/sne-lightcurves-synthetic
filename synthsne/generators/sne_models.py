@@ -67,21 +67,11 @@ class SNeModel():
 		if uses_estw and not self.uses_interp():
 			func_args = tuple([self.spm_args[p] for p in self.parameters])
 			spm_tmax = fmin(self.inv_func, self.spm_args['t0'], func_args, disp=False)[0]
-			first_day_prev = first_day-pre_tmax_offset
-			spm_tmax_prev = spm_tmax-pre_tmax_offset
-
-			### find peak and extend
-			'''			
-			if first_day<=spm_tmax_prev:
-				ti = first_day
-			else:
-				ti_search_range = (spm_tmax_prev, spm_tmax)
-				ti = get_min_in_time_window(ti_search_range, syn_sne_sfunc, func_args, min_obs_threshold)	'''
-
 			if first_day<spm_tmax: # pre-preak observation exists
 				ti = first_day
 			else:
-				ti = max(first_day_prev, spm_tmax)
+				ti = first_day-pre_tmax_offset
+			# ti = min(first_day, spm_tmax-pre_tmax_offset)
 			spm_times = {
 				'ti':ti,
 				'spm_tmax':spm_tmax,

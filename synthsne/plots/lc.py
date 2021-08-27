@@ -42,7 +42,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 
 	ax.grid(alpha=0.5)
 	title = ''
-	title += f'SNe multi-band light curve generation for method {method}'+'\n'
+	title += f'{bf_alphabet_count(class_names.index(class_names[lcobj.y]))} SNe multi-band light curve generation for method {method}'+'\n'
 	# title += f'set={survey} [{lcset_name.replace(".@", "")}]'+'\n'
 	title += f'obj={lcobj_name} [{class_names[lcobj.y]}]'+'\n'
 	title += f'$k_s$={synth_curves_plot_max}; '+'; '.join([f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'

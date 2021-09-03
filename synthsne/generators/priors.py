@@ -29,7 +29,7 @@ def get_spm_bounds(lcobjb, class_names):
 		't0':(first_day-10, day_max_flux+50), # curve-wise
 		#'gamma':(3, 100),
 		'gamma':(1, 120), # gamma is important
-		'f':(0, 1), # .5 .75 .99 1
+		'f':(0, 1),
 		'trise':(1, 50),
 		'tfall':(1, 130),
 	}
@@ -70,15 +70,14 @@ def get_p0(lcobjb, spm_bounds):
 	A_guess = 1.2*max_flux
 
 	### t0
-	t0_guess = (first_flux+max_flux_day)/2
-	#t0_guess = max_flux_day
+	t0_guess = max_flux_day
 	
 	### gamma
 	mask = obs >= max_flux / 3. #np.percentile(obs, 33)
 	gamma_guess = new_days[mask].max() - new_days[mask].min() if mask.sum() > 0 else spm_bounds['gamma'][0]
 
 	### f
-	f_guess = sum(spm_bounds['f'])/2
+	f_guess = 0.5
 	
 	### trise
 	trise_guess = (max_flux_day - first_day) / 2.

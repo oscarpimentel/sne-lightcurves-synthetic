@@ -256,11 +256,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 			aux_spm_bounds = priors.get_spm_bounds(aux_lcobjb, self.class_names)
 			aux_spm_args = self.get_curvefit_spm_args(aux_lcobjb, aux_spm_bounds, fs.syn_sne_sfunc)
 			#print('aux_spm_args')
-			uniform_params = [
-				#'A',
-				#'t0',
-				]
-			d_theta = [priors.get_spm_gaussian_sphere(aux_spm_args, spm_bounds, k_std=.1, uniform_params=uniform_params)[spm_p] for spm_p in spm_bounds.keys()]
+			d_theta = [priors.get_spm_gaussian_sphere(aux_spm_args, spm_bounds, k_std=.1)[spm_p] for spm_p in spm_bounds.keys()]
 
 		except ex.CurveFitError:
 			raise ex.MCMCError()

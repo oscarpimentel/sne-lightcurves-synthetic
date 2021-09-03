@@ -91,7 +91,7 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	lcobj_names = lcset.get_lcobj_names()
 	# lcobj_names = [lcobj_name for lcobj_name in lcset.get_lcobj_names() if not filedir_exists(f'{ssne_save_rootdir}/{lcobj_name}.ssne')]
 	#lcobj_names = ['ZTF20aasfhia', 'ZTF19aassqix', 'ZTF19aauivtj','ZTF19aczeomw', 'ZTF19abfibel', 'ZTF19acjwdnu', 'ZTF19adbryab', 'ZTF18abeajml', 'ZTF18aaxkfos', 'ZTF19aarnqys', 'ZTF19aailcgs']
-	#lcobj_names = ['ZTF20aavvaup']
+	# lcobj_names = ['ZTF19aailcgs']
 	batches, n_jobs = get_joblib_config_batches(lcobj_names, backend)
 	bar = ProgressBar(len(batches))
 	for kc,batch in enumerate(batches):

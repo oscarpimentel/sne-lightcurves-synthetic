@@ -7,20 +7,25 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import fuzzytools.matplotlib.plots as cplots
 from fuzzytools.matplotlib.utils import save_fig
+from fuzzytools.strings import bf_alphabet_count
+
+FIGSIZE_2X1 = (14, 5.5)
+DPI = 200
 
 ###################################################################################################################################################
 
 def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 	original_space:bool=1,
 	pdf_scale:float=0.01,
-	figsize:tuple=(12,8),
+	figsize=FIGSIZE_2X1,
+	dpi=DPI,
 	add_samples=0,
 	save_filedir=None,
 	):
 	survey = lcset_info['survey']
 	band_names = lcset_info['band_names']
 
-	fig, axs = plt.subplots(1, 2, figsize=figsize)
+	fig, axs = plt.subplots(1, 2, figsize=figsize, dpi=dpi)
 	for kb,b in enumerate(band_names):
 		ax = axs[kb]
 		obse_sampler = obse_sampler_bdict[b]
@@ -43,19 +48,18 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
 			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
-			title = f'survey={survey}; band={b}'
-			ax.set_xlabel('obs-error')
-			ax.set_ylabel('obs' if kb==0 else None)
+			ax.set_xlabel('observation error')
+			ax.set_ylabel('observation' if kb==0 else None)
 			ax.set_xlim([0.0, 0.05])
 			ax.set_ylim([0.0, 0.3])
 
 		else:
-			label='$p(x_{ij}'+"'"+',\sigma_{xij}'+"'"+')$'+f' {lcset_name} samples'
+			label='$p(x_{ij}'+"'"+',\sigma_{xij}'+"'"+')$'+f' empirical samples'
 			ax.plot(obse_sampler.obse, obse_sampler.obs, 'k.', markersize=2, alpha=0.2); ax.plot(np.nan, np.nan, 'k.', label=label)
 			min_obse = obse_sampler.obse.min()
 			max_obse = obse_sampler.obse.max()
 			pdfx = np.linspace(min_obse, max_obse, 200)
-			colors = cm.viridis(np.linspace(0, 1, len(obse_sampler.distrs)))
+			colors = cm.inferno(np.linspace(0, .5, len(obse_sampler.distrs)))
 			min_pdfy = np.infty
 			for p_idx in range(len(obse_sampler.distrs)):
 				d = obse_sampler.distrs[p_idx]
@@ -65,17 +69,18 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 					pdfy = d['distr'].pdf(pdfx, *d['params'])
 					pdfy = pdfy/pdfy.max()*pdf_scale+pdf_offset
 					c = colors[p_idx]
-					label = '$\hat{p}(\sigma_{xij}'+"'"+'|x_{ij}'+"'"+')$ Gaussian conditional fit'
+					label = '$q(\sigma_{xij}'+"'"+'|x_{ij}'+"'"+')$ normal conditional fit'
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
 					min_pdfy = pdfy.min() if pdfy.min()<min_pdfy else min_pdfy
 			
-			title = f'set={survey}; band={b}'
-			ax.set_xlabel('rotated-flipped obs-error')
-			ax.set_ylabel('rotated obs' if kb==0 else None)
+			ax.set_xlabel('rotated-flipped observation error')
+			ax.set_ylabel('rotated observation' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
 			ax.set_ylim([min_pdfy, 1])
 
-		ax.set_title(title)
+		title = ''
+		title += f'{bf_alphabet_count(kb)} Joint distribution from {lcset_name}; band={b}'+'\n'
+		ax.set_title(title[:-1])
 		ax.legend(loc='upper left')
 
 		### multiband colors

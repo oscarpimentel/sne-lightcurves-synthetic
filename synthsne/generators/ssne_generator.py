@@ -43,8 +43,8 @@ class SynSNeGenerator():
 
 	def sample_curves(self, n):
 		cr = Cronometer()
-		new_lcobjs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
-		new_smooth_lcojbs = [self.lcobj.copy_only_data() for _ in range(n)] # holders
+		new_lcobjs = [self.lcobj.copy_only_metadata() for _ in range(n)] # holders
+		new_smooth_lcojbs = [self.lcobj.copy_only_metadata() for _ in range(n)] # holders
 		trace_bdict = {}
 		for b in self.band_names:
 			new_lcobjbs, new_smooth_lcobjbs, trace = self.sample_curves_b(b, n)

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm
 import fuzzytools.matplotlib.plots as cplots
 from fuzzytools.matplotlib.utils import save_fig
-from fuzzytools.strings import bf_alphabet_count
+from fuzzytools.strings import latex_bf_alphabet_count
 
 FIGSIZE_2X1 = (14, 5.5)
 DPI = 200
@@ -79,7 +79,7 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 			ax.set_ylim([min_pdfy, 1])
 
 		title = ''
-		title += f'{bf_alphabet_count(kb)} Joint distribution from {lcset_name}; band={b}'+'\n'
+		title += f'{latex_bf_alphabet_count(kb)} Joint distribution from {lcset_name}; band={b}'+'\n'
 		ax.set_title(title[:-1])
 		ax.legend(loc='upper left')
 

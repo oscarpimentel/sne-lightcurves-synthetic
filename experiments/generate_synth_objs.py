@@ -12,7 +12,7 @@ from fuzzytools.prints import print_big_bar
 parser = argparse.ArgumentParser(prefix_chars='--')
 parser.add_argument('--method',  type=str, default='.')
 parser.add_argument('--kf',  type=str, default='.')
-parser.add_argument('--setn',  type=str, default='train')
+parser.add_argument('--setn',  type=str, default='training')
 main_args = parser.parse_args()
 print_big_bar()
 
@@ -46,7 +46,7 @@ from synthsne.results import synth_method_statistics as sms
 
 kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
 kfs = [kfs] if isinstance(kfs, str) else kfs
-setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
+setns = [str(setn) for setn in ['training', 'val']] if main_args.setn=='.' else main_args.setn
 setns = [setns] if isinstance(setns, str) else setns
 
 for setn in setns:

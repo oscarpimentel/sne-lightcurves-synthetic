@@ -9,8 +9,9 @@ import fuzzytools.matplotlib.plots as cplots
 from fuzzytools.matplotlib.utils import save_fig
 from fuzzytools.strings import latex_bf_alphabet_count
 
-FIGSIZE_2X1 = (14, 5.5)
+FIGSIZE_2X1 = (14,5.5)
 DPI = 200
+COLOR_DICT = _C.COLOR_DICT
 
 ###################################################################################################################################################
 
@@ -48,8 +49,8 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 			ax.plot(x, x*obse_sampler.m+obse_sampler.n, 'b', alpha=0.75, label='rotation axis', lw=1)
 			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
-			ax.set_xlabel('observation error')
-			ax.set_ylabel('observation' if kb==0 else None)
+			ax.set_xlabel('observation-error')
+			ax.set_ylabel('observation-level' if kb==0 else None)
 			ax.set_xlim([0.0, 0.05])
 			ax.set_ylim([0.0, 0.3])
 
@@ -69,12 +70,12 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 					pdfy = d['distr'].pdf(pdfx, *d['params'])
 					pdfy = pdfy/pdfy.max()*pdf_scale+pdf_offset
 					c = colors[p_idx]
-					label = '$q(\sigma_{xij}'+"'"+'|x_{ij}'+"'"+')$ normal conditional fit'
+					label = '$q(\sigma_{xij}'+"'"+'|x_{ij}'+"'"+')$ Normal distribution fit'
 					ax.plot(pdfx, pdfy, c=c, alpha=1, lw=1, label=label if p_idx==0 else None)
 					min_pdfy = pdfy.min() if pdfy.min()<min_pdfy else min_pdfy
 			
-			ax.set_xlabel('rotated-flipped observation error')
-			ax.set_ylabel('rotated observation' if kb==0 else None)
+			ax.set_xlabel('rotated-flipped observation-error')
+			ax.set_ylabel('rotated observation-level' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
 			ax.set_ylim([min_pdfy, 1])
 
@@ -84,7 +85,7 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 		ax.legend(loc='upper left')
 
 		### multiband colors
-		[ax.spines[border].set_color(_C.COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
+		[ax.spines[border].set_color(COLOR_DICT[b]) for border in ['bottom', 'top', 'right', 'left']]
 		[ax.spines[border].set_linewidth(2) for border in ['bottom', 'top', 'right', 'left']]
 
 	fig.tight_layout()

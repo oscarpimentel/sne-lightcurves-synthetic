@@ -50,7 +50,7 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 			#ax.plot(obse_sampler.lr_x, obse_sampler.lr_y, 'b.', alpha=1, markersize=4); ax.plot(np.nan, np.nan, 'b.', label='rotation axis support samples')
 
 			ax.set_xlabel('observation-error')
-			ax.set_ylabel('observation-level' if kb==0 else None)
+			ax.set_ylabel('observation-flux' if kb==0 else None)
 			ax.set_xlim([0.0, 0.05])
 			ax.set_ylim([0.0, 0.3])
 
@@ -75,7 +75,7 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 					min_pdfy = pdfy.min() if pdfy.min()<min_pdfy else min_pdfy
 			
 			ax.set_xlabel('rotated-flipped observation-error')
-			ax.set_ylabel('rotated observation-level' if kb==0 else None)
+			ax.set_ylabel('rotated observation-flux' if kb==0 else None)
 			#ax.set_xlim([0.0, 0.02])
 			ax.set_ylim([min_pdfy, 1])
 

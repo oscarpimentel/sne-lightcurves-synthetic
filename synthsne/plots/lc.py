@@ -43,12 +43,12 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 	ax.grid(alpha=0.0)
 	title = ''
 	title += f'SN multi-band light-curve generation; method={method}; $k_s$={synth_curves_plot_max}'+'\n'
-	# title += f'set={survey} [{lcset_name.replace(".@", "")}]'+'\n'
-	title += f'{latex_bf_alphabet_count(class_names.index(class_names[lcobj.y]))} obj={lcobj_name} [{class_names[lcobj.y]}]'+'; '+'; '.join([f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
+	class_name = class_names[lcobj.y].replace('*', '')
+	title += f'{latex_bf_alphabet_count(class_names.index(class_names[lcobj.y]))} obj={lcobj_name} [{class_name}]'+'; '+'; '.join([f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
 	ax.set_title(title[:-1])
 	ax.legend(loc='upper right')
-	ax.set_xlabel('time [days]')
-	ax.set_ylabel('observation [flux]')
+	ax.set_ylabel('observation-flux [flux]')
+	ax.set_xlabel('observation-time [days]')
 
 	fig.tight_layout()
 	return fig, ax

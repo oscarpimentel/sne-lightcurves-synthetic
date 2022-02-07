@@ -68,44 +68,12 @@ for setn in setns:
 		save_pickle(f'../save/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict.d', obse_sampler_bdict)
 
 		### generate synth curves
-		sd_kwargs = {
-			'synthetic_samples_per_curve':_C.SYNTH_SAMPLES_PER_CURVE,
-			'method':main_args.method,
-			'sne_specials_df':pd.read_csv(f'../data/{survey}/sne_specials.csv'),
-			'mcmc_priors':load_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
-		}
 		uses_estw = main_args.method.split('-')[-1]=='estw'
 		ssne_save_rootdir = f'../save/ssne/{main_args.method}/{cfilename}/{lcset_name}'
 		figs_save_rootdir = f'../save/ssne_figs/{main_args.method}/{cfilename}/{lcset_name}'
-		generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir, **sd_kwargs)
-
-		'''
-		### generate mcmc priors
-		if method in ['spm-mle-fstw']:
-			spm_classes = {
-				'A':'GammaP',
-				't0':'NormalP',
-				'gamma':'GammaP',
-				'f':'UniformP',
-				'trise':'GammaP',
-				'tfall':'GammaP',
-			}
-			mcmc_priors_full = nested_dict()
-			for c in class_names:
-				for b in band_names:
-					for spm_p in spm_classes.keys():
-						spm_p_samples = sms.get_spm_args(ssne_save_rootdir, spm_p, b, c)
-						#print(spm_p_samples)
-						mp_kwargs = {}
-						if spm_p=='A':
-							mp_kwargs = {'floc':0}
-						mcmc_prior = getattr(mp, spm_classes[spm_p])(spm_p_samples, **mp_kwargs)
-						mcmc_priors_full[b][c][spm_p] = mcmc_prior
-						plot_mcmc_prior(mcmc_prior, spm_p, b, c, save_filedir=f'../save/mcmc_priors/{cfilename}/{lcset_name}/{c}_{b}_{spm_p}.png')
-			
-			mcmc_priors_full = mcmc_priors_full.to_dict()
-
-			save_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors_full.d', mcmc_priors_full)
-			mcmc_priors = along_dict_obj_method(mcmc_priors_full, 'clean')
-			save_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', mcmc_priors)
-		'''
+		generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
+			synthetic_samples_per_curve=_C.SYNTH_SAMPLES_PER_CURVE,
+			method=main_args.method,
+			sne_specials_df=pd.read_csv(f'../data/{survey}/sne_specials.csv'),
+			mcmc_priors=load_pickle(f'../save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
+			)

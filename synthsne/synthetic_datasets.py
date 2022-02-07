@@ -95,7 +95,7 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
 	batches, n_jobs = get_joblib_config_batches(lcobj_names, backend)
 	bar = ProgressBar(len(batches))
 	for kc,batch in enumerate(batches):
-		bar(f'method={method} ; lcset_name={lcset_name}; samples={synthetic_samples_per_curve}; batch={batch}({len(batch)}#)')
+		bar(f'method={method}; lcset_name={lcset_name}; samples={synthetic_samples_per_curve}; batch={batch}({len(batch)}#)')
 		jobs = []
 		for lcobj_name in batch:
 			if lcobj_name in lcset.get_lcobj_names():

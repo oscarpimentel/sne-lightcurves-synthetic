@@ -46,7 +46,7 @@ for setn in setns:
 		lcset_name = f'{kf}@{setn}'
 		lcset = new_lcdataset[lcset_name]
 		synth_rootdir = f'../save/ssne/{main_args.method}/{cfilename}/{lcset_name}'
-		print('synth_rootdir=', synth_rootdir)
+		print(f'synth_rootdir={synth_rootdir}')
 		synth_lcset = lcset.copy({}) # copy
 		filedirs = fcfiles.get_filedirs(synth_rootdir, fext='ssne')
 		bar = ProgressBar(len(filedirs))

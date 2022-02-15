@@ -95,4 +95,4 @@ def plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict,
 	# fig.suptitle(suptitle[:-1], va='bottom', y=1-.1)
 
 	fig.tight_layout()
-	save_fig(save_filedir, fig)
+	save_fig(fig, save_filedir)

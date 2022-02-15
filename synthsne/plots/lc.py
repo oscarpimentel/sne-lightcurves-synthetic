@@ -33,7 +33,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 		new_smooth_lcojb = new_smooth_lcojbs[k]
 		for b in band_names:
 			ax.plot(new_smooth_lcojb.get_b(b).days, new_smooth_lcojb.get_b(b).obs, lw=lw, c=COLOR_DICT[b], alpha=alpha)
-			ax.plot([None], [None], lw=1, c=COLOR_DICT[b], label=f'{b} SPM posterior sample' if k==0 else None)
+			ax.plot([None], [None], lw=1, c=COLOR_DICT[b], zorder=-1, label=f'{b} SPM posterior sample' if k==0 else None)
 
 	idx = random.randint(0, len(new_smooth_lcojbs)-1)
 	for b in band_names:
@@ -47,8 +47,7 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
 	title += f'{latex_bf_alphabet_count(class_names.index(class_names[lcobj.y]))} obj={lcobj_name} [{class_name}]'+'; '+'; '.join([f'{b}-error={trace_bdict[b].get_xerror()}' for b in band_names])+'\n'
 	ax.set_title(title[:-1])
 	ax.legend(loc='upper right')
-	ax.set_ylabel('observation-flux [flux]')
+	ax.set_ylabel('observation [flux]')
 	ax.set_xlabel('observation-time [days]')
-
 	fig.tight_layout()
 	return fig, ax

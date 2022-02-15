@@ -9,6 +9,11 @@ from scipy.optimize import fmin
 from . import exceptions as ex
 from .functions import syn_sne_sfunc, inverse_syn_sne_sfunc, get_min_in_time_window
 
+REC_LOSS_EPS = _C.REC_LOSS_EPS
+REC_LOSS_K = _C.REC_LOSS_K
+ERROR_SCALE = _C.ERROR_SCALE
+PRE_TMAX_OFFSET = _C.PRE_TMAX_OFFSET
+
 ###################################################################################################################################################
 
 class SNeModel():
@@ -32,7 +37,7 @@ class SNeModel():
 			if len(self.lcobjb)>1:
 				if self.spm_type=='bspline':
 					try:
-						sigma = _C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(self.lcobjb.obse**2)
+						sigma = REC_LOSS_EPS+REC_LOSS_K*(self.lcobjb.obse**2)
 						spl = splrep(self.lcobjb.days, self.lcobjb.obs, w=sigma)
 						parametric_obs = splev(times, spl)
 					except TypeError:
@@ -54,12 +59,12 @@ class SNeModel():
 
 	def get_error(self, times, real_obs, real_obse):
 		syn_obs = self.evaluate(times)
-		sigma = _C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(real_obse**2)
+		sigma = REC_LOSS_EPS+REC_LOSS_K*(real_obse**2)
 		error = (real_obs-syn_obs)**2/sigma
-		return error.mean()*_C.ERROR_SCALE
+		return error.mean()*ERROR_SCALE
 
 	def get_spm_times(self, min_obs_threshold, uses_estw,
-		pre_tmax_offset=_C.PRE_TMAX_OFFSET,
+		pre_tmax_offset=PRE_TMAX_OFFSET,
 		):
 		first_day = self.lcobjb.days[0]
 		last_day = self.lcobjb.days[-1]

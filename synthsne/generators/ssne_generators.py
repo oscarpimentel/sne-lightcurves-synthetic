@@ -16,17 +16,31 @@ from . import functions as fs
 from .traces import Trace
 import scipy.stats as stats
 
+REC_LOSS_EPS = _C.REC_LOSS_EPS
+REC_LOSS_K = _C.REC_LOSS_K
+N_TRACE_SAMPLES = _C.N_TRACE_SAMPLES
+MAX_FIT_ERROR = _C.MAX_FIT_ERROR
+OBSE_STD_SCALE = _C.OBSE_STD_SCALE
+MIN_CADENCE_DAYS = _C.MIN_CADENCE_DAYS
+MIN_POINTS_LIGHTCURVE_DEFINITION = _C.MIN_POINTS_LIGHTCURVE_DEFINITION
+HOURS_NOISE_AMP = _C.HOURS_NOISE_AMP
+MIN_POINTS_LIGHTCURVE_FOR_SPMFIT = _C.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT
+MIN_DUR_LIGHTCURVE_FOR_SPMFIT = _C.MIN_DUR_LIGHTCURVE_FOR_SPMFIT
+EPS = _C.EPS
+N_TUNE = _C.N_TUNE
+THIN_BY = _C.THIN_BY
+
 ###################################################################################################################################################
 
 def override(func): return func # tricky
 class SynSNeGeneratorLinear(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=_C.N_TRACE_SAMPLES,
-		max_fit_error:float=_C.MAX_FIT_ERROR,
-		std_scale:float=_C.OBSE_STD_SCALE,
-		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
+		n_trace_samples=N_TRACE_SAMPLES,
+		max_fit_error:float=MAX_FIT_ERROR,
+		std_scale:float=OBSE_STD_SCALE,
+		min_cadence_days:float=MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=HOURS_NOISE_AMP,
 		ignored=False,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
@@ -56,12 +70,12 @@ class SynSNeGeneratorLinear(SynSNeGenerator):
 
 class SynSNeGeneratorBSpline(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=_C.N_TRACE_SAMPLES,
-		max_fit_error:float=_C.MAX_FIT_ERROR,
-		std_scale:float=_C.OBSE_STD_SCALE,
-		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
+		n_trace_samples=N_TRACE_SAMPLES,
+		max_fit_error:float=MAX_FIT_ERROR,
+		std_scale:float=OBSE_STD_SCALE,
+		min_cadence_days:float=MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=HOURS_NOISE_AMP,
 		ignored=False,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
@@ -96,12 +110,12 @@ class SynSNeGeneratorBSpline(SynSNeGenerator):
 
 class SynSNeGeneratorMLE(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=_C.N_TRACE_SAMPLES,
-		max_fit_error:float=_C.MAX_FIT_ERROR,
-		std_scale:float=_C.OBSE_STD_SCALE,
-		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
+		n_trace_samples=N_TRACE_SAMPLES,
+		max_fit_error:float=MAX_FIT_ERROR,
+		std_scale:float=OBSE_STD_SCALE,
+		min_cadence_days:float=MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=HOURS_NOISE_AMP,
 		ignored=False,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
@@ -115,7 +129,7 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 			)
 
 	def get_curvefit_spm_args(self, lcobjb, spm_bounds, _f):
-		if len(lcobjb)<_C.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<_C.MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
+		if len(lcobjb)<MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
 			raise ex.CurveFitError()
 		days, obs, obse = lu.extract_arrays(lcobjb)
 		p0 = priors.get_p0(lcobjb, spm_bounds)
@@ -123,18 +137,14 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 		### solve nans
 		invalid_indexs = (obs == np.infty) | (obs == -np.infty) | np.isnan(obs)
 		obs[invalid_indexs] = 0 # as a patch, use 0
-		obse[invalid_indexs] = 1/_C.EPS # as a patch, use a big obs error to null obs
+		obse[invalid_indexs] = 1/EPS # as a patch, use a big obs error to null obs
 
 		### bounds
 		fit_kwargs = {
-			#'method':'dogbox', # lm trf dogbox
-			#'absolute_sigma':True,
-			#'maxfev':1e6,
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
-			#'ftol':_C.CURVE_FIT_FTOL,
-			'sigma':_C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(obse**2),
+			'sigma':REC_LOSS_EPS+REC_LOSS_K*(obse**2),
 		}
 
 		### fitting
@@ -171,18 +181,18 @@ class SynSNeGeneratorMLE(SynSNeGenerator):
 
 class SynSNeGeneratorMCMC(SynSNeGenerator):
 	def __init__(self, lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-		n_trace_samples=_C.N_TRACE_SAMPLES,
-		max_fit_error:float=_C.MAX_FIT_ERROR,
-		std_scale:float=_C.OBSE_STD_SCALE,
-		min_cadence_days:float=_C.MIN_CADENCE_DAYS,
-		min_synthetic_len_b:int=_C.MIN_POINTS_LIGHTCURVE_DEFINITION,
-		hours_noise_amp:float=_C.HOURS_NOISE_AMP,
+		n_trace_samples=N_TRACE_SAMPLES,
+		max_fit_error:float=MAX_FIT_ERROR,
+		std_scale:float=OBSE_STD_SCALE,
+		min_cadence_days:float=MIN_CADENCE_DAYS,
+		min_synthetic_len_b:int=MIN_POINTS_LIGHTCURVE_DEFINITION,
+		hours_noise_amp:float=HOURS_NOISE_AMP,
 		ignored=False,
 
 		mcmc_priors=None,
-		n_tune=_C.N_TUNE, # 500, 1000
+		n_tune=N_TUNE, # 500, 1000
 		n_chains=24,
-		thin_by=_C.THIN_BY,
+		thin_by=THIN_BY,
 		**kwargs):
 		super().__init__(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
 			n_trace_samples,
@@ -199,7 +209,7 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		self.thin_by = thin_by
 		
 	def get_curvefit_spm_args(self, lcobjb, spm_bounds, _f):
-		if len(lcobjb)<_C.MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<_C.MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
+		if len(lcobjb)<MIN_POINTS_LIGHTCURVE_FOR_SPMFIT or lcobjb.get_days_duration()<MIN_DUR_LIGHTCURVE_FOR_SPMFIT:
 			raise ex.CurveFitError()
 		days, obs, obse = lu.extract_arrays(lcobjb)
 		p0 = priors.get_p0(lcobjb, spm_bounds)
@@ -207,20 +217,14 @@ class SynSNeGeneratorMCMC(SynSNeGenerator):
 		### solve nans
 		invalid_indexs = (obs == np.infty) | (obs == -np.infty) | np.isnan(obs)
 		obs[invalid_indexs] = 0 # as a patch, use 0
-		obse[invalid_indexs] = 1/_C.EPS # as a patch, use a big obs error to null obs
+		obse[invalid_indexs] = 1/EPS # as a patch, use a big obs error to null obs
 
 		### bounds
 		fit_kwargs = {
-			#'method':'lm',
-			#'method':'trf',
-			#'method':'dogbox',
-			#'absolute_sigma':True,
-			#'maxfev':1e6,
 			'check_finite':True,
 			'bounds':([spm_bounds[p][0] for p in spm_bounds.keys()], [spm_bounds[p][-1] for p in spm_bounds.keys()]),
 			'ftol':p0['A']/20., # A_guess
-			#'ftol':_C.CURVE_FIT_FTOL,
-			'sigma':_C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(obse**2),
+			'sigma':REC_LOSS_EPS+REC_LOSS_K*(obse**2),
 		}
 
 		### fitting

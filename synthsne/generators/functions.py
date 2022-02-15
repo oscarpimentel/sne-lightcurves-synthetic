@@ -5,6 +5,10 @@ from . import _C
 from numba import jit
 import numpy as np
 
+REC_LOSS_EPS = _C.REC_LOSS_EPS
+REC_LOSS_K = _C.REC_LOSS_K
+EPS = _C.EPS
+
 ###################################################################################################################################################
 
 def get_min_in_time_window(search_range, func, func_args,
@@ -41,7 +45,7 @@ def inverse_syn_sne_sfunc(t, A, t0, gamma, f, trise, tfall):
 
 @jit(nopython=True)
 def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
-	eps=_C.EPS,
+	eps=EPS,
 	):
 	p = 0
 	if A_pdf>0:
@@ -78,7 +82,7 @@ def log_prior(A_pdf, t0_pdf, gamma_pdf, f_pdf, trise_pdf, tfall_pdf,
 
 @jit(nopython=True)
 def gaussian_log_likelihood(spm_obs, days, obs, obse):
-	sigma = _C.RE_CLOSS_EPS+_C.RE_CLOSS_K*(obse**2)
+	sigma = REC_LOSS_EPS+REC_LOSS_K*(obse**2)
 	return -0.5 * np.sum((obs - spm_obs)**2/sigma + np.log(sigma))
 
 #@jit(nopython=True)

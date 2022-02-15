@@ -59,9 +59,9 @@ for setn in setns:
 
 		### export generators
 		obse_sampler_bdict_full = {b:ObsErrorConditionalSampler(lcset, b) for b in band_names}
-		plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/10.png')
-		plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/00.png')
-		plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/11.png')
+		plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/10.pdf')
+		plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/00.pdf')
+		plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/11.pdf')
 
 		save_pickle(f'../save/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
 		obse_sampler_bdict = along_dict_obj_method(obse_sampler_bdict_full, 'clean')

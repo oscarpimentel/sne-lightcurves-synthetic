@@ -13,7 +13,10 @@ methods=(
 	bspline-fstw
 	)
 for method in "${methods[@]}"; do
-	run_script "python generate_synth_objs.py --method $method"
+	for kf in {0..4}; do # 0..4
+		run_script "python generate_synth_objs.py --method $method --kf $kf"
+		:
+	done
 	# run_script "python export_synth_datasets.py --method $method"
 	:
 done

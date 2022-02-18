@@ -10,8 +10,7 @@ import argparse
 from fuzzytools.prints import print_big_bar
 
 parser = argparse.ArgumentParser(prefix_chars='--')
-parser.add_argument('--method',  type=str, default='.')
-parser.add_argument('--kf',  type=str, default='.')
+parser.add_argument('--method',  type=str)
 parser.add_argument('--setn',  type=str, default='train')
 main_args = parser.parse_args()
 print_big_bar()
@@ -35,34 +34,28 @@ from fuzzytools.progress_bars import ProgressBar
 from fuzzytools.files import load_pickle, save_pickle
 from synthsne import _C
 
-kfs = lcdataset.kfolds if main_args.kf=='.' else main_args.kf
-kfs = [kfs] if isinstance(kfs, str) else kfs
-setns = [str(setn) for setn in ['train', 'val']] if main_args.setn=='.' else main_args.setn
-setns = [setns] if isinstance(setns, str) else setns
-
 new_lcdataset = lcdataset.copy() # copy with all original lcsets
-for setn in setns:
-	for kf in kfs:
-		lcset_name = f'{kf}@{setn}'
-		lcset = new_lcdataset[lcset_name]
-		synth_rootdir = f'../save/ssne/{main_args.method}/{cfilename}/{lcset_name}'
-		print(f'synth_rootdir={synth_rootdir}')
-		synth_lcset = lcset.copy({}) # copy
-		filedirs = fcfiles.get_filedirs(synth_rootdir, fext='ssne')
-		bar = ProgressBar(len(filedirs))
+for kf in lcdataset.kfolds:
+	lcset_name = f'{kf}@{main_args.setn}'
+	lcset = new_lcdataset[lcset_name]
+	synth_rootdir = f'../save/ssne/{main_args.method}/{cfilename}/{lcset_name}'
+	print(f'synth_rootdir={synth_rootdir}')
+	synth_lcset = lcset.copy({}) # copy
+	filedirs = fcfiles.get_filedirs(synth_rootdir, fext='ssne')
+	bar = ProgressBar(len(filedirs))
 
-		for filedir in filedirs:
-			d = fcfiles.load_pickle(filedir)
-			lcobj_name = d['lcobj_name']
-			bar(f'lcset_name={lcset_name} - lcobj_name={lcobj_name}')
+	for filedir in filedirs:
+		d = fcfiles.load_pickle(filedir)
+		lcobj_name = d['lcobj_name']
+		bar(f'lcset_name={lcset_name}; lcobj_name={lcobj_name}')
 
-			for k,new_lcobj in enumerate(d['new_lcobjs']):
-				synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
+		for k,new_lcobj in enumerate(d['new_lcobjs']):
+			synth_lcset.set_lcobj(f'{lcobj_name}.{k+1}', new_lcobj)
 
-		bar.done()
-		synth_lcset.reset()
-		new_lcset_name = f'{lcset_name}.{main_args.method}'
-		new_lcdataset.set_lcset(new_lcset_name, synth_lcset)
+	bar.done()
+	synth_lcset.reset()
+	new_lcset_name = f'{lcset_name}.{main_args.method}'
+	new_lcdataset.set_lcset(new_lcset_name, synth_lcset)
 
 save_rootdir = f'{rootdir}'
 save_filedir = f'{save_rootdir}/{cfilename}~method={main_args.method}.{_C.EXT_SPLIT_LIGHTCURVE}'

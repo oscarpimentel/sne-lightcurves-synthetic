@@ -7,9 +7,9 @@ run_script(){
 
 ###################################################################################################################################################
 methods=(
+	linear-fstw
 	spm-mcmc-estw
 	spm-mcmc-fstw
-	linear-fstw
 	bspline-fstw
 	)
 for method in "${methods[@]}"; do

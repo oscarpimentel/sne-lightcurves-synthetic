@@ -147,11 +147,7 @@ class SynSNeGenerator():
 				new_obs = spm_obs
 			else:
 				new_obse, new_obs = obse_sampler.conditional_sample(spm_obs)
-
-				#new_obse = new_obse*0+new_obse[0]# dummy
-				#syn_std_scale = 1/10
 				syn_std_scale = self.std_scale
-				#syn_std_scale = self.std_scale*0.5
 				new_obs = get_new_noisy_obs(spm_obs, new_obse, min_obs_threshold, std_scale=syn_std_scale)
 
 			if np.any(np.isnan(new_days)) or np.any(np.isnan(new_obs)) or np.any(np.isnan(new_obse)):

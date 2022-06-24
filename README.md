@@ -1,6 +1,8 @@
 ![](https://img.shields.io/badge/python-3.7-orange)
 # SNe Light-Curves Synthetic
 
+![](imgs/ZTF18aaykjei.png)
+
 ## Installation
 
 ## How to use

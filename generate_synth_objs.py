@@ -11,6 +11,7 @@ from synthsne.synthetic_datasets import generate_synthetic_dataset
 from synthsne import _C
 from synthsne.distr_fittings import ObsErrorConditionalSampler
 from synthsne.plots.samplers import plot_obse_samplers
+from dynaconf import settings
 
 
 # parser and settings
@@ -38,21 +39,21 @@ class_names = lcset_info['class_names']
 
 # export generators
 obse_sampler_bdict_full = {b: ObsErrorConditionalSampler(lcset, b) for b in band_names}
-plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/10.pdf')
-plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/00.pdf')
-plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'../save/obse_sampler/{cfilename}/{lcset_name}/11.pdf')
-ft.files.save_pickle(f'../save/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
+plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=0, save_filedir=f'{settings.SAVE_PATH}/obse_sampler/{cfilename}/{lcset_name}/10.pdf')
+plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=0, add_samples=0, save_filedir=f'{settings.SAVE_PATH}/obse_sampler/{cfilename}/{lcset_name}/00.pdf')
+plot_obse_samplers(lcset_name, lcset_info, obse_sampler_bdict_full, original_space=1, add_samples=1, save_filedir=f'{settings.SAVE_PATH}/obse_sampler/{cfilename}/{lcset_name}/11.pdf')
+ft.files.save_pickle(f'{settings.SAVE_PATH}/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict_full.d', obse_sampler_bdict_full)
 obse_sampler_bdict = ft.dicts.along_dict_obj_method(obse_sampler_bdict_full, 'clean')
-ft.files.save_pickle(f'../save/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict.d', obse_sampler_bdict)
+ft.files.save_pickle(f'{settings.SAVE_PATH}/obse_sampler/{cfilename}/{lcset_name}/obse_sampler_bdict.d', obse_sampler_bdict)
 
 
 # generate synth curves
 uses_estw = main_args.method.split('-')[-1] == 'estw'
-ssne_save_rootdir = f'save/ssne/{main_args.method}/{cfilename}/{lcset_name}'
-figs_save_rootdir = f'save/ssne_figs/{main_args.method}/{cfilename}/{lcset_name}'
+ssne_save_rootdir = f'{settings.SAVE_PATH}/ssne/{main_args.method}/{cfilename}/{lcset_name}'
+figs_save_rootdir = f'{settings.SAVE_PATH}/ssne_figs/{main_args.method}/{cfilename}/{lcset_name}'
 generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
                            synthetic_samples_per_curve=_C.SYNTH_SAMPLES_PER_CURVE,
                            method=main_args.method,
                            sne_specials_df=pd.read_csv(f'data/{survey}/sne_specials.csv'),
-                           mcmc_priors=ft.files.load_pickle(f'save/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
+                           mcmc_priors=ft.files.load_pickle(f'{settings.SAVE_PATH}/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
                            )

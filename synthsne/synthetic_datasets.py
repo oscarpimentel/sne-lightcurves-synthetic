@@ -20,42 +20,22 @@ def get_syn_sne_generator(method):
     raise Exception(f'method={method}')
 
 
-def is_in_column(lcobj_name, sne_specials_df, column):
-    if sne_specials_df is None:
-        return False
-    # print(sne_specials_df)
-    lcobj_names = list(sne_specials_df[column].values)
-    # print(lcobj_names)
-    # assert 0
-    is_in = lcobj_name in lcobj_names
-    return is_in
-
-
 def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
                                method=None,
                                synthetic_samples_per_curve=4,
-                               sne_specials_df=None,
                                mcmc_priors=None,
                                ):
     band_names = lcset_info['band_names']
     class_names = lcset_info['class_names']
     c = class_names[lcobj.y]
-    ignored = is_in_column(lcobj_name, sne_specials_df, 'fit_ignored')
-    if ignored:  # fixmee
-        text_file = open("temp/error.txt", "w")
-        text_file.write("Purchase Amount:")
-        text_file.close()
-        assert 0  # fixmee
 
     # generate curves
     cmethod = '-'.join(method.split('-')[:-1])
     sne_generator = get_syn_sne_generator(cmethod)(lcobj, class_names, band_names, obse_sampler_bdict, uses_estw,
-                                                   ignored=ignored,
                                                    mcmc_priors=mcmc_priors,
                                                    )
     new_lcobjs_with_offset, new_smooth_lcojbs, trace_bdict, segs = sne_generator.sample_curves(synthetic_samples_per_curve)
     new_lcobjs = [new_lcobj.copy().reset_day_offset_serial() for new_lcobj in new_lcobjs_with_offset]
-
     d = {
         'lcobj_name': lcobj_name,
         'lcobj': lcobj,
@@ -66,7 +46,6 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
         'new_lcobjs': new_lcobjs,
         'trace_bdict': trace_bdict,
         'segs': segs,
-        'ignored': ignored,
         'synthetic_samples_per_curve': synthetic_samples_per_curve,
         'img_filedir': f'{figs_save_rootdir}/{c}/{lcobj_name}.pdf',
     }
@@ -77,7 +56,6 @@ def generate_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, obse_s
 def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
                                method=None,
                                synthetic_samples_per_curve=4,
-                               sne_specials_df=None,
                                mcmc_priors=None,
                                ):
     lcset_info = lcset.get_info()
@@ -92,7 +70,6 @@ def generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw,
                 jobs.append(delayed(generate_synthetic_samples)(lcobj_name, lcset[lcobj_name], lcset_name, lcset_info, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
                                                                 method,
                                                                 synthetic_samples_per_curve,
-                                                                sne_specials_df,
                                                                 mcmc_priors,
                                                                 ))
         results = Parallel(n_jobs=settings.N_JOBS, prefer='threads')(jobs)

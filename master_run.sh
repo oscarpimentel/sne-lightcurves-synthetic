@@ -32,7 +32,7 @@ for method in "${methods[@]}"; do
         :
     done
 	wait
-    # run_python_script "export_synth_datasets.py --method $method"
+    # run_python_script "export_synth_datasets.py --method $method"  # export all kf results
     :
     wait
 done

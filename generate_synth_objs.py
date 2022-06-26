@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*
 import sys
+import argparse
 sys.path.append('../fuzzy-tools')  # or just install the module
 sys.path.append('../astro-lightcurves-handler')  # or just install the module
-import argparse
 
-import pandas as pd
 import fuzzytools as ft
 from synthsne.synthetic_datasets import generate_synthetic_dataset
 from synthsne import _C
@@ -52,8 +51,7 @@ uses_estw = main_args.method.split('-')[-1] == 'estw'
 ssne_save_rootdir = f'{settings.SAVE_PATH}/ssne/{main_args.method}/{cfilename}/{lcset_name}'
 figs_save_rootdir = f'{settings.SAVE_PATH}/ssne_figs/{main_args.method}/{cfilename}/{lcset_name}'
 generate_synthetic_dataset(lcset_name, lcset, obse_sampler_bdict, uses_estw, ssne_save_rootdir, figs_save_rootdir,
-                           synthetic_samples_per_curve=_C.SYNTH_SAMPLES_PER_CURVE,
                            method=main_args.method,
-                           sne_specials_df=pd.read_csv(f'data/{survey}/sne_specials.csv'),
+                           synthetic_samples_per_curve=_C.SYNTH_SAMPLES_PER_CURVE,
                            mcmc_priors=ft.files.load_pickle(f'{settings.SAVE_PATH}/mcmc_priors/{cfilename}/{lcset_name}/mcmc_priors.d', return_none_if_missing=True),
                            )

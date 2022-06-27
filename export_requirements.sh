@@ -1,10 +1,17 @@
 #!/bin/bash
 source ~/.bashrc
-env_name="lchandler"
-conda activate $env_name
+reset
 
-rm requirements.txt
-pip freeze > requirements.txt
+# enter environment
+env_name="lchandler"
+# env_name=${PWD##*/}
+conda activate $env_name
+conda env list
 python --version
+
+
+# export
+rm requirements.txt
+pip list --format=freeze > requirements.txt
 rm environment.yml
 conda env export > environment.yml

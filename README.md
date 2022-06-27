@@ -1,5 +1,5 @@
-![](https://img.shields.io/badge/python-3.7-orange)
-# SNe Light-Curves Synthetic
+![](https://img.shields.io/badge/python-3.7-orange) ![](https://img.shields.io/badge/status-cleaning-green)
+# SNe Light-Curves Synthetic 🌟
 
 ![](imgs/ZTF18aaykjei.png)
 

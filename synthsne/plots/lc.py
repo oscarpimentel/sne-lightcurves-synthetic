@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import fuzzytools as ft
+from matplotlib.ticker import ScalarFormatter
 from lchandler.plots.lc import plot_lightcurve
 
 from . import _C
@@ -9,6 +10,11 @@ from . import _C
 COLOR_DICT = _C.COLOR_DICT
 FIGSIZE = (8, 4)
 DPI = 200
+
+
+class ScalarFormatterClass(ScalarFormatter):
+    def _set_format(self):
+        self.format = "%1.2f"
 
 
 def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, new_lcobjs, new_smooth_lcojbs,
@@ -46,5 +52,8 @@ def plot_synthetic_samples(lcobj_name, lcobj, lcset_name, lcset_info, method, ne
     ax.legend(loc='upper right')
     ax.set_ylabel('observation [flux]')
     ax.set_xlabel('observation-time [days]')
+    yScalarFormatter = ScalarFormatterClass(useMathText=True)
+    yScalarFormatter.set_powerlimits((0, 0))
+    ax.yaxis.set_major_formatter(yScalarFormatter)
     fig.tight_layout()
     return fig, ax

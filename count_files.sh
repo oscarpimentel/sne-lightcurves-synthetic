@@ -11,6 +11,7 @@ path=$(dirname $sh_path)
 echo -e "\e[7mcounting $ext files in $path:\e[27m"
 find . -maxdepth $maxdepth -type d | while read -r dir
 do printf "%s:\t" "$dir"; find "$dir" -type f -name "*$ext" | wc -l; done
+find . -type f -printf '%TY-%Tm-%Td %TH:%TM: %Tz %p\n'| sort -n | tail -n1
 cd ..
 
 cd ssne_figs
@@ -20,4 +21,5 @@ path=$(dirname $sh_path)
 echo -e "\e[7mcounting $ext files in $path:\e[27m"
 find . -maxdepth $maxdepth -type d | while read -r dir
 do printf "%s:\t" "$dir"; find "$dir" -type f -name "*$ext" | wc -l; done
+find . -type f -printf '%TY-%Tm-%Td %TH:%TM: %Tz %p\n'| sort -n | tail -n1
 cd ..

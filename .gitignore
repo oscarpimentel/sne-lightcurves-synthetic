@@ -2,8 +2,8 @@
 *.pyc*
 *.ipynb_checkpoints*
 *__pycache__*
-.vscode/
-*.egg-info
+*.vscode*
+*.egg-info*
 temp/
 save/
 data/

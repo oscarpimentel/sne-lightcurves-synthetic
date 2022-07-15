@@ -2,15 +2,15 @@
 # -*- coding: utf-8 -*
 import sys
 import argparse
+
 sys.path.append('../fuzzy-tools')  # or just install the module
 sys.path.append('../astro-lightcurves-handler')  # or just install the module
-
 import fuzzytools as ft
+from dynaconf import settings
 from synthsne.synthetic_datasets import generate_synthetic_dataset
 from synthsne import _C
 from synthsne.distr_fittings import ObsErrorConditionalSampler
 from synthsne.plots.samplers import plot_obse_samplers
-from dynaconf import settings
 
 
 # parser and settings

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*
 import sys
-sys.path.append('../fuzzy-tools')  # or just install the module
-sys.path.append('../astro-lightcurves-handler')  # or just install the module
 import argparse
 
+sys.path.append('../fuzzy-tools')  # or just install the module
+sys.path.append('../astro-lightcurves-handler')  # or just install the module
 import fuzzytools.files as fcfiles
 from fuzzytools.prints import print_big_bar
 from fuzzytools.files import load_pickle, save_pickle, get_dict_from_filedir

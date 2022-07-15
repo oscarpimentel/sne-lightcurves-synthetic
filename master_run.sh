@@ -31,7 +31,7 @@ for method in "${methods[@]}"; do
         run_python_script "generate_synth_objs.py --method $method --kf $kf"
         :
     done
-	wait
+    wait
     # run_python_script "export_synth_datasets.py --method $method"  # export all kf results
     :
     wait
